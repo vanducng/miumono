@@ -10,6 +10,8 @@ from miu_core.models import (
     Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
+from miu_core.tracing import get_tracer
+from miu_core.tracing.types import SpanAttributes
 
 try:
     from anthropic import AsyncAnthropic
@@ -25,6 +27,7 @@ class AnthropicProvider(LLMProvider):
     def __init__(self, model: str = "claude-sonnet-4-20250514") -> None:
         self.model = model
         self._client = AsyncAnthropic()
+        self._tracer = get_tracer("miu.provider")
 
     async def complete(
         self,
@@ -34,20 +37,32 @@ class AnthropicProvider(LLMProvider):
         max_tokens: int = 4096,
     ) -> Response:
         """Send messages to Claude and get response."""
-        api_messages = self._convert_messages(messages)
+        with self._tracer.start_as_current_span("provider.complete") as span:
+            span.set_attribute(SpanAttributes.PROVIDER_NAME, self.name)
+            span.set_attribute(SpanAttributes.PROVIDER_MODEL, self.model)
 
-        kwargs: dict[str, Any] = {
-            "model": self.model,
-            "messages": api_messages,
-            "max_tokens": max_tokens,
-        }
-        if system:
-            kwargs["system"] = system
-        if tools:
-            kwargs["tools"] = tools
+            api_messages = self._convert_messages(messages)
 
-        response = await self._client.messages.create(**kwargs)
-        return self._convert_response(response)
+            kwargs: dict[str, Any] = {
+                "model": self.model,
+                "messages": api_messages,
+                "max_tokens": max_tokens,
+            }
+            if system:
+                kwargs["system"] = system
+            if tools:
+                kwargs["tools"] = tools
+
+            response = await self._client.messages.create(**kwargs)
+            result = self._convert_response(response)
+
+            # Record token usage and stop reason
+            if result.usage:
+                span.set_attribute(SpanAttributes.PROVIDER_TOKENS_INPUT, result.usage.input_tokens)
+                span.set_attribute(SpanAttributes.PROVIDER_TOKENS_OUTPUT, result.usage.output_tokens)
+            span.set_attribute(SpanAttributes.PROVIDER_STOP_REASON, result.stop_reason)
+
+            return result
 
     def _convert_messages(self, messages: list[Message]) -> list[dict[str, Any]]:
         """Convert internal messages to Anthropic format."""
