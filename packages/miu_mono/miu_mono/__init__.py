@@ -9,7 +9,7 @@ A batteries-included framework for building AI agents with:
 - CLI and TUI interfaces (miu-code)
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 # Re-export core functionality
 from miu_core.agents import Agent, AgentConfig, ReActAgent
