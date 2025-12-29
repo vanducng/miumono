@@ -1,0 +1,572 @@
+# Code Standards & Guidelines
+
+**Project:** Miumono
+**Version:** 0.1.0
+**Last Updated:** 2025-12-29
+
+## Overview
+
+This document defines the code standards, patterns, and best practices for Miumono development. Compliance is enforced through automated tooling (Ruff, MyPy, Pytest) and code review.
+
+## Python Version & Environment
+
+- **Minimum Python:** 3.11
+- **Target Python:** 3.11, 3.12, 3.13
+- **Virtual Environment:** `.venv` (local), created by `uv sync`
+- **Package Manager:** UV with workspace configuration
+
+## Code Style & Formatting
+
+### Ruff Configuration
+
+**File:** `pyproject.toml` `[tool.ruff]` section
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["miu_core", "miu_code"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+```
+
+### Formatting Rules
+
+**Line Length:** 100 characters (excluding ignored E501 for exceptionally long lines)
+
+**Indentation:** 4 spaces (never tabs)
+
+**Quotes:** Double quotes for all strings
+```python
+# Good
+message = "Hello, world!"
+docstring = """Multi-line docstring."""
+
+# Bad
+message = 'Hello, world!'
+docstring = '''Multi-line docstring.'''
+```
+
+**Imports:**
+- Use isort-style grouping (stdlib, third-party, first-party, local)
+- Alphabetical ordering within groups
+- One import per line preferred for clarity
+```python
+# Good
+import asyncio
+from typing import Any
+
+from pydantic import BaseModel
+
+from miu_core.models import Message
+from miu_code.tools import read_file
+```
+
+**Naming Conventions:**
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Modules | snake_case | `agent_base.py`, `tool_registry.py` |
+| Functions | snake_case | `get_provider()`, `execute_tool()` |
+| Classes | PascalCase | `ReActAgent`, `AnthropicProvider` |
+| Constants | UPPER_SNAKE_CASE | `DEFAULT_TIMEOUT`, `MAX_RETRIES` |
+| Private members | _leading_underscore | `_internal_state`, `_validate()` |
+| Type variables | PascalCase | `T`, `ProviderType` |
+
+**Blank Lines:**
+- 2 blank lines between top-level functions/classes
+- 1 blank line between methods in a class
+- No blank lines between imports (before non-import code)
+
+**Line Continuation:**
+Prefer implicit continuation over backslash:
+```python
+# Good
+result = (
+    some_function(arg1, arg2) +
+    another_function(arg3, arg4)
+)
+
+# Avoid
+result = some_function(arg1, arg2) + \
+    another_function(arg3, arg4)
+```
+
+## Type Safety & MyPy
+
+### MyPy Configuration
+
+**File:** `pyproject.toml` `[tool.mypy]` section
+
+```toml
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+explicit_package_bases = true
+mypy_path = "packages/miu_core:packages/miu_code"
+exclude = ["tests/"]
+```
+
+### Type Annotation Standards
+
+**All Functions Must Be Typed:**
+```python
+# Good
+def get_provider(name: str) -> Provider:
+    """Get provider by name."""
+    pass
+
+async def execute_tool(
+    tool: Tool,
+    args: dict[str, Any],
+) -> ToolResult:
+    """Execute a tool with given arguments."""
+    pass
+
+# Bad - missing return type
+def get_provider(name: str):
+    pass
+
+# Bad - untyped parameter
+def execute_tool(tool, args: dict) -> ToolResult:
+    pass
+```
+
+**Type Annotations for Complex Types:**
+```python
+from typing import Any, Optional
+
+# Good
+results: list[dict[str, Any]] = []
+callback: Optional[Callable[[Message], None]] = None
+provider_map: dict[str, type[Provider]] = {}
+
+# Avoid
+results = []  # Type unclear
+callback = None  # Could be anything
+provider_map = {}  # Type of values unclear
+```
+
+**Async Functions:**
+```python
+# Good
+async def run_agent(query: str) -> str:
+    """Run agent with query."""
+    return await self._execute(query)
+
+# Must specify return type
+async def process_tools(tools: list[Tool]) -> list[ToolResult]:
+    pass
+```
+
+**Generic Types:**
+```python
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+ProviderT = TypeVar("ProviderT", bound=BaseProvider)
+
+class Registry(Generic[T]):
+    """Generic registry for extensibility."""
+
+    def register(self, name: str, item: T) -> None:
+        pass
+
+    def get(self, name: str) -> Optional[T]:
+        pass
+```
+
+**No Type: Any Except When Necessary:**
+```python
+# Good - specific types
+def parse_config(data: dict[str, str]) -> Config:
+    pass
+
+# Acceptable only when truly unknown
+def handle_api_response(response: Any) -> dict[str, Any]:
+    """Handle response from external API."""
+    return json.loads(response)
+```
+
+## Code Organization
+
+### Module Structure
+
+**Package Layout:**
+```
+miu_core/
+├── __init__.py           # Public API exports
+├── agents/               # Agent implementations
+│   ├── __init__.py       # Public exports
+│   └── base.py           # Base agent class
+├── models/               # Data models
+│   ├── __init__.py
+│   └── messages.py
+├── providers/            # LLM provider integrations
+│   ├── __init__.py
+│   └── anthropic.py
+├── tools/                # Tool abstractions
+│   ├── __init__.py
+│   ├── base.py
+│   └── registry.py
+└── version.py            # Version info
+```
+
+**File Naming:**
+- Module files: lowercase with underscores (`agent_base.py`, `tool_registry.py`)
+- Single responsibility: One main class/concept per file
+- Tests: `test_<module_name>.py` in parallel structure
+
+### Class Structure
+
+```python
+class ExampleClass:
+    """One-line summary.
+
+    More detailed description spanning multiple lines
+    if needed. Explain what the class does, its purpose,
+    and typical usage patterns.
+    """
+
+    # Class variables at top
+    DEFAULT_TIMEOUT: int = 30
+
+    def __init__(self, name: str, value: int) -> None:
+        """Initialize the example class.
+
+        Args:
+            name: The identifier for this instance.
+            value: The initial value.
+        """
+        self.name = name
+        self.value = value
+
+    def public_method(self) -> str:
+        """Public method with clear documentation."""
+        return f"{self.name}={self.value}"
+
+    def _private_method(self) -> None:
+        """Private methods prefixed with underscore."""
+        pass
+
+    @property
+    def computed_property(self) -> int:
+        """Property for computed attributes."""
+        return self.value * 2
+```
+
+## Async/Await Patterns
+
+### Async-First Design
+- All I/O operations must be async (files, HTTP, subprocess)
+- Use `asyncio` for concurrency
+- Use `aiofiles` for file operations
+- Use `httpx` for HTTP requests
+
+```python
+# Good - async file operations
+async def read_file(path: str) -> str:
+    """Read file asynchronously."""
+    async with aiofiles.open(path, "r") as f:
+        return await f.read()
+
+# Good - async HTTP
+async def fetch_data(url: str) -> dict[str, Any]:
+    """Fetch data from URL."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        return response.json()
+
+# Good - concurrent operations
+async def process_files(paths: list[str]) -> list[str]:
+    """Process multiple files concurrently."""
+    tasks = [read_file(path) for path in paths]
+    return await asyncio.gather(*tasks)
+```
+
+### Error Handling in Async Code
+```python
+async def safe_operation() -> Optional[Result]:
+    """Perform operation with error handling."""
+    try:
+        result = await self.fetch_data()
+        return result
+    except asyncio.TimeoutError:
+        logger.error("Operation timed out")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise
+```
+
+## Error Handling
+
+### Exception Hierarchy
+Define custom exceptions at package level:
+```python
+# miu_core/exceptions.py
+class MiuError(Exception):
+    """Base exception for all miu errors."""
+    pass
+
+class ProviderError(MiuError):
+    """LLM provider error."""
+    pass
+
+class ToolError(MiuError):
+    """Tool execution error."""
+    pass
+
+class AgentError(MiuError):
+    """Agent operation error."""
+    pass
+```
+
+### Error Patterns
+```python
+# Good - specific exceptions
+async def execute_tool(tool: Tool) -> ToolResult:
+    try:
+        return await tool.execute()
+    except ProviderError as e:
+        logger.error(f"Provider error: {e}")
+        raise AgentError(f"Tool execution failed: {tool.name}") from e
+
+# Good - validation
+def validate_config(config: dict[str, Any]) -> None:
+    if "api_key" not in config:
+        raise ValueError("Missing required api_key in config")
+```
+
+## Testing Standards
+
+### Test Structure
+
+**File:** `packages/<package>/tests/test_<module>.py`
+
+```python
+import pytest
+
+from miu_core.providers import AnthropicProvider
+
+
+class TestAnthropicProvider:
+    """Tests for AnthropicProvider."""
+
+    @pytest.fixture
+    def provider(self) -> AnthropicProvider:
+        """Create provider instance."""
+        return AnthropicProvider(api_key="test-key")
+
+    def test_initialization(self, provider: AnthropicProvider) -> None:
+        """Test provider initializes correctly."""
+        assert provider is not None
+
+    @pytest.mark.asyncio
+    async def test_execute_async(
+        self,
+        provider: AnthropicProvider,
+    ) -> None:
+        """Test async execution."""
+        result = await provider.generate("test prompt")
+        assert result is not None
+
+
+# Parametrized tests
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("test", "test"),
+        ("", ""),
+        ("hello world", "hello world"),
+    ],
+)
+def test_various_inputs(input: str, expected: str) -> None:
+    """Test with various inputs."""
+    assert process(input) == expected
+```
+
+### Testing Conventions
+
+- **Coverage Target:** ≥80% per package
+- **Async Tests:** Use `@pytest.mark.asyncio`
+- **Mocking:** Use `unittest.mock` for external dependencies
+- **Fixtures:** Reusable test fixtures for common setup
+- **Naming:** `test_<function_name>` or `test_<scenario>`
+
+## Documentation Standards
+
+### Module Documentation
+```python
+"""Module for tool registry and management.
+
+This module provides the core tool registry system that allows
+agents to discover and execute tools. Tools can be registered
+programmatically and accessed by name.
+
+Typical usage:
+    registry = ToolRegistry()
+    registry.register("read_file", read_tool)
+    tool = registry.get("read_file")
+    result = await tool.execute(...)
+"""
+```
+
+### Function/Method Documentation
+```python
+async def execute(
+    self,
+    tool_name: str,
+    arguments: dict[str, Any],
+) -> ToolResult:
+    """Execute a tool by name with given arguments.
+
+    Args:
+        tool_name: Name of the tool to execute.
+        arguments: Arguments to pass to the tool.
+
+    Returns:
+        ToolResult containing output and metadata.
+
+    Raises:
+        ToolError: If tool not found or execution fails.
+
+    Example:
+        result = await registry.execute(
+            "read_file",
+            {"path": "/etc/config"},
+        )
+        print(result.output)
+    """
+```
+
+### Documentation Elements
+- One-line summary (imperative)
+- Detailed description if complex
+- Args section with types and descriptions
+- Returns section with type and description
+- Raises section listing exceptions
+- Example section for non-obvious usage
+
+## Security Considerations
+
+### Input Validation
+```python
+from pathlib import Path
+
+def validate_file_path(path: str) -> Path:
+    """Validate and sanitize file path."""
+    # Prevent directory traversal
+    resolved = Path(path).resolve()
+    base = Path.cwd().resolve()
+
+    if not str(resolved).startswith(str(base)):
+        raise ValueError(f"Path outside allowed directory: {path}")
+
+    return resolved
+```
+
+### Environment Variables
+```python
+import os
+
+# Good - use environment variables for secrets
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+
+# Bad - never hardcode credentials
+api_key = "sk-1234567890"  # Don't do this!
+```
+
+## Performance Guidelines
+
+### Async Best Practices
+- Never block the event loop
+- Use `asyncio.gather()` for concurrent operations
+- Use timeouts on network operations
+- Cache expensive computations
+
+### Memory Management
+```python
+# Good - generator for large datasets
+async def process_large_file(path: str) -> AsyncGenerator[str, None]:
+    """Process file line by line."""
+    async with aiofiles.open(path) as f:
+        async for line in f:
+            yield line.strip()
+
+# Avoid - loading entire file into memory
+async def bad_process_file(path: str) -> list[str]:
+    async with aiofiles.open(path) as f:
+        return (await f.read()).split("\n")
+```
+
+## Version & Release
+
+### Version Format
+Semantic Versioning: `MAJOR.MINOR.PATCH`
+- `0.1.0` - MVP release
+- `0.2.0` - Feature additions
+- `1.0.0` - Stable release
+
+**File:** `miu_core/version.py`
+
+### Changelog
+Maintain CHANGELOG.md with:
+- Added, Changed, Deprecated, Removed, Fixed, Security sections
+- Version and date for each release
+
+## Tools & Commands Reference
+
+**Install & Sync:**
+```bash
+uv sync              # Install all dependencies
+```
+
+**Linting & Formatting:**
+```bash
+uv run ruff check .             # Check for violations
+uv run ruff format .            # Auto-format code
+```
+
+**Type Checking:**
+```bash
+uv run mypy packages/           # Type check all packages
+uv run mypy packages/miu_core   # Type check specific package
+```
+
+**Testing:**
+```bash
+uv run pytest                           # Run all tests
+uv run pytest packages/miu_core         # Test specific package
+uv run pytest --cov                     # With coverage report
+uv run pytest -v packages/miu_code/tests/test_code_tools.py
+```
+
+**Combined Check:**
+```bash
+uv sync && \
+uv run ruff check . && \
+uv run ruff format . && \
+uv run mypy packages/ && \
+uv run pytest --cov
+```
+
+---
+
+**Document Status:** ACTIVE
+**Enforced By:** CI/CD Pipeline
+**Last Review:** 2025-12-29

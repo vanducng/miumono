@@ -1,0 +1,70 @@
+[project]
+name = "miumono"
+version = "0.1.0"
+description = "AI Agent Framework Monorepo"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Van Duc Nguyen" }]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+miu-core = { workspace = true }
+miu-code = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+# ========================================
+# RUFF - Linting & Formatting
+# ========================================
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["miu_core", "miu_code"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ========================================
+# MYPY - Type Checking
+# ========================================
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+explicit_package_bases = true
+mypy_path = "packages/miu_core:packages/miu_code"
+exclude = ["tests/"]
+
+[[tool.mypy.overrides]]
+module = ["anthropic.*", "openai.*", "google.*", "textual.*", "mcp.*", "asyncclick.*"]
+ignore_missing_imports = true
+
+# ========================================
+# PYTEST - Testing
+# ========================================
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["packages/miu_core/tests", "packages/miu_code/tests"]
+pythonpath = ["packages/miu_core", "packages/miu_code"]
+addopts = "-v --tb=short"
+filterwarnings = ["ignore::DeprecationWarning"]
