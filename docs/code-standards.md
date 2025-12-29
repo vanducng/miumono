@@ -524,10 +524,42 @@ Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 **File:** `miu_core/version.py`
 
+### Conventional Commits
+
+All commits must follow Conventional Commits format to enable automated versioning via Release-Please:
+
+**Format:** `<type>(<scope>): <subject>`
+
+**Types:**
+- `feat` - New feature (minor version bump)
+- `fix` - Bug fix (patch version bump)
+- `perf` - Performance improvement (shows in changelog)
+- `refactor` - Code refactoring (hidden from changelog)
+- `docs` - Documentation changes (hidden from changelog)
+- `chore` - Maintenance, dependencies (hidden from changelog)
+
+**Examples:**
+```bash
+# Feature
+git commit -m "feat(agent): add streaming support"
+
+# Bug fix
+git commit -m "fix(tools): resolve file validation issue"
+
+# Breaking change (major version bump)
+git commit -m "feat(api): redesign provider interface
+
+BREAKING CHANGE: Provider.execute() renamed to Provider.invoke()"
+```
+
 ### Changelog
-Maintain CHANGELOG.md with:
-- Added, Changed, Deprecated, Removed, Fixed, Security sections
-- Version and date for each release
+Automatically generated per-package via Release-Please:
+- Generated from commit types and scopes
+- One CHANGELOG.md per package in `packages/*/CHANGELOG.md`
+- Sections: Features, Bug Fixes, Performance, Refactoring
+- Includes commit links and contributor mentions
+
+**See:** `docs/release-management.md` for Release-Please configuration
 
 ## Tools & Commands Reference
 

@@ -176,10 +176,11 @@ Enable developers to build production-grade AI agents that understand code and c
 - [ ] Deployment guide completion
 - [ ] Security audit and fixes
 - [ ] Example applications
+- [x] Release-Please configuration (Phase 1A+)
 
 ### Phase 1C & Beyond
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] PyPI release automation
+- [ ] CI/CD pipeline (GitHub Actions) with release automation
+- [ ] PyPI release automation via GitHub Actions
 - [ ] Web UI interface
 - [ ] Advanced debugging tools
 - [ ] Plugin system architecture
