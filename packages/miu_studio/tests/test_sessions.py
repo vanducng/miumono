@@ -27,9 +27,7 @@ def session_manager(temp_session_dir: Path) -> SessionManager:
 @pytest.fixture
 def client(session_manager: SessionManager) -> TestClient:
     """Create test client with injected session manager."""
-    with patch(
-        "miu_studio.api.routes.sessions._session_manager", session_manager
-    ):
+    with patch("miu_studio.api.routes.sessions._session_manager", session_manager):
         app = create_app()
         yield TestClient(app)
 

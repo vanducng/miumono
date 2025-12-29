@@ -1,9 +1,47 @@
-"""API models for miu-studio sessions."""
+"""API models for miu-studio sessions and chat."""
 
 from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
+
+# ============================================================================
+# Chat Models
+# ============================================================================
+
+
+class ChatRequest(BaseModel):
+    """Request for chat invoke/stream endpoints."""
+
+    session_id: str = Field(description="Session ID (UUID format)")
+    message: str = Field(description="User message to send")
+
+
+class ChatResponse(BaseModel):
+    """Response from chat invoke endpoint."""
+
+    session_id: str
+    response: str
+    message_count: int
+
+
+class StreamChunk(BaseModel):
+    """Streaming chunk for SSE."""
+
+    type: Literal["chunk", "done", "error"] = "chunk"
+    content: str = ""
+
+
+class WebSocketMessage(BaseModel):
+    """WebSocket message format."""
+
+    type: Literal["message", "chunk", "done", "error"]
+    content: str = ""
+
+
+# ============================================================================
+# Session Models
+# ============================================================================
 
 
 class SessionMessage(BaseModel):
