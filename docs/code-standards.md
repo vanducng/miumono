@@ -552,6 +552,10 @@ git commit -m "feat(api): redesign provider interface
 BREAKING CHANGE: Provider.execute() renamed to Provider.invoke()"
 ```
 
+### PR Title Requirements
+
+PR titles must follow Conventional Commits format (enforced by `pr-title-check` workflow). When PRs are squash-merged, the title becomes the commit message for automated versioning.
+
 ### Changelog
 Automatically generated per-package via Release-Please:
 - Generated from commit types and scopes

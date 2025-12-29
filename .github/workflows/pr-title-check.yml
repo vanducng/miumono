@@ -1,0 +1,40 @@
+# Validates PR titles follow Conventional Commits format
+# Required for release-please to work correctly with squash merge
+# Ref: https://www.conventionalcommits.org/
+
+name: PR Title Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+    branches: [main]
+
+jobs:
+  check-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          # Conventional commit pattern: type(scope): description
+          # Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+          PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?(!)?: .+"
+          if [[ ! "$TITLE" =~ $PATTERN ]]; then
+            echo "::error::PR title must follow Conventional Commits format"
+            echo ""
+            echo "Expected format: type(scope): description"
+            echo "  - type: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert"
+            echo "  - scope: optional, e.g., miu-core, miu-code"
+            echo "  - !: optional, indicates breaking change"
+            echo ""
+            echo "Examples:"
+            echo "  feat(miu-core): add new provider interface"
+            echo "  fix(miu-code): resolve CLI parsing bug"
+            echo "  chore: update dependencies"
+            echo "  feat!: breaking API change"
+            echo ""
+            echo "Got: $TITLE"
+            exit 1
+          fi
+          echo "::notice::PR title is valid: $TITLE"
