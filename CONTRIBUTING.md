@@ -75,6 +75,60 @@ refactor: simplify tool manager
 - Wait for CI to pass
 - Request review
 
+## Releases
+
+Releases are automated using [release-please](https://github.com/googleapis/release-please).
+
+### How It Works
+
+1. **Write commits using Conventional Commits format:**
+   ```
+   feat(miu-core): add new provider interface
+   fix(miu-code): resolve CLI parsing issue
+   docs(miu-studio): update API reference
+   ```
+
+2. **Push/merge to main branch**
+
+3. **Review Release PR:**
+   - release-please creates a PR per package with changes
+   - PR includes version bump + changelog preview
+   - Review and merge when ready to release
+
+4. **Automatic Publishing:**
+   - Merging release PR creates GitHub Release
+   - PyPI publishing triggers automatically
+
+### Commit Message Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:** feat, fix, docs, style, refactor, perf, test, chore, ci, build
+**Scopes:** miu-core, miu-code, miu-examples, miu-studio, miu
+
+### Version Bumps
+
+| Commit Type | Version Change |
+|-------------|---------------|
+| `fix:` | Patch (0.0.X) |
+| `feat:` | Minor (0.X.0) |
+| `BREAKING CHANGE:` in footer | Major (X.0.0) |
+
+### Independent Versioning
+
+Each package is versioned independently:
+- `miu-core-v1.2.0`
+- `miu-code-v2.0.0`
+- etc.
+
+See [docs/release-management.md](docs/release-management.md) for detailed release process documentation.
+
 ## Code Style
 
 ### Python

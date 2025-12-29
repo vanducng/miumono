@@ -2,7 +2,7 @@
 
 **Project:** Miumono
 **Version:** 0.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 
 ## Overview
 
@@ -404,10 +404,12 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 - **Code Standards:** See `docs/code-standards.md` for commit message style
 - **Deployment:** See `docs/deployment-guide.md` for PyPI publication and publish workflow
+- **Contributing:** See `CONTRIBUTING.md` for contributor guidelines and release section
 - **CI/CD:** All workflows in `.github/workflows/`
   - `release-please.yml` - Release PR and GitHub release creation
-  - `publish.yml` - PyPI package publication (to be created)
+  - `release.yml` - PyPI package publication
   - `ci.yml` - Tests and linting
+  - `pr-title-check.yml` - PR title conventional commit validation
 
 ## Resources
 
@@ -418,10 +420,11 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 ---
 
-**Document Status:** Phase 3A (Remove Legacy Scripts Complete)
+**Document Status:** Phase 3B (Documentation Complete)
 **Approval Status:** Complete - Release-Please is the only release mechanism
 **Maintainer:** Development Team
 **Last Review:** 2025-12-30
-**Phase 3A Updates:**
-- Removed legacy manual release scripts (bump_version.py, release.py)
-- Release-Please is now the sole release automation tool
+**Phase 3B Updates:**
+- Updated CONTRIBUTING.md with release section
+- Verified documentation accuracy after legacy script removal
+- Release-Please is the sole release automation tool
