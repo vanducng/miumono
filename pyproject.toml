@@ -13,6 +13,7 @@ members = ["packages/*"]
 [tool.uv.sources]
 miu-core = { workspace = true }
 miu-code = { workspace = true }
+miu-studio = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -36,7 +37,7 @@ select = ["E", "F", "W", "I", "UP", "B", "RUF"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["miu_core", "miu_code"]
+known-first-party = ["miu_core", "miu_code", "miu_studio"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -53,15 +54,15 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
-mypy_path = "packages/miu_core:packages/miu_code"
+mypy_path = "packages/miu_core:packages/miu_code:packages/miu_studio"
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]
-module = ["anthropic.*", "openai.*", "google.*", "textual.*", "mcp.*", "asyncclick.*", "rich.*"]
+module = ["anthropic.*", "openai.*", "google.*", "textual.*", "mcp.*", "asyncclick.*", "rich.*", "uvicorn.*", "pydantic_settings.*", "fastapi.*", "websockets.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["miu_code.tui.*", "miu_code.cli.entry"]
+module = ["miu_code.tui.*", "miu_code.cli.entry", "miu_studio.api.routes.*", "miu_studio.core.config"]
 disallow_subclassing_any = false
 disallow_untyped_decorators = false
 
@@ -70,7 +71,7 @@ disallow_untyped_decorators = false
 # ========================================
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["packages/miu_core/tests", "packages/miu_code/tests"]
-pythonpath = ["packages/miu_core", "packages/miu_code"]
+testpaths = ["packages/miu_core/tests", "packages/miu_code/tests", "packages/miu_studio/tests"]
+pythonpath = ["packages/miu_core", "packages/miu_code", "packages/miu_studio"]
 addopts = "-v --tb=short"
 filterwarnings = ["ignore::DeprecationWarning"]
