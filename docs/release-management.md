@@ -400,14 +400,31 @@ miu-code--tag_name: miu-code-v0.1.1
 
 Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
+## PyPI Trusted Publisher Configuration
+
+To publish packages to PyPI using OIDC trusted publishing:
+
+1. **For each package**, configure PyPI trusted publisher:
+   - Project: https://pypi.org/project/{package-name}/
+   - Settings → Trusted Publishers → Add
+   - GitHub repository: `vanducng/miumono`
+   - Workflow: `.github/workflows/release.yml`
+   - Environment: `pypi`
+
+2. **Optional TestPyPI setup** (for testing):
+   - Same steps for https://test.pypi.org/project/{package-name}/
+   - Environment: `testpypi`
+
+See `docs/deployment-guide.md` for detailed PyPI setup instructions.
+
 ## Related Documentation
 
 - **Code Standards:** See `docs/code-standards.md` for commit message style
-- **Deployment:** See `docs/deployment-guide.md` for PyPI publication and publish workflow
+- **Deployment:** See `docs/deployment-guide.md` for PyPI publication, trusted publisher setup, and publish workflow
 - **Contributing:** See `CONTRIBUTING.md` for contributor guidelines and release section
 - **CI/CD:** All workflows in `.github/workflows/`
   - `release-please.yml` - Release PR and GitHub release creation
-  - `release.yml` - PyPI package publication
+  - `release.yml` - PyPI package publication with OIDC
   - `ci.yml` - Tests and linting
   - `pr-title-check.yml` - PR title conventional commit validation
 
@@ -420,11 +437,13 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 ---
 
-**Document Status:** Phase 3B (Documentation Complete)
-**Approval Status:** Complete - Release-Please is the only release mechanism
+**Document Status:** Phase 3C (Validation Complete)
+**Approval Status:** Complete - Release-Please + OIDC trusted publishing verified
 **Maintainer:** Development Team
 **Last Review:** 2025-12-30
-**Phase 3B Updates:**
-- Updated CONTRIBUTING.md with release section
-- Verified documentation accuracy after legacy script removal
-- Release-Please is the sole release automation tool
+**Phase 3C Updates:**
+- Added PyPI trusted publisher configuration section
+- Verified all 5 packages use correct naming: miu-core, miu-code, miu-examples, miu-studio, miu
+- Confirmed tag format: {package}-v{version} (e.g., miu-core-v1.0.0)
+- Cross-referenced deployment-guide.md for detailed OIDC setup
+- No breaking changes - validation-only phase

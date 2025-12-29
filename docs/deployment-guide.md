@@ -146,19 +146,48 @@ release-please github-release \
 
 ### Prerequisites
 
-1. PyPI account and token:
-   ```bash
-   # Create token at https://pypi.org/account/tokens/
-   export PYPI_TOKEN="pypi-..."
-   ```
+**Important:** Miumono uses **OIDC Trusted Publishing** via GitHub Actions, which means:
+- No PyPI API tokens are stored in repository secrets
+- Authentication happens via OpenID Connect (OIDC)
+- GitHub Actions obtains temporary credentials from PyPI
 
-2. GitHub Actions secret (if using CI/CD):
-   - Add `PYPI_TOKEN` to repository secrets
-   - GitHub Actions can then publish automatically
+#### Initial Setup (One-time)
+
+1. Configure PyPI trusted publisher:
+   - Go to PyPI project settings (e.g., https://pypi.org/project/miu-core/)
+   - Add trusted publisher:
+     - GitHub repository owner: `vanducng`
+     - Repository name: `miumono`
+     - Workflow filename: `.github/workflows/release.yml`
+     - Environment name: `pypi`
+   - Repeat for all 5 packages (miu-core, miu-code, miu-examples, miu-studio, miu)
+
+2. Optional: Configure TestPyPI trusted publisher (same steps):
+   - Go to TestPyPI project settings
+   - Environment name: `testpypi`
+
+#### CI/CD Workflow (Automatic)
+
+No token setup needed! GitHub Actions:
+- Workflow requests OpenID Connect token from GitHub
+- Exchanges token with PyPI for temporary credentials
+- Publishes package without storing secrets
 
 ### Publishing Commands
 
-**Build packages:**
+**Recommended: Automated CI/CD (Primary Method)**
+
+Publishing is automated via GitHub Actions workflows:
+1. Push commits with conventional format to main
+2. Release-Please creates release PR (optional review)
+3. Merge release PR → GitHub release created
+4. Release event → Publish workflow publishes to PyPI (OIDC)
+
+No manual publishing required for normal releases.
+
+**Manual Publishing (Emergency/Override)**
+
+Build locally:
 ```bash
 # Build all packages
 uv build
@@ -167,17 +196,12 @@ uv build
 cd packages/miu_core && uv build
 ```
 
-**Publish to PyPI:**
-```bash
-# Publish all packages
-uv publish --token $PYPI_TOKEN
+If needed for emergency publishing, token-based publishing requires:
+1. Creating PyPI API token (not recommended - use trusted publishing instead)
+2. Exporting token to environment
+3. Running `uv publish`
 
-# Publish specific package
-cd packages/miu_code && uv publish --token $PYPI_TOKEN
-
-# Test upload first (TestPyPI)
-uv publish --publish-url https://test.pypi.org/legacy/ --token $TEST_PYPI_TOKEN
-```
+**This is NOT the standard flow** - use CI/CD workflows instead.
 
 ## GitHub Actions Workflows (Phase 2A)
 
@@ -327,16 +351,31 @@ dependencies = [
 
 ### PyPI Publish Fails
 
-**Cause:** Invalid token or already published version
+**Cause:** Trusted publisher not configured, OIDC token exchange failed, or version already published
 
 **Solution:**
-```bash
-# Check token validity
-curl -H "Authorization: Bearer $PYPI_TOKEN" https://pypi.org/pypi
 
-# Check published version exists
-pip index versions miu-code
-```
+1. Verify trusted publisher configured:
+   - Go to PyPI project settings
+   - Confirm GitHub repository and workflow are listed under "Trusted Publishers"
+   - Confirm environment name matches workflow (`pypi` or `testpypi`)
+
+2. Check GitHub Actions permissions:
+   - Workflow must have `id-token: write` permission
+   - Verify in `.github/workflows/release.yml`
+
+3. Check if version already published:
+   ```bash
+   # View published versions
+   pip index versions miu-code
+
+   # Or visit PyPI directly
+   # https://pypi.org/project/miu-code/
+   ```
+
+4. Review workflow logs:
+   - Go to GitHub Actions → Release workflow
+   - Check "Publish to PyPI" job output for OIDC token errors
 
 ### Build Failures
 
@@ -385,12 +424,13 @@ uv build --dry-run
 
 ---
 
-**Document Status:** Phase 2A (Publish Workflow Complete)
-**Approval Status:** Complete - OIDC trusted publishing implemented
+**Document Status:** Phase 3C (Validation Complete)
+**Approval Status:** Complete - OIDC trusted publishing verified
 **Maintainer:** Development Team
-**Last Review:** 2025-12-29
-**Phase 2A Updates:**
-- Documented release.yml with per-package matrix strategy
-- Updated trigger from tag push to release event
-- Documented OIDC trusted publishing (no token storage)
-- Documented test PyPI support via workflow_dispatch
+**Last Review:** 2025-12-30
+**Phase 3C Updates:**
+- Added comprehensive PyPI trusted publisher setup instructions
+- Updated troubleshooting section for OIDC workflows
+- Clarified CI/CD as primary publishing method
+- Removed token-based publishing from standard flow
+- All 5 packages documented with correct naming conventions
