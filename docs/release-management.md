@@ -418,11 +418,10 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 ---
 
-**Document Status:** Phase 2A (Per-Package Publishing Complete)
-**Approval Status:** Complete - Both workflows implemented
+**Document Status:** Phase 3A (Remove Legacy Scripts Complete)
+**Approval Status:** Complete - Release-Please is the only release mechanism
 **Maintainer:** Development Team
-**Last Review:** 2025-12-29
-**Phase 2A Updates:**
-- Documented per-package matrix publishing strategy
-- Clarified release.yml trigger and architecture
-- Removed create-release job documentation (now handled by release-please)
+**Last Review:** 2025-12-30
+**Phase 3A Updates:**
+- Removed legacy manual release scripts (bump_version.py, release.py)
+- Release-Please is now the sole release automation tool

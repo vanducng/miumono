@@ -2,7 +2,7 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 
 ## Release Timeline
 
@@ -47,7 +47,7 @@
 ---
 
 ### Phase 1C: CI/CD & Release Automation
-**Status:** PLANNED (Target: 2026-02-01)
+**Status:** IN PROGRESS (Target: 2026-02-01)
 
 **Scope:**
 - GitHub Actions CI/CD pipeline
@@ -62,6 +62,18 @@
 - Automated testing matrix
 - Version bump tooling
 - Release checklist automation
+
+**Progress Notes:**
+- Release-please implementation complete (3A/5 phases DONE as of 2025-12-30)
+  - Phase 3A: Archive Legacy Scripts - COMPLETE (2025-12-30)
+    - Scripts renamed: bump_version.py → manual_bump_version.py
+    - Scripts renamed: release.py → manual_release.py
+    - Documentation updated (release-management.md, scripts/README.md)
+    - Fallback-only status clearly documented
+- Separate PRs per package enabled for independent versioning
+- Conventional commits enforcement added
+- Legacy manual scripts archived with new names
+- Pending: Validation testing (3B) and additional CI/CD setup (3C)
 
 ---
 
