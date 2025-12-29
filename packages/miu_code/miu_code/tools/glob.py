@@ -1,10 +1,10 @@
 """Glob file pattern tool."""
 
-from pathlib import Path
-
 from pydantic import BaseModel, Field
 
 from miu_core.tools import Tool, ToolContext, ToolResult
+
+from .security import PathTraversalError, validate_path
 
 
 class GlobInput(BaseModel):
@@ -31,10 +31,14 @@ class GlobTool(Tool):
         **kwargs: object,
     ) -> ToolResult:
         """Find files matching pattern."""
-        base = Path(path) if path else Path(ctx.working_dir)
-
-        if not base.is_absolute():
-            base = Path(ctx.working_dir) / base
+        try:
+            base = validate_path(path or ".", ctx.working_dir)
+        except PathTraversalError as e:
+            return ToolResult(
+                output=f"Access denied: {path}",
+                success=False,
+                error=str(e),
+            )
 
         if not base.exists():
             return ToolResult(

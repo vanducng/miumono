@@ -1,11 +1,12 @@
 """Grep search tool."""
 
 import re
-from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 from miu_core.tools import Tool, ToolContext, ToolResult
+
+from .security import PathTraversalError, validate_path
 
 
 class GrepInput(BaseModel):
@@ -34,10 +35,14 @@ class GrepTool(Tool):
         **kwargs: object,
     ) -> ToolResult:
         """Search for pattern in files."""
-        base = Path(path) if path else Path(ctx.working_dir)
-
-        if not base.is_absolute():
-            base = Path(ctx.working_dir) / base
+        try:
+            base = validate_path(path or ".", ctx.working_dir)
+        except PathTraversalError as e:
+            return ToolResult(
+                output=f"Access denied: {path}",
+                success=False,
+                error=str(e),
+            )
 
         if not base.exists():
             return ToolResult(

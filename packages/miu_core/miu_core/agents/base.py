@@ -4,7 +4,9 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from miu_core.models import Message, Response
+from miu_core.memory import Memory as MemoryInterface
+from miu_core.memory import ShortTermMemory
+from miu_core.models import Response
 from miu_core.providers.base import LLMProvider
 from miu_core.tools.registry import ToolRegistry
 
@@ -14,23 +16,7 @@ class AgentConfig(BaseModel):
 
     system_prompt: str = "You are a helpful AI assistant."
     max_iterations: int = 10
-
-
-class Memory:
-    """Simple message memory."""
-
-    def __init__(self) -> None:
-        self._messages: list[Message] = []
-
-    @property
-    def messages(self) -> list[Message]:
-        return self._messages.copy()
-
-    def add(self, message: Message) -> None:
-        self._messages.append(message)
-
-    def clear(self) -> None:
-        self._messages.clear()
+    max_context_tokens: int = 100000  # Auto-truncate at this limit
 
 
 class Agent(ABC):
@@ -41,11 +27,12 @@ class Agent(ABC):
         provider: LLMProvider,
         tools: ToolRegistry | None = None,
         config: AgentConfig | None = None,
+        memory: MemoryInterface | None = None,
     ) -> None:
         self.provider = provider
         self.tools = tools or ToolRegistry()
         self.config = config or AgentConfig()
-        self.memory = Memory()
+        self.memory = memory or ShortTermMemory()
 
     @abstractmethod
     async def run(self, query: str) -> Response:

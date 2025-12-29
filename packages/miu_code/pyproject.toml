@@ -19,11 +19,13 @@ dependencies = [
     "asyncclick>=8.1",
     "rich>=13.0",
     "prompt-toolkit>=3.0",
+    "textual>=0.90",
 ]
 
 [project.scripts]
 miu = "miu_code.__main__:main"
 miu-code = "miu_code.__main__:main"
+miu-tui = "miu_code.tui.app:run"
 
 [project.urls]
 Homepage = "https://github.com/vanducng/miumono"

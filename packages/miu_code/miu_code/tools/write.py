@@ -1,10 +1,10 @@
 """Write file tool."""
 
-from pathlib import Path
-
 from pydantic import BaseModel, Field
 
 from miu_core.tools import Tool, ToolContext, ToolResult
+
+from .security import PathTraversalError, validate_path
 
 
 class WriteInput(BaseModel):
@@ -31,10 +31,14 @@ class WriteTool(Tool):
         **kwargs: object,
     ) -> ToolResult:
         """Write content to file."""
-        path = Path(file_path)
-
-        if not path.is_absolute():
-            path = Path(ctx.working_dir) / path
+        try:
+            path = validate_path(file_path, ctx.working_dir)
+        except PathTraversalError as e:
+            return ToolResult(
+                output=f"Access denied: {file_path}",
+                success=False,
+                error=str(e),
+            )
 
         try:
             path.parent.mkdir(parents=True, exist_ok=True)

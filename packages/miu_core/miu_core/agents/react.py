@@ -1,6 +1,7 @@
 """ReAct (Reasoning + Acting) agent implementation."""
 
 from miu_core.agents.base import Agent, AgentConfig
+from miu_core.memory import Memory
 from miu_core.models import Message, Response, TextContent, ToolResultContent
 from miu_core.providers.base import LLMProvider
 from miu_core.tools.base import ToolContext
@@ -15,18 +16,22 @@ class ReActAgent(Agent):
         provider: LLMProvider,
         tools: ToolRegistry | None = None,
         config: AgentConfig | None = None,
+        memory: Memory | None = None,
         working_dir: str = ".",
     ) -> None:
-        super().__init__(provider, tools, config)
+        super().__init__(provider, tools, config, memory)
         self.working_dir = working_dir
 
     async def run(self, query: str) -> Response:
         """Execute ReAct loop for query."""
         self.memory.add(Message(role="user", content=query))
 
+        # Auto-truncate if over context limit
+        self.memory.truncate(self.config.max_context_tokens)
+
         for _ in range(self.config.max_iterations):
             response = await self.provider.complete(
-                messages=self.memory.messages,
+                messages=self.memory.get_messages(),
                 tools=self.tools.get_schemas() if len(self.tools) > 0 else None,
                 system=self.config.system_prompt,
             )

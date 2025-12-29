@@ -34,12 +34,23 @@ class TestReadTool:
         assert "line2" in result.output
 
     @pytest.mark.asyncio
-    async def test_read_nonexistent(self, ctx: ToolContext) -> None:
+    async def test_read_nonexistent(self, temp_dir: Path, ctx: ToolContext) -> None:
         tool = ReadTool()
-        result = await tool.execute(ctx, file_path="/nonexistent/file.txt")
+        # Use a path within the working directory that doesn't exist
+        nonexistent = temp_dir / "nonexistent" / "file.txt"
+        result = await tool.execute(ctx, file_path=str(nonexistent))
 
         assert not result.success
         assert "not found" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_read_path_traversal_blocked(self, ctx: ToolContext) -> None:
+        """Test that path traversal attacks are blocked."""
+        tool = ReadTool()
+        result = await tool.execute(ctx, file_path="/etc/passwd")
+
+        assert not result.success
+        assert "access denied" in result.output.lower()
 
     @pytest.mark.asyncio
     async def test_read_with_offset_limit(self, temp_dir: Path, ctx: ToolContext) -> None:

@@ -4,7 +4,7 @@ from miu_code.session.storage import SessionStorage
 from miu_code.tools import get_all_tools
 from miu_core.agents import AgentConfig, ReActAgent
 from miu_core.models import Response
-from miu_core.providers import AnthropicProvider
+from miu_core.providers import create_provider
 from miu_core.tools import ToolRegistry
 
 SYSTEM_PROMPT = """You are a helpful AI coding assistant. You can read, write, and edit files, \
@@ -24,11 +24,11 @@ class CodingAgent:
 
     def __init__(
         self,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "anthropic:claude-sonnet-4-20250514",
         working_dir: str = ".",
         session_id: str | None = None,
     ) -> None:
-        self.provider = AnthropicProvider(model=model)
+        self.provider = create_provider(model)
         self.tools = ToolRegistry()
         self.working_dir = working_dir
         self.session = SessionStorage(session_id=session_id, working_dir=working_dir)

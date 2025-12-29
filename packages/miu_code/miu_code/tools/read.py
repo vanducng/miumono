@@ -1,10 +1,10 @@
 """Read file tool."""
 
-from pathlib import Path
-
 from pydantic import BaseModel, Field
 
 from miu_core.tools import Tool, ToolContext, ToolResult
+
+from .security import PathTraversalError, validate_path
 
 
 class ReadInput(BaseModel):
@@ -33,10 +33,14 @@ class ReadTool(Tool):
         **kwargs: object,
     ) -> ToolResult:
         """Read file and return numbered lines."""
-        path = Path(file_path)
-
-        if not path.is_absolute():
-            path = Path(ctx.working_dir) / path
+        try:
+            path = validate_path(file_path, ctx.working_dir)
+        except PathTraversalError as e:
+            return ToolResult(
+                output=f"Access denied: {file_path}",
+                success=False,
+                error=str(e),
+            )
 
         if not path.exists():
             return ToolResult(
