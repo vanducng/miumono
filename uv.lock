@@ -991,7 +991,7 @@ requires-dist = [
 
 [[package]]
 name = "miu-core"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/miu_core" }
 dependencies = [
     { name = "aiofiles" },
@@ -1067,7 +1067,7 @@ provides-extras = ["rag"]
 
 [[package]]
 name = "miu-mono"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "packages/miu_mono" }
 dependencies = [
     { name = "asyncclick" },
@@ -1100,7 +1100,7 @@ provides-extras = ["examples", "studio", "all"]
 
 [[package]]
 name = "miu-studio"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/miu_studio" }
 dependencies = [
     { name = "aiofiles" },

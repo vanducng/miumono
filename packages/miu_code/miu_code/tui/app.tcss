@@ -1,46 +1,90 @@
-/* Miu Code TUI Styles */
+/* Miu Code TUI Styles - Teal/Cyan Brand Theme */
+
+/* Miu brand color variables */
+$miu-primary: #1ABC9C;
+$miu-light: #48C9B0;
+$miu-secondary: #16A085;
+$miu-accent: #0E6655;
+$miu-highlight: #76D7C4;
 
 Screen {
     background: $surface;
 }
 
+/* Header - minimal with teal accent */
 Header {
     dock: top;
-    background: $primary;
-    color: $text;
+    background: $surface-darken-1;
+    color: $miu-primary;
     text-style: bold;
+    height: 1;
 }
 
+/* Footer - subtle, informative */
 Footer {
     dock: bottom;
-    background: $primary-darken-2;
+    background: $surface-darken-1;
+    height: 1;
 }
 
+/* Banner container */
+#banner {
+    height: auto;
+    padding: 0 1;
+    margin-bottom: 0;
+}
+
+/* Main content area */
 #main {
     width: 100%;
     height: 1fr;
-    padding: 1 2;
+    padding: 0 1;
 }
 
+/* Chat log - clean, minimal borders */
 #chat {
     height: 100%;
-    border: solid $primary;
+    border: none;
     padding: 1;
+    scrollbar-gutter: stable;
 }
 
+/* Loading indicator */
+#loading {
+    height: 1;
+    dock: bottom;
+    padding: 0 1;
+    margin: 0;
+}
+
+/* Input field - teal accent border */
 #input {
     dock: bottom;
     height: auto;
-    margin: 1 2;
-    border: solid $accent;
+    margin: 1 1;
+    border: solid $miu-primary;
+    background: $surface;
 }
 
+#input:focus {
+    border: solid $miu-highlight;
+}
+
+/* Input container for grouping */
+#input-container {
+    dock: bottom;
+    height: auto;
+    padding: 0;
+    margin: 0 1;
+}
+
+/* Message styling classes */
 .message-user {
-    color: $primary;
+    color: #3498DB;
 }
 
 .message-assistant {
-    color: $success;
+    color: $miu-primary;
 }
 
 .message-system {
@@ -48,5 +92,36 @@ Footer {
 }
 
 .message-error {
-    color: $error;
+    color: #E74C3C;
+}
+
+.message-thinking {
+    color: $miu-light;
+    text-style: italic;
+}
+
+/* Tool call styling */
+.tool-call {
+    color: $miu-primary;
+}
+
+.tool-result {
+    color: $text-muted;
+}
+
+/* Scrollbar styling */
+RichLog > ScrollBar {
+    width: 1;
+}
+
+RichLog > ScrollBar > .scrollbar--bar {
+    color: $miu-primary 30%;
+}
+
+RichLog > ScrollBar > .scrollbar--bar-hover {
+    color: $miu-primary 60%;
+}
+
+RichLog > ScrollBar > .scrollbar--bar-active {
+    color: $miu-highlight;
 }
