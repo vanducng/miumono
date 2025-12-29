@@ -17,7 +17,7 @@ def get_tracer(name: str = "miu") -> Tracer:
     try:
         from miu_core.tracing.otel import get_tracer as _get_tracer
 
-        return _get_tracer(name)  # type: ignore[return-value]
+        return _get_tracer(name)  # type: ignore[no-any-return]
     except ImportError:
         from miu_core.tracing.noop import NoOpTracer
 
