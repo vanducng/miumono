@@ -10,10 +10,10 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "miu",
     "miu-code",
     "miu-core",
     "miu-examples",
+    "miu-mono",
     "miu-studio",
     "miumono",
 ]
@@ -969,39 +969,6 @@ wheels = [
 ]
 
 [[package]]
-name = "miu"
-version = "0.1.0"
-source = { editable = "packages/miu" }
-dependencies = [
-    { name = "asyncclick" },
-    { name = "miu-code" },
-    { name = "miu-core", extra = ["all"] },
-]
-
-[package.optional-dependencies]
-all = [
-    { name = "miu-examples" },
-    { name = "miu-studio" },
-]
-examples = [
-    { name = "miu-examples" },
-]
-studio = [
-    { name = "miu-studio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "asyncclick", specifier = ">=8.0" },
-    { name = "miu", extras = ["examples", "studio"], marker = "extra == 'all'", editable = "packages/miu" },
-    { name = "miu-code", editable = "packages/miu_code" },
-    { name = "miu-core", extras = ["all"], editable = "packages/miu_core" },
-    { name = "miu-examples", marker = "extra == 'examples'", editable = "packages/miu_examples" },
-    { name = "miu-studio", marker = "extra == 'studio'", editable = "packages/miu_studio" },
-]
-provides-extras = ["examples", "studio", "all"]
-
-[[package]]
 name = "miu-code"
 version = "0.1.0"
 source = { editable = "packages/miu_code" }
@@ -1097,6 +1064,39 @@ requires-dist = [
     { name = "qdrant-client", marker = "extra == 'rag'", specifier = ">=1.12" },
 ]
 provides-extras = ["rag"]
+
+[[package]]
+name = "miu-mono"
+version = "0.1.0"
+source = { editable = "packages/miu_mono" }
+dependencies = [
+    { name = "asyncclick" },
+    { name = "miu-code" },
+    { name = "miu-core", extra = ["all"] },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "miu-examples" },
+    { name = "miu-studio" },
+]
+examples = [
+    { name = "miu-examples" },
+]
+studio = [
+    { name = "miu-studio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "asyncclick", specifier = ">=8.0" },
+    { name = "miu-code", editable = "packages/miu_code" },
+    { name = "miu-core", extras = ["all"], editable = "packages/miu_core" },
+    { name = "miu-examples", marker = "extra == 'examples'", editable = "packages/miu_examples" },
+    { name = "miu-mono", extras = ["examples", "studio"], marker = "extra == 'all'" },
+    { name = "miu-studio", marker = "extra == 'studio'", editable = "packages/miu_studio" },
+]
+provides-extras = ["examples", "studio", "all"]
 
 [[package]]
 name = "miu-studio"

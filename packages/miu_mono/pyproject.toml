@@ -1,5 +1,5 @@
 [project]
-name = "miu"
+name = "miu-mono"
 version = "0.1.0"
 description = "AI Agent Framework - batteries included"
 readme = "README.md"
@@ -14,14 +14,14 @@ dependencies = [
 [project.optional-dependencies]
 examples = ["miu-examples"]
 studio = ["miu-studio"]
-all = ["miu[examples,studio]"]
+all = ["miu-mono[examples,studio]"]
 
 [project.scripts]
-miu = "miu.cli:main"
+miu = "miu_mono.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["miu"]
+packages = ["miu_mono"]

@@ -60,7 +60,7 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
-mypy_path = "packages/miu_core:packages/miu_code:packages/miu_studio"
+mypy_path = "packages/miu_core:packages/miu_code:packages/miu_studio:packages/miu_mono"
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]

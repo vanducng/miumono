@@ -20,7 +20,7 @@ Tracks current version for each package in the monorepo:
   "packages/miu_code": "0.1.0",
   "packages/miu_examples": "0.1.0",
   "packages/miu_studio": "0.1.0",
-  "packages/miu": "0.1.0"
+  "packages/miu_mono": "0.1.0"
 }
 ```
 

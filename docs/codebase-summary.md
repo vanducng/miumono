@@ -490,7 +490,7 @@ with tracer.start_as_current_span("operation.name") as span:
 
 **Files:**
 - `packages/miu_core/miu_core/providers/google.py` - `type: ignore[assignment]` on tools conversion (Google API type constraints)
-- `packages/miu/miu/cli.py` - `type: ignore[import-untyped]` on version import (external module)
+- `packages/miu_mono/miu_mono/cli.py` - Version import from miu_mono module
 
 **Reasoning:** Justified type ignores for third-party API constraints while maintaining strict mypy elsewhere
 
@@ -593,9 +593,9 @@ Example applications demonstrating miu framework usage:
 | `rag_agent.py` | RAG with vector DB |
 | `multi_agent.py` | All three patterns demo |
 
-### miu Glue Package
+### miu-mono Glue Package
 
-**Location:** `packages/miu/`
+**Location:** `packages/miu_mono/`
 
 Unified CLI dispatcher with optional dependencies:
 

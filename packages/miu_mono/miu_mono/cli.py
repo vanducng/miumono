@@ -21,7 +21,7 @@ async def cli(ctx: click.Context, version: bool) -> None:
     Run without arguments to start the interactive CLI.
     """
     if version:
-        from miu import __version__  # type: ignore[import-untyped]
+        from miu_mono import __version__
 
         click.echo(f"miu version {__version__}")
         return
@@ -43,7 +43,7 @@ async def serve(host: str, port: int, reload: bool) -> None:
         from miu_studio.main import create_app
     except ImportError:
         click.echo("Error: miu-studio not installed.", err=True)
-        click.echo("Install with: uv add miu[studio]", err=True)
+        click.echo("Install with: uv add miu-mono[studio]", err=True)
         sys.exit(1)
 
     click.echo(f"Starting miu-studio at http://{host}:{port}")

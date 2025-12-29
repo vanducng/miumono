@@ -1,6 +1,6 @@
-"""Tests for miu glue package."""
+"""Tests for miu-mono glue package."""
 
-from miu import __version__
+from miu_mono import __version__
 
 
 def test_version() -> None:
@@ -10,7 +10,7 @@ def test_version() -> None:
 
 def test_cli_module_importable() -> None:
     """Test CLI module can be imported."""
-    from miu.cli import cli, code, main, serve, tui
+    from miu_mono.cli import cli, code, main, serve, tui
 
     assert cli is not None
     assert main is not None
@@ -21,7 +21,7 @@ def test_cli_module_importable() -> None:
 
 def test_exports() -> None:
     """Test that main classes are exported."""
-    from miu import (
+    from miu_mono import (
         Agent,
         AgentConfig,
         ReActAgent,

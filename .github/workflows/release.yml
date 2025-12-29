@@ -18,7 +18,7 @@ on:
           - miu_code
           - miu_examples
           - miu_studio
-          - miu
+          - miu_mono
           - all
       test_pypi:
         description: 'Publish to Test PyPI instead'
@@ -46,8 +46,8 @@ jobs:
               echo 'packages=["miu_examples"]' >> $GITHUB_OUTPUT
             elif [[ "$TAG" =~ ^miu-studio-v ]]; then
               echo 'packages=["miu_studio"]' >> $GITHUB_OUTPUT
-            elif [[ "$TAG" =~ ^miu-v ]]; then
-              echo 'packages=["miu"]' >> $GITHUB_OUTPUT
+            elif [[ "$TAG" =~ ^miu-mono-v ]]; then
+              echo 'packages=["miu_mono"]' >> $GITHUB_OUTPUT
             else
               echo "Unknown tag format: $TAG"
               exit 1
@@ -55,7 +55,7 @@ jobs:
           else
             # workflow_dispatch
             if [[ "${{ inputs.package }}" == "all" ]]; then
-              echo 'packages=["miu_core","miu_code","miu_examples","miu_studio","miu"]' >> $GITHUB_OUTPUT
+              echo 'packages=["miu_core","miu_code","miu_examples","miu_studio","miu_mono"]' >> $GITHUB_OUTPUT
             else
               echo 'packages=["${{ inputs.package }}"]' >> $GITHUB_OUTPUT
             fi
@@ -113,6 +113,7 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           packages-dir: dist/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
   publish-pypi:
     name: Publish to PyPI
@@ -137,3 +138,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}

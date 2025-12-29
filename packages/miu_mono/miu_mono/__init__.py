@@ -1,4 +1,4 @@
-"""miu - AI Agent Framework.
+"""miu-mono - AI Agent Framework.
 
 A batteries-included framework for building AI agents with:
 - Multi-provider LLM support (Anthropic, OpenAI, Google)

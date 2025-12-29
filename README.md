@@ -38,7 +38,7 @@ uvx miu-code "read README.md"
 pip install miu-code
 
 # Full installation with all extras
-pip install "miu[all]"
+pip install "miu-mono[all]"
 ```
 
 ## Quick Start
@@ -62,7 +62,7 @@ miu --provider google "summarize README.md"
 | [miu-code](packages/miu_code/) | `pip install miu-code` | AI coding agent with CLI/TUI |
 | [miu-examples](packages/miu_examples/) | `pip install miu-examples` | Example applications |
 | [miu-studio](packages/miu_studio/) | `pip install miu-studio` | Web server and UI |
-| [miu](packages/miu/) | `pip install miu` | Meta-package (all-in-one) |
+| [miu-mono](packages/miu_mono/) | `pip install miu-mono` | Meta-package (all-in-one) |
 
 ### Extras
 
@@ -76,7 +76,7 @@ pip install "miu-core[openai]"
 pip install "miu-core[all]"
 
 # Full bundle with web UI
-pip install "miu[all]"
+pip install "miu-mono[all]"
 ```
 
 ## Features

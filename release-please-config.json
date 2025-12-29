@@ -49,9 +49,9 @@
         }
       ]
     },
-    "packages/miu": {
+    "packages/miu_mono": {
       "release-type": "python",
-      "package-name": "miu",
+      "package-name": "miu-mono",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {

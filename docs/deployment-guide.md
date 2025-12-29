@@ -16,7 +16,7 @@ Miumono (Monorepo)
 ├── packages/miu_code/       → miu-code (CLI agent)
 ├── packages/miu_examples/   → miu-examples (example apps)
 ├── packages/miu_studio/     → miu-studio (web UI)
-└── packages/miu/            → miu (meta-package)
+└── packages/miu_mono/       → miu-mono (meta-package)
 ```
 
 Each package is independently versioned and released to PyPI.
@@ -104,7 +104,7 @@ Tracks current version for each package:
   "packages/miu_code": "0.1.0",
   "packages/miu_examples": "0.1.0",
   "packages/miu_studio": "0.1.0",
-  "packages/miu": "0.1.0"
+  "packages/miu_mono": "0.1.0"
 }
 ```
 
@@ -314,10 +314,10 @@ miu-studio-v0.3.0     # miu_studio major feature
 
 ### Inter-package Dependencies
 
-The meta-package `miu` pins specific versions of dependencies:
+The meta-package `miu-mono` pins specific versions of dependencies:
 
 ```toml
-# packages/miu/pyproject.toml
+# packages/miu_mono/pyproject.toml
 dependencies = [
     "miu-core>=0.2.0,<1.0",
     "miu-code>=0.1.5,<1.0",

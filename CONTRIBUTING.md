@@ -110,7 +110,7 @@ Releases are automated using [release-please](https://github.com/googleapis/rele
 ```
 
 **Types:** feat, fix, docs, style, refactor, perf, test, chore, ci, build
-**Scopes:** miu-core, miu-code, miu-examples, miu-studio, miu
+**Scopes:** miu-core, miu-code, miu-examples, miu-studio, miu-mono
 
 ### Version Bumps
 

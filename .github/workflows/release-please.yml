@@ -28,8 +28,8 @@ jobs:
       miu-examples--tag_name: ${{ steps.release.outputs['packages/miu_examples--tag_name'] }}
       miu-studio--release_created: ${{ steps.release.outputs['packages/miu_studio--release_created'] }}
       miu-studio--tag_name: ${{ steps.release.outputs['packages/miu_studio--tag_name'] }}
-      miu--release_created: ${{ steps.release.outputs['packages/miu--release_created'] }}
-      miu--tag_name: ${{ steps.release.outputs['packages/miu--tag_name'] }}
+      miu-mono--release_created: ${{ steps.release.outputs['packages/miu_mono--release_created'] }}
+      miu-mono--tag_name: ${{ steps.release.outputs['packages/miu_mono--tag_name'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
