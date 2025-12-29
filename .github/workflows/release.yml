@@ -1,14 +1,25 @@
 # Release workflow for miumono
-# Publishes all packages to PyPI using trusted publishing (OIDC)
+# Publishes packages to PyPI using trusted publishing (OIDC)
+# Triggered by release-please GitHub releases
 
-name: Release to PyPI
+name: Publish to PyPI
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
+      package:
+        description: 'Package to publish'
+        required: true
+        type: choice
+        options:
+          - miu_core
+          - miu_code
+          - miu_examples
+          - miu_studio
+          - miu
+          - all
       test_pypi:
         description: 'Publish to Test PyPI instead'
         required: false
@@ -16,9 +27,47 @@ on:
         default: false
 
 jobs:
-  build:
-    name: Build Packages
+  determine-package:
+    name: Determine Package
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.determine.outputs.packages }}
+    steps:
+      - id: determine
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.event.release.tag_name }}"
+            # Extract package from tag (format: package-name-vX.Y.Z)
+            if [[ "$TAG" =~ ^miu-core-v ]]; then
+              echo 'packages=["miu_core"]' >> $GITHUB_OUTPUT
+            elif [[ "$TAG" =~ ^miu-code-v ]]; then
+              echo 'packages=["miu_code"]' >> $GITHUB_OUTPUT
+            elif [[ "$TAG" =~ ^miu-examples-v ]]; then
+              echo 'packages=["miu_examples"]' >> $GITHUB_OUTPUT
+            elif [[ "$TAG" =~ ^miu-studio-v ]]; then
+              echo 'packages=["miu_studio"]' >> $GITHUB_OUTPUT
+            elif [[ "$TAG" =~ ^miu-v ]]; then
+              echo 'packages=["miu"]' >> $GITHUB_OUTPUT
+            else
+              echo "Unknown tag format: $TAG"
+              exit 1
+            fi
+          else
+            # workflow_dispatch
+            if [[ "${{ inputs.package }}" == "all" ]]; then
+              echo 'packages=["miu_core","miu_code","miu_examples","miu_studio","miu"]' >> $GITHUB_OUTPUT
+            else
+              echo 'packages=["${{ inputs.package }}"]' >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  build:
+    name: Build ${{ matrix.package }}
+    needs: determine-package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.determine-package.outputs.packages) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,14 +76,9 @@ jobs:
         with:
           version: "latest"
 
-      - name: Build all packages
+      - name: Build package
         run: |
-          # Build in dependency order
-          uv build packages/miu_core --out-dir dist/
-          uv build packages/miu_code --out-dir dist/
-          uv build packages/miu_examples --out-dir dist/
-          uv build packages/miu_studio --out-dir dist/
-          uv build packages/miu --out-dir dist/
+          uv build packages/${{ matrix.package }} --out-dir dist/
 
       - name: List built packages
         run: ls -la dist/
@@ -42,14 +86,17 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.package }}
           path: dist/
 
   publish-testpypi:
     name: Publish to TestPyPI
-    if: github.event.inputs.test_pypi == 'true'
-    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_pypi == 'true'
+    needs: [determine-package, build]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.determine-package.outputs.packages) }}
     environment: testpypi
     permissions:
       id-token: write
@@ -58,7 +105,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.package }}
           path: dist/
 
       - name: Publish to Test PyPI
@@ -69,9 +116,12 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI
-    if: github.event_name == 'push' || github.event.inputs.test_pypi != 'true'
-    needs: build
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_pypi != 'true')
+    needs: [determine-package, build]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.determine-package.outputs.packages) }}
     environment: pypi
     permissions:
       id-token: write
@@ -80,32 +130,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.package }}
           path: dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-
-  create-release:
-    name: Create GitHub Release
-    needs: publish-pypi
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-          generate_release_notes: true

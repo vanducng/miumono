@@ -179,7 +179,7 @@ cd packages/miu_code && uv publish --token $PYPI_TOKEN
 uv publish --publish-url https://test.pypi.org/legacy/ --token $TEST_PYPI_TOKEN
 ```
 
-## GitHub Actions Workflows (Phase 1B)
+## GitHub Actions Workflows (Phase 2A)
 
 ### 1. Release-Please Workflow
 
@@ -187,88 +187,62 @@ File: `.github/workflows/release-please.yml`
 
 Auto-creates release PRs and GitHub releases on push to main:
 
-```yaml
-name: Release Please
+**Triggers:**
+- Push to main branch
+- Manual trigger via `workflow_dispatch`
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+**Key Jobs:**
+- `release-please` - Analyzes commits, creates release PRs, generates GitHub releases
+- `trigger-publish` - Informational job logging released packages
 
-permissions:
-  contents: write
-  pull-requests: write
+**Outputs:**
+- `releases_created` - Boolean flag
+- `paths_released` - Comma-separated list of released package paths
+- Per-package outputs: `<package>--release_created`, `<package>--tag_name`
 
-jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+### 2. Publish Workflow (Phase 2A - Complete)
 
-  trigger-publish:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger publish workflow
-        run: |
-          echo "Releases were created - publish workflow will be triggered by release event"
-          echo "Released packages: ${{ needs.release-please.outputs.paths_released }}"
-```
+File: `.github/workflows/release.yml`
 
-**Key Features:**
-- Analyzes commits since last release
-- Creates separate PR per package changed
-- Outputs: `releases_created`, `paths_released`, per-package flags
-- Supports manual trigger via `workflow_dispatch`
+Publishes packages to PyPI using per-package matrix strategy:
 
-### 2. Publish Workflow (Recommended)
+**Trigger:**
+- `release` event with type `[published]` (from release-please)
+- Manual trigger via `workflow_dispatch` with package selection
 
-File: `.github/workflows/publish.yml`
+**Permissions:**
+- `id-token: write` - OIDC trusted publishing
 
-Publishes packages to PyPI after GitHub release:
+**Key Jobs:**
 
-```yaml
-name: Publish to PyPI
+**determine-package** - Extracts package from release tag:
+- Parses tag format: `miu-core-v0.1.0` → `miu_core`
+- Routes to appropriate package
+- Supports manual input via `workflow_dispatch`
 
-on:
-  release:
-    types: [created]
+**build** - Matrix job, one per package:
+- Checks out code
+- Installs uv
+- Builds with `uv build packages/{package}`
+- Uploads artifacts per package
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+**publish-testpypi** - Optional validation publishing:
+- Triggered by manual `workflow_dispatch` with `test_pypi: true`
+- Tests package before production
+- Uses TestPyPI repository
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v1
-
-      - name: Build packages
-        run: uv build
-
-      - name: Publish to PyPI
-        run: uv publish --token ${{ secrets.PYPI_TOKEN }}
-```
+**publish-pypi** - Production publishing:
+- Triggered by release event or manual workflow (test_pypi false)
+- Uses PyPA gh-action-pypi-publish with OIDC
+- Downloads artifacts and publishes each package
+- No token storage - OIDC trusted publishing
 
 **Advantages:**
-- Triggered automatically by GitHub release
-- Separate concern: releases vs. publishing
-- Can be disabled independently if needed
-- Follows GitOps best practices
+- Per-package isolation and error handling
+- Trusted publishing (OIDC) - no PyPI token in secrets
+- Test PyPI support for pre-release validation
+- Release-less manual publish capability
+- Clean separation: release-please creates releases, publish workflow publishes
 
 ### Workflow Sequence
 
@@ -277,15 +251,19 @@ jobs:
    ↓
 2. release-please.yml triggers on main push
    ↓
-3. Release-Please creates release PR(s)
+3. Release-Please creates release PR(s) per package
    ↓
 4. Developer reviews & merges PR
    ↓
-5. GitHub creates release (automatic)
+5. GitHub creates release (automatic, release-please)
    ↓
-6. publish.yml triggers on release event
+6. release.yml triggers on release event
    ↓
-7. Packages published to PyPI
+7. determine-package extracts package from tag
+   ↓
+8. build matrix creates per-package artifacts
+   ↓
+9. publish-pypi publishes all to PyPI (OIDC)
 ```
 
 ## Monorepo Version Management
@@ -407,7 +385,12 @@ uv build --dry-run
 
 ---
 
-**Document Status:** Phase 1B (release-please.yml added, publish.yml recommended)
-**Approval Status:** Requires Publish Workflow Implementation
+**Document Status:** Phase 2A (Publish Workflow Complete)
+**Approval Status:** Complete - OIDC trusted publishing implemented
 **Maintainer:** Development Team
 **Last Review:** 2025-12-29
+**Phase 2A Updates:**
+- Documented release.yml with per-package matrix strategy
+- Updated trigger from tag push to release event
+- Documented OIDC trusted publishing (no token storage)
+- Documented test PyPI support via workflow_dispatch

@@ -213,7 +213,14 @@ Each package maintains its own CHANGELOG.md with structure:
 
 ## CI/CD Integration
 
-### GitHub Actions Workflow (Phase 1B)
+### Two-Workflow Approach
+
+Miumono uses two coordinated workflows for releases:
+
+1. **release-please.yml** - Creates release PRs and GitHub releases
+2. **release.yml** - Publishes packages to PyPI
+
+#### Release-Please Workflow
 
 Workflow file: `.github/workflows/release-please.yml`
 
@@ -229,72 +236,60 @@ Workflow file: `.github/workflows/release-please.yml`
 
 **Jobs:**
 
-#### 1. release-please Job
+1. **release-please** - Runs Release-Please action
+   - Analyzes conventional commits
+   - Creates release PRs per package
+   - Creates GitHub releases and tags
+   - Outputs per-package metadata
 
-Runs Release-Please action on Ubuntu:
-
-```yaml
-jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
-      # Per-package outputs
-      miu-core--release_created: ${{ steps.release.outputs['packages/miu_core--release_created'] }}
-      miu-core--tag_name: ${{ steps.release.outputs['packages/miu_core--tag_name'] }}
-      miu-code--release_created: ${{ steps.release.outputs['packages/miu_code--release_created'] }}
-      miu-code--tag_name: ${{ steps.release.outputs['packages/miu_code--tag_name'] }}
-      # ... other packages
-```
+2. **trigger-publish** - Logs released packages
+   - Informational job that runs when releases created
+   - Provides visibility into which packages were released
 
 **Key Outputs:**
-- `releases_created` - Boolean: releases created in this run
-- `paths_released` - Comma-separated package paths released
-- Per-package outputs: `<package>--release_created` and `<package>--tag_name`
+- `releases_created` - Boolean: releases created
+- `paths_released` - Comma-separated package paths
+- Per-package: `<package>--release_created`, `<package>--tag_name`
 
-**Action Configuration:**
-- Uses: `googleapis/release-please-action@v4`
-- Config file: `release-please-config.json`
-- Manifest file: `.release-please-manifest.json`
-- Token: `${{ secrets.GITHUB_TOKEN }}`
+#### Publish Workflow (Phase 2A)
 
-#### 2. trigger-publish Job
+Workflow file: `.github/workflows/release.yml`
 
-Triggers publish workflow when releases created:
+**Name:** Publish to PyPI
 
-```yaml
-trigger-publish:
-  needs: release-please
-  if: ${{ needs.release-please.outputs.releases_created == 'true' }}
-  runs-on: ubuntu-latest
-  steps:
-    - name: Trigger publish workflow
-      run: |
-        echo "Releases were created - publish workflow triggered by release event"
-        echo "Released packages: ${{ needs.release-please.outputs.paths_released }}"
-```
+**Trigger:**
+- GitHub release event with type `[published]`
+- Manual workflow dispatch with package selection
 
-**Purpose:** Ensures PyPI publishing happens after GitHub release creation
+**Permissions:**
+- `id-token: write` - OIDC trusted publishing
 
-**Key Steps:**
-1. Check if releases created
-2. Log released packages
-3. Publish workflow triggered by GitHub release event (automatic)
+**Key Features:**
+- Per-package matrix builds and publishing
+- Test PyPI support via `workflow_dispatch`
+- Artifacts managed per package
+- Trusted publishing with OIDC (no token storage)
 
-### PyPI Publication
+**Jobs:**
 
-After release-please creates GitHub release:
+1. **determine-package** - Extract package from release tag
+   - Parses release tag format: `package-name-vX.Y.Z`
+   - Routes to appropriate package
+   - Supports manual selection via `workflow_dispatch`
 
-```bash
-# Build all packages
-uv build
+2. **build** - Matrix job builds each package
+   - One job per package
+   - Builds using `uv build`
+   - Uploads artifacts by package
 
-# Publish to PyPI (requires PyPI token)
-uv publish --token ${{ secrets.PYPI_TOKEN }}
-```
+3. **publish-testpypi** - Optional Test PyPI publishing
+   - Triggered by manual `workflow_dispatch` with `test_pypi: true`
+   - Validates package before production release
 
-**Recommended:** Implement separate publish workflow in `.github/workflows/publish.yml` that runs on `release` event for full automation.
+4. **publish-pypi** - Production publishing
+   - Triggered by release event or manual workflow
+   - Uses PyPA trusted publishing (OIDC)
+   - Publishes from artifacts
 
 ## Development Workflow
 
@@ -423,7 +418,11 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 ---
 
-**Document Status:** Phase 1B (Workflow Added)
-**Approval Status:** Requires Phase 1B Publish Workflow
+**Document Status:** Phase 2A (Per-Package Publishing Complete)
+**Approval Status:** Complete - Both workflows implemented
 **Maintainer:** Development Team
 **Last Review:** 2025-12-29
+**Phase 2A Updates:**
+- Documented per-package matrix publishing strategy
+- Clarified release.yml trigger and architecture
+- Removed create-release job documentation (now handled by release-please)
