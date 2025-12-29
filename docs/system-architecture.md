@@ -6,47 +6,46 @@
 
 ## Architecture Overview
 
-Miumono follows a layered, modular architecture with clear separation of concerns:
+Miumono follows a layered, modular architecture with clear separation of concerns spanning CLI and web interfaces:
 
 ```
-┌─────────────────────────────────────────────────┐
-│              CLI Layer (miu-code)                │
-│   ┌─────────────┬──────────┐                    │
-│   │   Entry     │  REPL    │                    │
-│   │   Point     │  Mode    │                    │
-│   └──────┬──────┴────┬─────┘                    │
-└──────────┼───────────┼──────────────────────────┘
-           │           │
-┌──────────▼───────────▼──────────────────────────┐
-│          Agent Layer (miu-code)                  │
-│   ┌────────────────────────────────────┐        │
-│   │    Coding Agent (ReAct Pattern)    │        │
-│   │  • Tool Selection                  │        │
-│   │  • Tool Execution                  │        │
-│   │  • Reasoning Loop                  │        │
-│   └─────────┬──────────────────────────┘        │
-└─────────────┼────────────────────────────────────┘
-              │
-┌─────────────▼────────────────────────────────────┐
-│       Framework Layer (miu-core)                 │
-│  ┌──────────────┬────────────┬──────────────┐   │
-│  │   Agents     │    Tools   │   Models     │   │
-│  │              │            │              │   │
-│  │ • BaseAgent  │ • Registry │ • Message    │   │
-│  │ • ReActAgent │ • Executor │ • Tool       │   │
-│  │              │            │ • Response   │   │
-│  └──────────────┴────────────┴──────────────┘   │
-│                                                  │
-│  ┌──────────────────────────────────────────┐   │
-│  │         Provider Interface                │   │
-│  │  (Abstraction for LLM backends)           │   │
-│  └──────────────────────────────────────────┘   │
-└────────┬──────────────┬──────────────┬───────────┘
-         │              │              │
-┌────────▼──┐   ┌───────▼───┐   ┌─────▼──────┐
-│ Anthropic │   │   OpenAI   │   │   Google   │
-│  Claude   │   │            │   │  Gemini    │
-└───────────┘   └────────────┘   └────────────┘
+┌─────────────────────────────────────┐  ┌─────────────────────────────────────┐
+│       CLI Layer (miu-code)          │  │     Web Layer (miu-studio)          │
+│   ┌─────────────┬──────────┐        │  │   ┌────────────┬──────────────┐     │
+│   │   Entry     │  REPL    │        │  │   │  Static UI │  REST API    │     │
+│   │   Point     │  Mode    │        │  │   │  Assets    │  Endpoints   │     │
+│   └──────┬──────┴────┬─────┘        │  │   └──────┬──────┴──────┬───────┘     │
+└──────────┼───────────┼───────────────┘  └─────────┼───────────┼──────────────┘
+           │           │                            │           │
+┌──────────▼───────────▼─────────────────────────────▼───────────▼──────────────┐
+│                    Agent & Orchestration Layer                                 │
+│   ┌────────────────────────────────────┐      ┌─────────────────────────┐    │
+│   │    Coding Agent (ReAct Pattern)    │      │   WebSocket Handler     │    │
+│   │  • Tool Selection & Execution      │      │  • Real-time sessions   │    │
+│   │  • Message routing                 │      │  • Event broadcasting   │    │
+│   │  • Reasoning Loop                  │      │                         │    │
+│   └─────────┬──────────────────────────┘      └────────────┬────────────┘    │
+└─────────────┼──────────────────────────────────────────────┼──────────────────┘
+              │                                               │
+┌─────────────▼───────────────────────────────────────────────▼──────────────────┐
+│                     Framework Layer (miu-core)                                  │
+│  ┌──────────────┬────────────┬──────────────┬──────────────────────┐           │
+│  │   Agents     │    Tools   │   Models     │    Configuration     │           │
+│  │              │            │              │    & Settings        │           │
+│  │ • BaseAgent  │ • Registry │ • Message    │ • Environment vars   │           │
+│  │ • ReActAgent │ • Executor │ • Tool       │ • App settings       │           │
+│  │              │            │ • Response   │ • Session management │           │
+│  └──────────────┴────────────┴──────────────┴──────────────────────┘           │
+│                                                                                  │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │              Provider Interface (Abstraction for LLM backends)             │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└────────┬──────────────┬──────────────────────────────────┬───────────────────┘
+         │              │                                  │
+┌────────▼──┐   ┌───────▼───┐   ┌──────────────────────────▼──┐
+│ Anthropic │   │   OpenAI   │   │       Google Gemini         │
+│  Claude   │   │            │   │                             │
+└───────────┘   └────────────┘   └─────────────────────────────┘
 ```
 
 ## Core Components
@@ -245,7 +244,64 @@ class FileTool(BaseTool):
         # Ensure path is within allowed boundaries
 ```
 
-### 4. CLI Layer (miu-code)
+### 4. Web Server Layer (miu-studio)
+
+**Location:** `packages/miu_studio/`
+
+**Components:**
+
+- **FastAPI Application:** Async web framework for REST API
+  - `create_app()`: Factory function for app initialization
+  - Automatic OpenAPI documentation
+  - Request/response validation via Pydantic
+  - Built-in CORS middleware
+
+- **Configuration Management:** Pydantic Settings
+  - Environment variable loading (`MIU_*` prefix)
+  - Type-safe settings access
+  - Server, agent, session, and logging configuration
+
+- **API Routes:** RESTful endpoints
+  - Health check endpoints (`/api/v1/health`, `/api/v1/ready`)
+  - Future: Agent operations, session management, streaming
+
+- **Static File Serving:** Web UI assets
+  - Mounted at `/static`
+  - Serves HTML, JS, CSS for web interface
+
+- **CORS Middleware:** Cross-origin resource sharing
+  - Configurable origins (default: `["*"]`)
+  - Credentials support for auth
+
+**Application Factory Pattern:**
+```python
+def create_app() -> FastAPI:
+    """Initialize FastAPI app with all components."""
+    app = FastAPI(...)
+    app.add_middleware(CORSMiddleware, ...)
+    app.include_router(health.router, prefix="/api/v1")
+    # Mount static files if exists
+    return app
+```
+
+**Server Configuration:**
+```python
+class Settings(BaseSettings):
+    # Server
+    host: str = "0.0.0.0"
+    port: int = 8000
+    debug: bool = False
+
+    # Agent defaults
+    default_model: str = "claude-sonnet-4-20250514"
+    default_provider: str = "anthropic"
+
+    # Session management
+    session_dir: str = ".miu/sessions"
+    session_timeout: int = 3600
+```
+
+### 5. CLI Layer (miu-code)
 
 **Location:** `packages/miu_code/miu_code/cli/`
 
@@ -279,7 +335,7 @@ Command Parser
         └─ Loop
 ```
 
-### 5. Session Management (miu-code)
+### 6. Session Management (miu-code)
 
 **Location:** `packages/miu_code/miu_code/session/`
 

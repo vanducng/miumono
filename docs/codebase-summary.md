@@ -2,12 +2,12 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
-**Status:** Phase 1A - Complete (MVP Tier 1 Delivered)
+**Status:** Tier 4 Phase 4A - Studio Web Server (Delivered)
 **Updated:** 2025-12-29
 
 ## Overview
 
-Miumono is a Python-based AI agent framework designed for building AI-powered coding assistants. Built as a monorepo using UV workspace management, it provides a modular architecture separating core framework functionality from CLI/agent implementations.
+Miumono is a Python-based AI agent framework monorepo supporting multiple tiers: core framework (Tier 1), coding agent CLI (Tier 2), orchestration layer (Tier 3), and web server UI (Tier 4). Built with UV workspace management, provides modular architecture from framework to web service.
 
 ## Project Structure
 
@@ -15,7 +15,8 @@ Miumono is a Python-based AI agent framework designed for building AI-powered co
 miumono/
 ├── packages/
 │   ├── miu_core/           # Core framework library
-│   └── miu_code/           # AI coding agent with CLI
+│   ├── miu_code/           # AI coding agent with CLI
+│   └── miu_studio/         # Web server and UI (NEW - Tier 4)
 ├── .claude/                # Claude Code configuration & workflows
 ├── .secrets/               # Secrets management (git-ignored)
 ├── .venv/                  # Python virtual environment
@@ -110,6 +111,83 @@ miu "read package.json"
 miu
 ```
 
+### miu-studio
+
+**Purpose:** Web server providing FastAPI-based REST API and UI for miu AI agent framework.
+
+**Location:** `/packages/miu_studio/`
+
+**Dependencies:**
+- miu-core[anthropic] (core framework with Anthropic)
+- fastapi>=0.115 (async web framework)
+- uvicorn[standard]>=0.32 (ASGI server)
+- pydantic-settings>=2.6 (configuration management)
+- websockets>=13.0 (WebSocket support)
+
+**Key Modules:**
+
+| Module | Purpose |
+|--------|---------|
+| `miu_studio.main` | FastAPI application factory & setup |
+| `miu_studio.core.config` | Settings management via Pydantic |
+| `miu_studio.api.routes` | REST API endpoints |
+| `miu_studio.services` | Business logic services |
+| `miu_studio.static` | Static assets for web UI |
+
+**Features:**
+- REST API endpoints for agent operations
+- Health check endpoints (`/api/v1/health`, `/api/v1/ready`)
+- CORS middleware for web client support
+- Static file serving for UI
+- Session management (directory: `.miu/sessions`)
+- Configurable via environment variables (`MIU_*` prefix)
+- Uvicorn ASGI server with standard features
+
+**Configuration (Environment Variables):**
+```bash
+# Server
+MIU_HOST=0.0.0.0
+MIU_PORT=8000
+MIU_DEBUG=false
+
+# CORS
+MIU_CORS_ORIGINS=["*"]
+
+# Agent
+MIU_DEFAULT_MODEL=claude-sonnet-4-20250514
+MIU_DEFAULT_PROVIDER=anthropic
+MIU_MAX_TOKENS=4096
+MIU_MAX_ITERATIONS=10
+
+# Sessions
+MIU_SESSION_DIR=.miu/sessions
+MIU_SESSION_TIMEOUT=3600
+
+# Logging
+MIU_LOG_LEVEL=INFO
+```
+
+**API Endpoints:**
+```
+GET  /api/v1/health   - Server health status
+GET  /api/v1/ready    - Server readiness probe
+```
+
+**Entry Point:**
+```bash
+miu-studio  # Start web server (CLI command)
+```
+
+**Example Usage:**
+
+```python
+from miu_studio.main import create_app
+import uvicorn
+
+app = create_app()
+uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
 ## Development Workflow
 
 ### Setup
@@ -193,6 +271,10 @@ uv sync && uv run ruff check . && uv run mypy packages/ && uv run pytest
 | Async Runtime | asyncio | Built-in |
 | Data Validation | Pydantic | 2.0+ |
 | HTTP Client | httpx | 0.27+ |
+| Web Framework | FastAPI | 0.115+ |
+| ASGI Server | Uvicorn | 0.32+ |
+| WebSocket | websockets | 13.0+ |
+| Settings | Pydantic Settings | 2.6+ |
 | LLM Providers | Anthropic/OpenAI/Google | Multi-provider |
 | CLI Framework | asyncclick | 8.1+ |
 | Terminal UI | rich | 13.0+ |
@@ -239,6 +321,10 @@ uv sync && uv run ruff check . && uv run mypy packages/ && uv run pytest
 | `/pyproject.toml` | Root workspace configuration with all tool settings |
 | `/packages/miu_core/pyproject.toml` | miu-core package metadata |
 | `/packages/miu_code/pyproject.toml` | miu-code package metadata |
+| `/packages/miu_studio/pyproject.toml` | miu-studio package metadata |
+| `/packages/miu_studio/miu_studio/main.py` | FastAPI application factory |
+| `/packages/miu_studio/miu_studio/core/config.py` | Settings configuration |
+| `/packages/miu_studio/miu_studio/api/routes/health.py` | Health check endpoints |
 | `/README.md` | Quick start and overview |
 | `/CLAUDE.md` | Development guidelines and workflows |
 | `/repomix-output.xml` | Full codebase artifact (generated) |
