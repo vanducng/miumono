@@ -14,6 +14,7 @@ members = ["packages/*"]
 miu-core = { workspace = true }
 miu-code = { workspace = true }
 miu-studio = { workspace = true }
+miu-examples = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -41,7 +42,7 @@ select = ["E", "F", "W", "I", "UP", "B", "RUF"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["miu_core", "miu_code", "miu_studio"]
+known-first-party = ["miu_core", "miu_code", "miu_studio", "miu_examples"]
 
 [tool.ruff.format]
 quote-style = "double"
