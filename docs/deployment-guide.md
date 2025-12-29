@@ -1,25 +1,25 @@
 # Deployment & Release Guide
 
-**Project:** Miumono
+**Project:** miu-mono
 **Version:** 0.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 
 ## Overview
 
-This guide covers deployment of Miumono packages to PyPI and managing releases using Release-Please. Miumono is a monorepo with five independently versioned packages distributed on PyPI.
+This guide covers deployment of miu-mono packages to PyPI and managing releases using Release-Please. miu-mono is a monorepo with five independently versioned packages distributed on PyPI.
 
 ## Package Structure
 
 ```
-Miumono (Monorepo)
-├── packages/miu_core/       → miu-core (core framework)
-├── packages/miu_code/       → miu-code (CLI agent)
-├── packages/miu_examples/   → miu-examples (example apps)
-├── packages/miu_studio/     → miu-studio (web UI)
-└── packages/miu_mono/       → miu-mono (meta-package)
+miu-mono (Monorepo)
+├── packages/miu_core/       → miu-core 0.1.0 (core framework)
+├── packages/miu_code/       → miu-code 0.1.0 (CLI agent)
+├── packages/miu_examples/   → miu-examples 0.1.0 (example apps)
+├── packages/miu_studio/     → miu-studio 0.1.0 (web UI)
+└── packages/miu_mono/       → miu-mono 0.1.0 (meta-package)
 ```
 
-Each package is independently versioned and released to PyPI.
+Each package is independently versioned and released to PyPI. As of 2025-12-30, all 5 packages have been published to PyPI at version 0.1.0.
 
 ## Release Process
 
@@ -133,12 +133,12 @@ npm install -g release-please
 
 # Create release PRs
 release-please release-pr \
-  --repo-url=https://github.com/vanducng/miumono \
+  --repo-url=https://github.com/vanducng/miu-mono \
   --token=$GITHUB_TOKEN
 
 # Create GitHub releases and tags
 release-please github-release \
-  --repo-url=https://github.com/vanducng/miumono \
+  --repo-url=https://github.com/vanducng/miu-mono \
   --token=$GITHUB_TOKEN
 ```
 
@@ -153,14 +153,14 @@ release-please github-release \
 
 #### Initial Setup (One-time)
 
-1. Configure PyPI trusted publisher:
+1. Configure PyPI trusted publisher (COMPLETE as of 2025-12-30):
    - Go to PyPI project settings (e.g., https://pypi.org/project/miu-core/)
    - Add trusted publisher:
      - GitHub repository owner: `vanducng`
-     - Repository name: `miumono`
+     - Repository name: `miu-mono`
      - Workflow filename: `.github/workflows/release.yml`
      - Environment name: `pypi`
-   - Repeat for all 5 packages (miu-core, miu-code, miu-examples, miu-studio, miu)
+   - All 5 packages configured: miu-core, miu-code, miu-examples, miu-studio, miu-mono
 
 2. Optional: Configure TestPyPI trusted publisher (same steps):
    - Go to TestPyPI project settings

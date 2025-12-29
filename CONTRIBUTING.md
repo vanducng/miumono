@@ -1,4 +1,4 @@
-# Contributing to Miumono
+# Contributing to miu-mono
 
 Thank you for your interest in contributing to miu! This document provides guidelines for contributing.
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing to miu! This document provides guide
 
 ```bash
 # Clone the repository
-git clone https://github.com/vanducng/miumono.git
-cd miumono
+git clone https://github.com/vanducng/miu-mono.git
+cd miu-mono
 
 # Install dependencies
 uv sync
@@ -206,7 +206,7 @@ When reporting bugs:
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/vanducng/miumono/discussions)
+- Open a [GitHub Discussion](https://github.com/vanducng/miu-mono/discussions)
 - Check existing documentation in `docs/`
 
 ## License
