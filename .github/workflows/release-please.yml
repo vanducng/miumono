@@ -1,0 +1,56 @@
+# Release Please workflow for miumono
+# Creates release PRs and GitHub releases based on conventional commits
+
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+      # Per-package outputs
+      miu-core--release_created: ${{ steps.release.outputs['packages/miu_core--release_created'] }}
+      miu-core--tag_name: ${{ steps.release.outputs['packages/miu_core--tag_name'] }}
+      miu-code--release_created: ${{ steps.release.outputs['packages/miu_code--release_created'] }}
+      miu-code--tag_name: ${{ steps.release.outputs['packages/miu_code--tag_name'] }}
+      miu-examples--release_created: ${{ steps.release.outputs['packages/miu_examples--release_created'] }}
+      miu-examples--tag_name: ${{ steps.release.outputs['packages/miu_examples--tag_name'] }}
+      miu-studio--release_created: ${{ steps.release.outputs['packages/miu_studio--release_created'] }}
+      miu-studio--tag_name: ${{ steps.release.outputs['packages/miu_studio--tag_name'] }}
+      miu--release_created: ${{ steps.release.outputs['packages/miu--release_created'] }}
+      miu--tag_name: ${{ steps.release.outputs['packages/miu--tag_name'] }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Log release outputs
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        run: |
+          echo "Releases created: ${{ steps.release.outputs.releases_created }}"
+          echo "Paths released: ${{ steps.release.outputs.paths_released }}"
+
+  # Trigger publish workflow for each released package
+  trigger-publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger publish workflow
+        run: |
+          echo "Releases were created - publish workflow will be triggered by release event"
+          echo "Released packages: ${{ needs.release-please.outputs.paths_released }}"

@@ -213,35 +213,88 @@ Each package maintains its own CHANGELOG.md with structure:
 
 ## CI/CD Integration
 
-### GitHub Actions Setup (Recommended)
+### GitHub Actions Workflow (Phase 1B)
 
-Create `.github/workflows/release.yml`:
+Workflow file: `.github/workflows/release-please.yml`
+
+**Name:** Release Please
+
+**Triggers:**
+- Push to main branch
+- Manual workflow dispatch (`workflow_dispatch`)
+
+**Permissions:**
+- `contents: write` - Create releases and tags
+- `pull-requests: write` - Create and update PRs
+
+**Jobs:**
+
+#### 1. release-please Job
+
+Runs Release-Please action on Ubuntu:
 
 ```yaml
-on:
-  push:
-    branches: [main]
-
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    steps:
-      - uses: googleapis/release-please-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+      # Per-package outputs
+      miu-core--release_created: ${{ steps.release.outputs['packages/miu_core--release_created'] }}
+      miu-core--tag_name: ${{ steps.release.outputs['packages/miu_core--tag_name'] }}
+      miu-code--release_created: ${{ steps.release.outputs['packages/miu_code--release_created'] }}
+      miu-code--tag_name: ${{ steps.release.outputs['packages/miu_code--tag_name'] }}
+      # ... other packages
 ```
+
+**Key Outputs:**
+- `releases_created` - Boolean: releases created in this run
+- `paths_released` - Comma-separated package paths released
+- Per-package outputs: `<package>--release_created` and `<package>--tag_name`
+
+**Action Configuration:**
+- Uses: `googleapis/release-please-action@v4`
+- Config file: `release-please-config.json`
+- Manifest file: `.release-please-manifest.json`
+- Token: `${{ secrets.GITHUB_TOKEN }}`
+
+#### 2. trigger-publish Job
+
+Triggers publish workflow when releases created:
+
+```yaml
+trigger-publish:
+  needs: release-please
+  if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+  runs-on: ubuntu-latest
+  steps:
+    - name: Trigger publish workflow
+      run: |
+        echo "Releases were created - publish workflow triggered by release event"
+        echo "Released packages: ${{ needs.release-please.outputs.paths_released }}"
+```
+
+**Purpose:** Ensures PyPI publishing happens after GitHub release creation
+
+**Key Steps:**
+1. Check if releases created
+2. Log released packages
+3. Publish workflow triggered by GitHub release event (automatic)
 
 ### PyPI Publication
 
-After release, publish with:
+After release-please creates GitHub release:
 
 ```bash
-# Requires: PyPI token in GitHub secrets
+# Build all packages
 uv build
+
+# Publish to PyPI (requires PyPI token)
 uv publish --token ${{ secrets.PYPI_TOKEN }}
 ```
+
+**Recommended:** Implement separate publish workflow in `.github/workflows/publish.yml` that runs on `release` event for full automation.
 
 ## Development Workflow
 
@@ -316,21 +369,61 @@ git commit -m "feat(xyz): description"
 6. **Tag Releases** - GitHub releases provide audit trail
 7. **Monitor Versions** - Keep `.release-please-manifest.json` in sync
 
+## GitHub Workflow Integration
+
+### release-please.yml Workflow
+
+Located at: `.github/workflows/release-please.yml`
+
+**When it runs:**
+1. Push to main branch (automatic)
+2. Manual trigger via GitHub UI (workflow_dispatch)
+
+**What it does:**
+1. Analyzes commits since last release using conventional commits
+2. Creates separate PR per package with changes
+3. Outputs release metadata (created flags, package paths, tags)
+4. Triggers publish job to handle PyPI publication
+
+**How to manually trigger:**
+- Go to GitHub → Actions → Release Please
+- Click "Run workflow" → Select main branch
+
+### Workflow Outputs
+
+Per-package release information available as workflow outputs:
+
+```
+miu-core--release_created: true/false
+miu-core--tag_name: miu-core-v0.2.0
+
+miu-code--release_created: true/false
+miu-code--tag_name: miu-code-v0.1.1
+
+# ... for all 5 packages
+```
+
+Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
+
 ## Related Documentation
 
 - **Code Standards:** See `docs/code-standards.md` for commit message style
-- **Deployment:** See `docs/deployment-guide.md` for PyPI publication
-- **CI/CD:** Workflows in `.github/workflows/`
+- **Deployment:** See `docs/deployment-guide.md` for PyPI publication and publish workflow
+- **CI/CD:** All workflows in `.github/workflows/`
+  - `release-please.yml` - Release PR and GitHub release creation
+  - `publish.yml` - PyPI package publication (to be created)
+  - `ci.yml` - Tests and linting
 
 ## Resources
 
 - [Release-Please Documentation](https://github.com/googleapis/release-please)
+- [Release-Please Action](https://github.com/googleapis/release-please-action)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
 
 ---
 
-**Document Status:** Phase 1A Complete
-**Approval Status:** Ready for Phase 1B
+**Document Status:** Phase 1B (Workflow Added)
+**Approval Status:** Requires Phase 1B Publish Workflow
 **Maintainer:** Development Team
 **Last Review:** 2025-12-29

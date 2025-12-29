@@ -179,16 +179,21 @@ cd packages/miu_code && uv publish --token $PYPI_TOKEN
 uv publish --publish-url https://test.pypi.org/legacy/ --token $TEST_PYPI_TOKEN
 ```
 
-## GitHub Actions Workflow
+## GitHub Actions Workflows (Phase 1B)
 
-Create `.github/workflows/release.yml`:
+### 1. Release-Please Workflow
+
+File: `.github/workflows/release-please.yml`
+
+Auto-creates release PRs and GitHub releases on push to main:
 
 ```yaml
-name: Release
+name: Release Please
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -197,16 +202,49 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  publish:
+  trigger-publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.releases_created }}
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger publish workflow
+        run: |
+          echo "Releases were created - publish workflow will be triggered by release event"
+          echo "Released packages: ${{ needs.release-please.outputs.paths_released }}"
+```
+
+**Key Features:**
+- Analyzes commits since last release
+- Creates separate PR per package changed
+- Outputs: `releases_created`, `paths_released`, per-package flags
+- Supports manual trigger via `workflow_dispatch`
+
+### 2. Publish Workflow (Recommended)
+
+File: `.github/workflows/publish.yml`
+
+Publishes packages to PyPI after GitHub release:
+
+```yaml
+name: Publish to PyPI
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -224,6 +262,30 @@ jobs:
 
       - name: Publish to PyPI
         run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+```
+
+**Advantages:**
+- Triggered automatically by GitHub release
+- Separate concern: releases vs. publishing
+- Can be disabled independently if needed
+- Follows GitOps best practices
+
+### Workflow Sequence
+
+```
+1. Developer pushes commits (conventional format)
+   ↓
+2. release-please.yml triggers on main push
+   ↓
+3. Release-Please creates release PR(s)
+   ↓
+4. Developer reviews & merges PR
+   ↓
+5. GitHub creates release (automatic)
+   ↓
+6. publish.yml triggers on release event
+   ↓
+7. Packages published to PyPI
 ```
 
 ## Monorepo Version Management
@@ -327,13 +389,17 @@ uv build --dry-run
 
 ## Related Documentation
 
-- **Release-Please Setup:** `docs/release-management.md`
-- **Code Standards:** `docs/code-standards.md` (conventional commits)
+- **Release-Please Setup:** `docs/release-management.md` (detailed config, workflow outputs, troubleshooting)
+- **Code Standards:** `docs/code-standards.md` (conventional commits, commit message style)
 - **CI/CD Workflows:** `.github/workflows/`
+  - `release-please.yml` - Release PR and GitHub release creation (Phase 1B)
+  - `publish.yml` - PyPI publication (recommended to create)
+  - `ci.yml` - Tests and linting
 
 ## Resources
 
 - [Release-Please GitHub](https://github.com/googleapis/release-please)
+- [Release-Please Action](https://github.com/googleapis/release-please-action)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
 - [PyPI Help](https://pypi.org/help/)
@@ -341,7 +407,7 @@ uv build --dry-run
 
 ---
 
-**Document Status:** Phase 1A Complete
-**Approval Status:** Ready for Phase 1B
+**Document Status:** Phase 1B (release-please.yml added, publish.yml recommended)
+**Approval Status:** Requires Publish Workflow Implementation
 **Maintainer:** Development Team
 **Last Review:** 2025-12-29
