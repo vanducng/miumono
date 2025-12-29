@@ -17,6 +17,9 @@ router = APIRouter(tags=["chat"])
 
 _chat_service = get_chat_service()
 
+# Security: Max message size to prevent DoS (64KB)
+MAX_MESSAGE_SIZE = 64 * 1024
+
 
 def _validate_session_id(session_id: str) -> None:
     """Validate session ID is a valid UUID."""
@@ -88,6 +91,16 @@ async def websocket_chat(websocket: WebSocket, session_id: str) -> None:
                     {
                         "type": "error",
                         "content": "Message is required",
+                    }
+                )
+                continue
+
+            # Security: Check message size to prevent DoS
+            if len(message) > MAX_MESSAGE_SIZE:
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "content": "Message too large (max 64KB)",
                     }
                 )
                 continue

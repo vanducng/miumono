@@ -190,3 +190,16 @@ def test_websocket_session_not_found(client: TestClient) -> None:
         websocket.send_json({"message": "Hello"})
         data = websocket.receive_json()
         assert data["type"] == "error"
+
+
+def test_websocket_message_too_large(client: TestClient, session_id: str) -> None:
+    """Test WebSocket rejects oversized messages."""
+    with client.websocket_connect(f"/api/v1/chat/ws/{session_id}") as websocket:
+        # Send message larger than 64KB limit
+        large_message = "x" * (64 * 1024 + 1)
+        websocket.send_json({"message": large_message})
+
+        # Should get error
+        data = websocket.receive_json()
+        assert data["type"] == "error"
+        assert "too large" in data["content"].lower()
