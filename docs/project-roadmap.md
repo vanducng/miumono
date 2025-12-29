@@ -1,4 +1,4 @@
-# Miumono Project Roadmap
+# miu-mono Project Roadmap
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
@@ -85,19 +85,16 @@
 ---
 
 ### MVP Release: v0.1.0 to PyPI
-**Status:** PLANNED (Target: 2026-02-15)
+**Status:** COMPLETE (Delivered 2025-12-30)
 
-**Prerequisites:**
-- Phase 1A: Complete (✓)
-- Phase 1B: Complete
-- Phase 1C: Complete
-- All tests passing
-- All documentation complete
-- Security audit passed
-
-**Release Artifacts:**
-- `miu-core==0.1.0` on PyPI
-- `miu-code==0.1.0` on PyPI
+**Deliverables COMPLETED:**
+- `miu-core==0.1.0` published to PyPI (https://pypi.org/project/miu-core/)
+- `miu-code==0.1.0` published to PyPI (https://pypi.org/project/miu-code/)
+- `miu-examples==0.1.0` published to PyPI (https://pypi.org/project/miu-examples/)
+- `miu-studio==0.1.0` published to PyPI (https://pypi.org/project/miu-studio/)
+- `miu-mono==0.1.0` published to PyPI (https://pypi.org/project/miu-mono/)
+- PyPI trusted publishers configured for OIDC
+- Repository renamed to miu-mono
 - GitHub release with release notes
 - Installation guide
 - Quick start documentation
@@ -238,7 +235,7 @@
 
 ## Communication & Coordination
 
-**Repository:** https://github.com/vanducng/miumono
+**Repository:** https://github.com/vanducng/miu-mono
 **Documentation:** ./docs/
 **Issues:** GitHub Issues
 **Discussions:** GitHub Discussions

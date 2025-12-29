@@ -1,12 +1,12 @@
 # Release Management & Release-Please Configuration
 
-**Project:** Miumono
+**Project:** miu-mono
 **Version:** 0.1.0
 **Last Updated:** 2025-12-30
 
 ## Overview
 
-Miumono uses **Release-Please** for automated versioning, changelog generation, and release management. Release-Please automates the release workflow by creating pull requests that update versions and changelogs based on conventional commits.
+miu-mono uses **Release-Please** for automated versioning, changelog generation, and release management. Release-Please automates the release workflow by creating pull requests that update versions and changelogs based on conventional commits.
 
 ## Configuration Files
 
@@ -125,18 +125,18 @@ To manually trigger releases (if not using GitHub Actions):
 ```bash
 # Using Release-Please CLI
 npx release-please release-pr \
-  --repo-url=https://github.com/vanducng/miumono \
+  --repo-url=https://github.com/vanducng/miu-mono \
   --token=$GITHUB_TOKEN
 
 # Create releases
 npx release-please github-release \
-  --repo-url=https://github.com/vanducng/miumono \
+  --repo-url=https://github.com/vanducng/miu-mono \
   --token=$GITHUB_TOKEN
 ```
 
 ## Monorepo Package Management
 
-Each package in Miumono is independently versioned:
+Each package in miu-mono is independently versioned:
 
 ```
 packages/
@@ -404,10 +404,10 @@ Use in downstream jobs via: `${{ needs.release-please.outputs.<output_name> }}`
 
 To publish packages to PyPI using OIDC trusted publishing:
 
-1. **For each package**, configure PyPI trusted publisher:
+1. **For each package**, configure PyPI trusted publisher (COMPLETE as of 2025-12-30):
    - Project: https://pypi.org/project/{package-name}/
    - Settings → Trusted Publishers → Add
-   - GitHub repository: `vanducng/miumono`
+   - GitHub repository: `vanducng/miu-mono`
    - Workflow: `.github/workflows/release.yml`
    - Environment: `pypi`
 

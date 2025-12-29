@@ -1,24 +1,25 @@
-# Miumono Codebase Summary
+# miu-mono Codebase Summary
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
 **Status:** Tier 4 - Type Safety & Protocol Hardening (Complete)
-**Updated:** 2025-12-29
+**Updated:** 2025-12-30
+**PyPI Status:** All 5 packages published at version 0.1.0
 
 ## Overview
 
-Miumono is a Python-based AI agent framework monorepo supporting multiple tiers: core framework (Tier 1), coding agent CLI (Tier 2), orchestration layer (Tier 3), and web server UI (Tier 4). Built with UV workspace management, provides modular architecture from framework to web service.
+miu-mono is a Python-based AI agent framework monorepo supporting multiple tiers: core framework (Tier 1), coding agent CLI (Tier 2), orchestration layer (Tier 3), and web server UI (Tier 4). Built with UV workspace management, provides modular architecture from framework to web service. All packages published to PyPI as of 2025-12-30.
 
 ## Project Structure
 
 ```
-miumono/
+miu-mono/
 ├── packages/
-│   ├── miu_core/           # Core framework library
-│   ├── miu_code/           # AI coding agent with CLI
-│   ├── miu_studio/         # Web server and UI
-│   ├── miu_examples/       # Example applications
-│   └── miu/                # Glue package (unified CLI)
+│   ├── miu_core/           # Core framework library (0.1.0 on PyPI)
+│   ├── miu_code/           # AI coding agent with CLI (0.1.0 on PyPI)
+│   ├── miu_studio/         # Web server and UI (0.1.0 on PyPI)
+│   ├── miu_examples/       # Example applications (0.1.0 on PyPI)
+│   └── miu_mono/           # Meta-package (0.1.0 on PyPI)
 ├── .claude/                # Claude Code configuration & workflows
 ├── .secrets/               # Secrets management (git-ignored)
 ├── .venv/                  # Python virtual environment
@@ -231,8 +232,8 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 
 ```bash
 # Clone repository
-git clone https://github.com/vanducng/miumono.git
-cd miumono
+git clone https://github.com/vanducng/miu-mono.git
+cd miu-mono
 
 # Install all dependencies (uses uv workspace)
 uv sync
@@ -597,7 +598,7 @@ Example applications demonstrating miu framework usage:
 
 **Location:** `packages/miu_mono/`
 
-Unified CLI dispatcher with optional dependencies:
+Meta-package providing unified CLI dispatcher with optional dependencies. Published to PyPI as `miu-mono` v0.1.0.
 
 ```bash
 miu              # Run miu-code CLI (default)
@@ -605,6 +606,15 @@ miu serve        # Run miu-studio web server
 miu code         # Run miu-code CLI
 miu tui          # Run miu-code TUI
 miu --version    # Show version
+```
+
+**Installation:**
+```bash
+# Full installation with all extras
+pip install "miu-mono[all]"
+
+# Or individual packages
+pip install miu-core miu-code miu-studio
 ```
 
 ## Documentation Files
@@ -618,6 +628,8 @@ miu --version    # Show version
 
 ---
 
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 **Maintained By:** Development Team
 **Current Tier:** Tier 4 Complete (All Phases 4A-4H Done)
+**PyPI Status:** All 5 packages published at version 0.1.0
+**Repository:** https://github.com/vanducng/miu-mono

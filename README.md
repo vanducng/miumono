@@ -1,9 +1,9 @@
-# Miumono
+# miu-mono
 
-[![CI](https://github.com/vanducng/miumono/actions/workflows/ci.yml/badge.svg)](https://github.com/vanducng/miumono/actions/workflows/ci.yml)
+[![CI](https://github.com/vanducng/miu-mono/actions/workflows/ci.yml/badge.svg)](https://github.com/vanducng/miu-mono/actions/workflows/ci.yml)
 [![PyPI - Version](https://img.shields.io/pypi/v/miu-code)](https://pypi.org/project/miu-code/)
 [![Python](https://img.shields.io/pypi/pyversions/miu-code)](https://pypi.org/project/miu-code/)
-[![License](https://img.shields.io/github/license/vanducng/miumono)](LICENSE)
+[![License](https://img.shields.io/github/license/vanducng/miu-mono)](LICENSE)
 
 AI Agent Framework Monorepo - Build and run AI coding agents with multiple LLM providers.
 
@@ -13,12 +13,12 @@ AI Agent Framework Monorepo - Build and run AI coding agents with multiple LLM p
 
 **Unix/macOS:**
 ```bash
-curl -LsSf https://raw.githubusercontent.com/vanducng/miumono/main/scripts/install.sh | bash
+curl -LsSf https://raw.githubusercontent.com/vanducng/miu-mono/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/vanducng/miumono/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/vanducng/miu-mono/main/scripts/install.ps1 | iex
 ```
 
 ### Using uv
@@ -108,8 +108,8 @@ export OPENAI_API_KEY="sk-..."
 
 ```bash
 # Clone repository
-git clone https://github.com/vanducng/miumono.git
-cd miumono
+git clone https://github.com/vanducng/miu-mono.git
+cd miu-mono
 
 # Install dependencies
 uv sync
