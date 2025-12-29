@@ -26,29 +26,28 @@ async def main() -> None:
     server_command = ["npx", "-y", "@anthropic-ai/mcp-server-filesystem", "."]
 
     try:
-        async with MCPClient(command=server_command) as client:
-            # Initialize connection
-            init_response = await client.initialize(
-                client_name="miu-examples",
-                client_version="0.1.0",
-            )
-            print(f"Connected to: {init_response.server_info.name}")
-            print(f"Server version: {init_response.server_info.version}")
+        async with MCPClient(server_command=server_command) as client:
+            # Connection is established in __aenter__, check server info
+            server_info = client.server_info
+            print("Connected to server")
+            print(f"Server info: {server_info}")
 
-            # List available tools
-            tools = await client.list_tools()
-            print(f"\nAvailable tools ({len(tools.tools)}):")
-            for tool in tools.tools:
-                print(f"  - {tool.name}: {tool.description[:50]}...")
+            # Get available tools
+            tools = client.get_tools()
+            print(f"\nAvailable tools ({len(tools)}):")
+            for tool in tools:
+                desc = tool.get("description", "")[:50]
+                print(f"  - {tool['name']}: {desc}...")
 
-            # Call a tool (if filesystem server)
-            if any(t.name == "read_file" for t in tools.tools):
+            # Call a tool (if filesystem server has read_file)
+            tool_names = [t["name"] for t in tools]
+            if "mcp_read_file" in tool_names:
                 print("\nReading README.md...")
                 result = await client.call_tool(
                     "read_file",
                     {"path": "README.md"},
                 )
-                print(f"Result: {result.content[:200]}...")
+                print(f"Result: {result[:200]}...")
 
     except FileNotFoundError:
         print("Error: MCP server not found.")

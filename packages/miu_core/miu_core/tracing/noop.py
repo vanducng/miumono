@@ -2,7 +2,25 @@
 
 from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Protocol
+
+
+class Span(Protocol):
+    """Protocol for span objects."""
+
+    def set_attribute(self, key: str, value: Any) -> None: ...
+    def set_status(self, status: Any) -> None: ...
+    def record_exception(self, exception: BaseException) -> None: ...
+    def end(self) -> None: ...
+    def __enter__(self) -> "Span": ...
+    def __exit__(self, *args: Any) -> None: ...
+
+
+class Tracer(Protocol):
+    """Protocol for tracer objects."""
+
+    def start_as_current_span(self, name: str, **kwargs: Any) -> Any: ...
+    def start_span(self, name: str, **kwargs: Any) -> Span: ...
 
 
 class NoOpSpan:
@@ -37,9 +55,7 @@ class NoOpTracer:
     """No-op tracer that returns no-op spans."""
 
     @contextmanager
-    def start_as_current_span(
-        self, name: str, **kwargs: Any
-    ) -> Iterator[NoOpSpan]:
+    def start_as_current_span(self, name: str, **kwargs: Any) -> Iterator[NoOpSpan]:
         """Return a no-op span context manager."""
         yield NoOpSpan()
 

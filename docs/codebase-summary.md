@@ -2,7 +2,7 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
-**Status:** Tier 4 Phase 4H - Multi-Agent Patterns (Complete)
+**Status:** Tier 4 - Type Safety & Protocol Hardening (Complete)
 **Updated:** 2025-12-29
 
 ## Overview
@@ -442,6 +442,82 @@ miu  # interactive mode
 **Async I/O:** Uses aiofiles for non-blocking operations
 **Validation:** Pydantic model validation + UUID format checks
 **Timestamps:** ISO 8601 via datetime.utcnow()
+
+## Type Safety & Tracing Improvements (Tier 4 - Type Fixes)
+
+**Status:** Type system hardening and protocol improvements
+
+### Tracing System Type Protocols
+
+Location: `packages/miu_core/miu_core/tracing/`
+
+**Protocols Added:**
+- `Span` (Protocol): Defines contract for span objects with methods: `set_attribute()`, `set_status()`, `record_exception()`, `end()`, context manager support
+- `Tracer` (Protocol): Defines contract for tracer objects with methods: `start_as_current_span()`, `start_span()`
+
+**Implementation:**
+- `NoOpSpan`: Implements Span protocol with no-op behavior (fallback when OpenTelemetry unavailable)
+- `NoOpTracer`: Implements Tracer protocol, returns NoOpSpan instances
+
+**Usage Pattern:**
+```python
+from miu_core.tracing import get_tracer
+
+tracer = get_tracer("miu.agent")
+with tracer.start_as_current_span("operation.name") as span:
+    span.set_attribute("key", "value")
+    # Do work
+    span.set_attribute("result", "success")
+```
+
+### Agent Configuration Type Improvements
+
+**File:** `packages/miu_core/miu_core/agents/base.py`
+
+**Changes:**
+- Added `name: str = "agent"` field to `AgentConfig` (enables agent identification in tracing)
+- AgentConfig now fully captures agent identity and constraints
+
+### Provider Tracer Typing
+
+**Files:**
+- `packages/miu_core/miu_core/agents/react.py` - ReActAgent._tracer typed as `Tracer` protocol
+- `packages/miu_core/miu_core/providers/anthropic.py` - AnthropicProvider._tracer typed as `Tracer` protocol
+
+**Pattern:** All providers and agents consistently declare tracer field with explicit Tracer protocol type for type safety
+
+### Type Ignore Fixes
+
+**Files:**
+- `packages/miu_core/miu_core/providers/google.py` - `type: ignore[assignment]` on tools conversion (Google API type constraints)
+- `packages/miu/miu/cli.py` - `type: ignore[import-untyped]` on version import (external module)
+
+**Reasoning:** Justified type ignores for third-party API constraints while maintaining strict mypy elsewhere
+
+### Example Package Typing
+
+**File:** `packages/miu_examples/miu_examples/tool_usage.py`
+
+**Type Improvements:**
+- Fixed AST typing for calculator tool (operator module type safety)
+- Proper type annotations for eval-based expression handling
+
+### TUI Type Updates
+
+**File:** `packages/miu_code/miu_code/tui/app.py`
+
+**Changes:**
+- `BindingType` imported from `textual.binding` (explicit type for BINDINGS class variable)
+- Textual UI binding declarations now type-safe: `BINDINGS: ClassVar[list[BindingType]]`
+
+### MCP Client API Updates
+
+**File:** `packages/miu_examples/miu_examples/mcp_client.py`
+
+**API Improvements:**
+- `client.get_tools()` - Returns typed list of tool dictionaries
+- `client.call_tool(name, params)` - Async tool invocation with proper type hints
+- MCPClient async context manager protocol maintained
 
 ## Multi-Agent Patterns (Phase 4H)
 

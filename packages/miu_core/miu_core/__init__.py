@@ -6,13 +6,13 @@ __version__ = get_version()
 
 # Lazy imports to avoid circular dependencies
 __all__ = [
-    "__version__",
     "Orchestrator",
     "OrchestratorConfig",
     "Pipeline",
     "PipelineConfig",
     "Router",
     "RouterConfig",
+    "__version__",
 ]
 
 

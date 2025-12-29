@@ -44,7 +44,7 @@ class GoogleProvider(LLMProvider):
         )
 
         if tools:
-            config.tools = self._convert_tools(tools)
+            config.tools = self._convert_tools(tools)  # type: ignore[assignment]
 
         response = await self._client.aio.models.generate_content(
             model=self.model,

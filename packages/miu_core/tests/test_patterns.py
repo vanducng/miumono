@@ -288,7 +288,10 @@ class TestRouter:
 
         router.add_route("general", general, condition=lambda q: True, priority=0)
         router.add_route(
-            "specific", specific, keywords=["special"], priority=10  # Higher priority
+            "specific",
+            specific,
+            keywords=["special"],
+            priority=10,  # Higher priority
         )
 
         result = await router.route("special request")

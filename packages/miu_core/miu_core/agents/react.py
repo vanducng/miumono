@@ -6,7 +6,7 @@ from miu_core.models import Message, Response, TextContent, ToolResultContent
 from miu_core.providers.base import LLMProvider
 from miu_core.tools.base import ToolContext
 from miu_core.tools.registry import ToolRegistry
-from miu_core.tracing import get_tracer
+from miu_core.tracing import Tracer, get_tracer
 from miu_core.tracing.types import SpanAttributes
 
 
@@ -23,7 +23,7 @@ class ReActAgent(Agent):
     ) -> None:
         super().__init__(provider, tools, config, memory)
         self.working_dir = working_dir
-        self._tracer = get_tracer("miu.agent")
+        self._tracer: Tracer = get_tracer("miu.agent")
 
     async def run(self, query: str) -> Response:
         """Execute ReAct loop for query."""

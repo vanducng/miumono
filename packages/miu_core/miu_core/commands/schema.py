@@ -10,7 +10,9 @@ class Command(BaseModel):
 
     name: str = Field(description="Command name without leading /")
     description: str = Field(default="", description="Short description of the command")
-    argument_hint: str = Field(default="", alias="argument-hint", description="Hint for expected arguments")
+    argument_hint: str = Field(
+        default="", alias="argument-hint", description="Hint for expected arguments"
+    )
     content: str = Field(description="Command template content")
     source_path: Path | None = Field(default=None, description="Path to source file")
 

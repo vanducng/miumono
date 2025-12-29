@@ -4,7 +4,7 @@ import os
 from typing import ClassVar
 
 from textual.app import App, ComposeResult
-from textual.binding import Binding
+from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.widgets import Footer, Header, Input
 
@@ -19,7 +19,7 @@ class MiuCodeApp(App[None]):
     TITLE = "miu-code"
     SUB_TITLE = "AI Coding Agent"
 
-    BINDINGS: ClassVar[list[Binding]] = [
+    BINDINGS: ClassVar[list[BindingType]] = [
         Binding("ctrl+c", "quit", "Quit"),
         Binding("ctrl+n", "new_session", "New Session"),
         Binding("ctrl+l", "clear_chat", "Clear"),

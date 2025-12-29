@@ -50,7 +50,9 @@ class InitializeRequest(MCPMessage):
         params = {
             "protocolVersion": protocol_version,
             "capabilities": capabilities or {},
-            "clientInfo": client_info.model_dump() if client_info else {"name": "miu", "version": "0.1.0"},
+            "clientInfo": client_info.model_dump()
+            if client_info
+            else {"name": "miu", "version": "0.1.0"},
         }
         super().__init__(params=params, **kwargs)
 
@@ -76,7 +78,9 @@ class MCPTool(BaseModel):
 
     name: str
     description: str | None = None
-    input_schema: MCPToolInputSchema = Field(alias="inputSchema", default_factory=MCPToolInputSchema)
+    input_schema: MCPToolInputSchema = Field(
+        alias="inputSchema", default_factory=MCPToolInputSchema
+    )
 
 
 class ListToolsRequest(MCPMessage):

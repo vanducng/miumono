@@ -59,9 +59,7 @@ def setup_tracing(config: TracingConfig | None = None) -> trace.Tracer:
 
     # Add console exporter if enabled (for debugging)
     if config.console_export:
-        _tracer_provider.add_span_processor(
-            BatchSpanProcessor(ConsoleSpanExporter())
-        )
+        _tracer_provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
 
     # Set global tracer provider
     trace.set_tracer_provider(_tracer_provider)

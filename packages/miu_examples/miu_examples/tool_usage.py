@@ -89,12 +89,15 @@ class CalculatorTool(Tool):
 
         Only supports: numbers, +, -, *, /, parentheses.
         """
-        # Supported operators
-        ops = {
+        # Supported binary operators
+        bin_ops: dict[type[ast.operator], Any] = {
             ast.Add: operator.add,
             ast.Sub: operator.sub,
             ast.Mult: operator.mul,
             ast.Div: operator.truediv,
+        }
+        # Supported unary operators
+        unary_ops: dict[type[ast.unaryop], Any] = {
             ast.USub: operator.neg,
             ast.UAdd: operator.pos,
         }
@@ -103,22 +106,26 @@ class CalculatorTool(Tool):
             if isinstance(node, ast.Expression):
                 return _eval(node.body)
             elif isinstance(node, ast.Constant):
-                if isinstance(node.value, int | float):
+                if isinstance(node.value, (int, float)):
                     return node.value
-                raise ValueError(f"Unsupported constant: {node.value}")
+                raise ValueError(f"Unsupported constant: {node.value!r}")
             elif isinstance(node, ast.BinOp):
                 op_type = type(node.op)
-                if op_type not in ops:
+                if op_type not in bin_ops:
                     raise ValueError(f"Unsupported operator: {op_type.__name__}")
                 left = _eval(node.left)
                 right = _eval(node.right)
-                return ops[op_type](left, right)
+                op_func = bin_ops[op_type]
+                result: float | int = op_func(left, right)
+                return result
             elif isinstance(node, ast.UnaryOp):
-                op_type = type(node.op)
-                if op_type not in ops:
-                    raise ValueError(f"Unsupported operator: {op_type.__name__}")
+                unary_op_type = type(node.op)
+                if unary_op_type not in unary_ops:
+                    raise ValueError(f"Unsupported operator: {unary_op_type.__name__}")
                 operand = _eval(node.operand)
-                return ops[op_type](operand)
+                unary_op_func = unary_ops[unary_op_type]
+                unary_result: float | int = unary_op_func(operand)
+                return unary_result
             else:
                 raise ValueError(f"Unsupported expression: {type(node).__name__}")
 

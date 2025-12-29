@@ -9,7 +9,7 @@ Provides access to all miu subcommands:
 
 import sys
 
-import asyncclick as click  # type: ignore[import-untyped]
+import asyncclick as click
 
 
 @click.group(invoke_without_command=True)
@@ -21,7 +21,7 @@ async def cli(ctx: click.Context, version: bool) -> None:
     Run without arguments to start the interactive CLI.
     """
     if version:
-        from miu import __version__
+        from miu import __version__  # type: ignore[import-untyped]
 
         click.echo(f"miu version {__version__}")
         return

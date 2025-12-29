@@ -3,12 +3,13 @@
 Install with: pip install miu-core[tracing]
 """
 
+from miu_core.tracing.noop import Tracer
 from miu_core.tracing.types import SpanKind, TracingConfig
 
-__all__ = ["SpanKind", "TracingConfig", "get_tracer", "setup_tracing"]
+__all__ = ["SpanKind", "Tracer", "TracingConfig", "get_tracer", "setup_tracing"]
 
 
-def get_tracer(name: str = "miu") -> object:
+def get_tracer(name: str = "miu") -> Tracer:
     """Get a tracer instance.
 
     Returns a no-op tracer if OpenTelemetry is not installed.
@@ -16,11 +17,11 @@ def get_tracer(name: str = "miu") -> object:
     try:
         from miu_core.tracing.otel import get_tracer as _get_tracer
 
-        return _get_tracer(name)
+        return _get_tracer(name)  # type: ignore[return-value]
     except ImportError:
         from miu_core.tracing.noop import NoOpTracer
 
-        return NoOpTracer()  # type: ignore[return-value]
+        return NoOpTracer()
 
 
 def setup_tracing(config: TracingConfig | None = None) -> object:
@@ -41,6 +42,5 @@ def setup_tracing(config: TracingConfig | None = None) -> object:
         return _setup(config)
     except ImportError as e:
         raise ImportError(
-            "OpenTelemetry packages not installed. "
-            "Install with: pip install miu-core[tracing]"
+            "OpenTelemetry packages not installed. Install with: pip install miu-core[tracing]"
         ) from e

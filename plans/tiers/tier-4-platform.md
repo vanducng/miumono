@@ -1,9 +1,9 @@
 # Tier 4: Platform
 
 **Goal:** Web server, examples package, and observability.
-**Effort:** 28h | **Priority:** P2 | **Status:** IN_PROGRESS
+**Effort:** 28h | **Priority:** P2 | **Status:** DONE [2025-12-29]
 **Depends on:** Tier 3 Protocols
-**Started:** 2025-12-29
+**Started:** 2025-12-29 | **Completed:** 2025-12-29
 
 ---
 
@@ -162,14 +162,14 @@ async def delete_session(session_id: str, sm: SessionManager = Depends()):
     return {"deleted": session_id}
 ```
 
-### Phase 4C: Chat API + WebSocket (4h)
+### Phase 4C: Chat API + WebSocket (4h) - DONE [2025-12-29]
 
-| # | Task | File(s) |
-|---|------|---------|
-| 1 | Create chat invoke endpoint | `miu_studio/api/routes/chat.py` |
-| 2 | Create streaming endpoint | `miu_studio/api/routes/chat.py` |
-| 3 | Create WebSocket handler | `miu_studio/api/routes/chat.py` |
-| 4 | Create streaming service | `miu_studio/services/streaming.py` |
+| # | Task | File(s) | Status |
+|---|------|---------|--------|
+| 1 | Create chat invoke endpoint | `miu_studio/api/routes/chat.py` | DONE |
+| 2 | Create streaming endpoint | `miu_studio/api/routes/chat.py` | DONE |
+| 3 | Create WebSocket handler | `miu_studio/api/routes/chat.py` | DONE |
+| 4 | Create streaming service | `miu_studio/services/streaming.py` | DONE |
 
 **Chat API:**
 ```python

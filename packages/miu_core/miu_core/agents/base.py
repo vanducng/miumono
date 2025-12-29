@@ -14,6 +14,7 @@ from miu_core.tools.registry import ToolRegistry
 class AgentConfig(BaseModel):
     """Agent configuration."""
 
+    name: str = "agent"
     system_prompt: str = "You are a helpful AI assistant."
     max_iterations: int = 10
     max_context_tokens: int = 100000  # Auto-truncate at this limit

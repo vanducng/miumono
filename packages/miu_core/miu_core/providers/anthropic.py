@@ -10,7 +10,7 @@ from miu_core.models import (
     Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
-from miu_core.tracing import get_tracer
+from miu_core.tracing import Tracer, get_tracer
 from miu_core.tracing.types import SpanAttributes
 
 try:
@@ -27,7 +27,7 @@ class AnthropicProvider(LLMProvider):
     def __init__(self, model: str = "claude-sonnet-4-20250514") -> None:
         self.model = model
         self._client = AsyncAnthropic()
-        self._tracer = get_tracer("miu.provider")
+        self._tracer: Tracer = get_tracer("miu.provider")
 
     async def complete(
         self,
@@ -59,7 +59,9 @@ class AnthropicProvider(LLMProvider):
             # Record token usage and stop reason
             if result.usage:
                 span.set_attribute(SpanAttributes.PROVIDER_TOKENS_INPUT, result.usage.input_tokens)
-                span.set_attribute(SpanAttributes.PROVIDER_TOKENS_OUTPUT, result.usage.output_tokens)
+                span.set_attribute(
+                    SpanAttributes.PROVIDER_TOKENS_OUTPUT, result.usage.output_tokens
+                )
             span.set_attribute(SpanAttributes.PROVIDER_STOP_REASON, result.stop_reason)
 
             return result
