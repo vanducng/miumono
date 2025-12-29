@@ -5,7 +5,7 @@ from miu_code.tools import get_all_tools
 from miu_core.agents import AgentConfig, ReActAgent
 from miu_core.models import Response
 from miu_core.providers import create_provider
-from miu_core.tools import ToolRegistry
+from miu_core.tools import Tool, ToolRegistry
 
 SYSTEM_PROMPT = """You are a helpful AI coding assistant. You can read, write, and edit files, \
 run shell commands, and search through codebases.
@@ -62,3 +62,11 @@ class CodingAgent:
         self.session.save(self._agent.memory.messages)
 
         return response
+
+    def get_tools(self) -> list[Tool]:
+        """Get all registered tools.
+
+        Returns:
+            List of registered tools
+        """
+        return list(self.tools)
