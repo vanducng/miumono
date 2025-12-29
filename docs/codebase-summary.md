@@ -2,7 +2,7 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
-**Status:** Tier 4 Phase 4B - Session Management API (Delivered)
+**Status:** Tier 4 Phase 4H - Multi-Agent Patterns (Complete)
 **Updated:** 2025-12-29
 
 ## Overview
@@ -16,7 +16,9 @@ miumono/
 ├── packages/
 │   ├── miu_core/           # Core framework library
 │   ├── miu_code/           # AI coding agent with CLI
-│   └── miu_studio/         # Web server and UI (NEW - Tier 4)
+│   ├── miu_studio/         # Web server and UI
+│   ├── miu_examples/       # Example applications
+│   └── miu/                # Glue package (unified CLI)
 ├── .claude/                # Claude Code configuration & workflows
 ├── .secrets/               # Secrets management (git-ignored)
 ├── .venv/                  # Python virtual environment
@@ -54,6 +56,8 @@ miumono/
 | `miu_core.models` | Data models for agents, tools, messages |
 | `miu_core.providers` | LLM provider integrations (Anthropic, OpenAI, Google) |
 | `miu_core.tools` | Tool registry and base tool abstractions |
+| `miu_core.patterns` | Multi-agent patterns (Orchestrator, Pipeline, Router) |
+| `miu_core.tracing` | OpenTelemetry integration with no-op fallback |
 | `miu_core.version` | Version management |
 
 **Example Usage:**
@@ -439,6 +443,94 @@ miu  # interactive mode
 **Validation:** Pydantic model validation + UUID format checks
 **Timestamps:** ISO 8601 via datetime.utcnow()
 
+## Multi-Agent Patterns (Phase 4H)
+
+**Location:** `packages/miu_core/miu_core/patterns/`
+
+Three multi-agent coordination patterns implemented:
+
+### Orchestrator Pattern
+
+Coordinates multiple agents with task dependencies using DAG-based execution.
+
+```python
+from miu_core.patterns import Orchestrator
+
+orchestrator = Orchestrator()
+orchestrator.add_agent("researcher", research_agent)
+orchestrator.add_agent("writer", writer_agent)
+
+orchestrator.add_task("research", "researcher", "Research AI agents")
+orchestrator.add_task(
+    "write", "writer",
+    lambda ctx: f"Write about: {ctx['research'].response.get_text()}",
+    depends_on=["research"],
+)
+
+results = await orchestrator.run()
+```
+
+### Pipeline Pattern
+
+Sequential agent chain where output feeds to next stage.
+
+```python
+from miu_core.patterns import Pipeline
+
+pipeline = Pipeline()
+pipeline.add_stage("research", research_agent)
+pipeline.add_stage(
+    "summarize", summarizer_agent,
+    transform=lambda q, r: f"Summarize: {r.get_text()}"
+)
+
+result = await pipeline.run("Research quantum computing")
+```
+
+### Router Pattern
+
+Routes requests to appropriate agents based on keywords, patterns, or conditions.
+
+```python
+from miu_core.patterns import Router
+
+router = Router()
+router.add_route("code", code_agent, keywords=["python", "debug"])
+router.add_route("writing", write_agent, keywords=["write", "article"])
+router.add_route("general", general_agent, condition=lambda q: True, priority=-1)
+
+result = await router.route("Help me debug Python code")
+```
+
+### miu-examples Package
+
+**Location:** `packages/miu_examples/`
+
+Example applications demonstrating miu framework usage:
+
+| Example | Purpose |
+|---------|---------|
+| `simple_agent.py` | Basic agent usage |
+| `multi_provider.py` | Provider switching |
+| `tool_usage.py` | Custom tools with safe eval |
+| `mcp_client.py` | MCP integration |
+| `rag_agent.py` | RAG with vector DB |
+| `multi_agent.py` | All three patterns demo |
+
+### miu Glue Package
+
+**Location:** `packages/miu/`
+
+Unified CLI dispatcher with optional dependencies:
+
+```bash
+miu              # Run miu-code CLI (default)
+miu serve        # Run miu-studio web server
+miu code         # Run miu-code CLI
+miu tui          # Run miu-code TUI
+miu --version    # Show version
+```
+
 ## Documentation Files
 
 - `project-overview-pdr.md` - Project requirements and architecture
@@ -452,4 +544,4 @@ miu  # interactive mode
 
 **Last Updated:** 2025-12-29
 **Maintained By:** Development Team
-**Current Tier:** Tier 4 Phase 4B (Session Management API)
+**Current Tier:** Tier 4 Complete (All Phases 4A-4H Done)

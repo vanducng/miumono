@@ -600,6 +600,38 @@ class CustomTool(BaseTool):
 3. Override `_get_reasoning_prompt()` for custom prompts
 4. Override `_execute_step()` for custom logic
 
+### Multi-Agent Patterns
+
+**Location:** `packages/miu_core/miu_core/patterns/`
+
+Three coordination patterns for multi-agent systems:
+
+| Pattern | Purpose | Key Features |
+|---------|---------|--------------|
+| **Orchestrator** | Coordinate agents with dependencies | Task DAG, topological sort, fail-fast |
+| **Pipeline** | Sequential processing chain | Stage transforms, error handling |
+| **Router** | Route requests to specialists | Keywords, regex, priority ordering |
+
+```python
+# Orchestrator - task dependencies
+orchestrator = Orchestrator()
+orchestrator.add_agent("research", research_agent)
+orchestrator.add_task("task1", "research", "query", depends_on=["task0"])
+results = await orchestrator.run()
+
+# Pipeline - sequential stages
+pipeline = Pipeline()
+pipeline.add_stage("extract", agent1)
+pipeline.add_stage("transform", agent2, transform=lambda q, r: f"Process: {r.get_text()}")
+result = await pipeline.run("initial query")
+
+# Router - request routing
+router = Router()
+router.add_route("code", code_agent, keywords=["python", "debug"])
+router.add_route("general", general_agent, condition=lambda q: True, priority=-1)
+result = await router.route("Help with Python")
+```
+
 ## Dependency Management
 
 ### Internal Dependencies
