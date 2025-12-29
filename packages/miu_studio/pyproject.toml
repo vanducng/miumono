@@ -21,6 +21,7 @@ dependencies = [
     "uvicorn[standard]>=0.32",
     "pydantic-settings>=2.6",
     "websockets>=13.0",
+    "aiofiles>=23.0",
 ]
 
 [project.scripts]

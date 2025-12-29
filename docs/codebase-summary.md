@@ -2,7 +2,7 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.1.0
-**Status:** Tier 4 Phase 4A - Studio Web Server (Delivered)
+**Status:** Tier 4 Phase 4B - Session Management API (Delivered)
 **Updated:** 2025-12-29
 
 ## Overview
@@ -168,10 +168,43 @@ MIU_LOG_LEVEL=INFO
 ```
 
 **API Endpoints:**
+
+*Health & Status:*
 ```
 GET  /api/v1/health   - Server health status
 GET  /api/v1/ready    - Server readiness probe
 ```
+
+*Sessions:*
+```
+GET    /api/v1/sessions/              - List all sessions (returns SessionSummary[])
+POST   /api/v1/sessions/              - Create new session (accepts CreateSessionRequest)
+GET    /api/v1/sessions/{id}          - Get session by ID (returns Session)
+DELETE /api/v1/sessions/{id}          - Delete session (returns {deleted: string})
+```
+
+**Session Management (NEW - Phase 4B):**
+
+*Models:*
+- `SessionMessage` - Message with role (user/assistant/system), content, timestamp
+- `Session` - Full session: id, name, model, system_prompt, messages, created_at, updated_at
+- `SessionSummary` - Session listing: id, name, created_at, updated_at, message_count
+- `CreateSessionRequest` - Create request: name?, model?, system_prompt?
+
+*SessionManager Service:*
+- Location: `miu_studio.services.session_manager`
+- Persistence: File-based (JSON) in `MIU_SESSION_DIR`
+- UUID validation prevents path traversal attacks
+- Async file I/O via aiofiles
+- List, create, get, update, delete operations
+- Automatic sorting by updated_at (newest first)
+- Error handling: JSONDecodeError, ValueError recovery
+
+*Security:*
+- UUID format validation on all session_id parameters
+- Path traversal prevention via strict validation
+- HTTP 400 for invalid format, 404 for not found
+- File-level isolation with UUID filenames
 
 **Entry Point:**
 ```bash
@@ -325,6 +358,10 @@ uv sync && uv run ruff check . && uv run mypy packages/ && uv run pytest
 | `/packages/miu_studio/miu_studio/main.py` | FastAPI application factory |
 | `/packages/miu_studio/miu_studio/core/config.py` | Settings configuration |
 | `/packages/miu_studio/miu_studio/api/routes/health.py` | Health check endpoints |
+| `/packages/miu_studio/miu_studio/api/routes/sessions.py` | Session management endpoints |
+| `/packages/miu_studio/miu_studio/services/session_manager.py` | SessionManager service |
+| `/packages/miu_studio/miu_studio/models/api.py` | Pydantic models for API |
+| `/packages/miu_studio/tests/test_sessions.py` | Session tests (11 test cases) |
 | `/README.md` | Quick start and overview |
 | `/CLAUDE.md` | Development guidelines and workflows |
 | `/repomix-output.xml` | Full codebase artifact (generated) |
@@ -357,11 +394,57 @@ miu "your query"
 miu  # interactive mode
 ```
 
+## Session Management API (Tier 4 Phase 4B)
+
+**Status:** Phase 4B Complete
+
+### Routes (`/api/v1/sessions`)
+
+1. **List Sessions** - `GET /api/v1/sessions/`
+   - Returns: `list[SessionSummary]`
+   - No parameters
+   - Sorted by updated_at (newest first)
+
+2. **Create Session** - `POST /api/v1/sessions/`
+   - Body: `CreateSessionRequest` (optional)
+   - Returns: `Session` with new ID (UUID)
+   - Defaults: model from config, no name/system_prompt
+
+3. **Get Session** - `GET /api/v1/sessions/{session_id}`
+   - Param: session_id (must be valid UUID)
+   - Returns: `Session` (404 if not found)
+   - Errors: 400 (invalid format), 404 (not found)
+
+4. **Delete Session** - `DELETE /api/v1/sessions/{session_id}`
+   - Param: session_id (must be valid UUID)
+   - Returns: `{deleted: string}` (session ID)
+   - Errors: 400 (invalid format), 404 (not found)
+
+### Test Coverage (11 tests)
+
+- Session CRUD operations (create, read, update, delete)
+- List with empty sessions
+- List with multiple sessions (sorted correctly)
+- Invalid session ID format rejection
+- Non-existent session handling
+- Message persistence
+- Optional fields handling
+- Security: path traversal prevention
+
+### Implementation Details
+
+**Persistence:** File-based JSON in `.miu/sessions/` directory
+**File Format:** `{uuid}.json` with Session model serialization
+**Async I/O:** Uses aiofiles for non-blocking operations
+**Validation:** Pydantic model validation + UUID format checks
+**Timestamps:** ISO 8601 via datetime.utcnow()
+
 ## Documentation Files
 
 - `project-overview-pdr.md` - Project requirements and architecture
 - `code-standards.md` - Detailed code standards and patterns
 - `system-architecture.md` - System design and component interactions
+- `codebase-summary.md` - This file - complete codebase overview
 - `deployment-guide.md` - Deployment and release procedures
 - `project-roadmap.md` - Feature roadmap and milestones
 
@@ -369,3 +452,4 @@ miu  # interactive mode
 
 **Last Updated:** 2025-12-29
 **Maintained By:** Development Team
+**Current Tier:** Tier 4 Phase 4B (Session Management API)

@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from miu_studio.api.routes import health
+from miu_studio.api.routes import health, sessions
 from miu_studio.core.config import settings
 
 
@@ -42,6 +42,7 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health.router, prefix="/api/v1")
+    app.include_router(sessions.router, prefix="/api/v1/sessions")
 
     # Static files (will be used for web UI)
     static_dir = Path(__file__).parent / "static"
