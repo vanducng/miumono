@@ -136,6 +136,8 @@ mode_mgr.on_change(on_mode_change)
 | `miu_code.cli` | Command-line interface & entry point |
 | `miu_code.tools` | Coding tools (read, write, edit, bash, glob, grep) |
 | `miu_code.session` | Session management & persistence |
+| `miu_code.tui` | TUI interface with Textual widgets (Phase 3) |
+| `miu_code.tui.widgets` | Reusable TUI components (StatusBar, WelcomeBanner, etc.) |
 
 **CLI Entry Points:**
 - `miu` - Main CLI command
@@ -164,6 +166,60 @@ miu
 # Interactive TUI mode
 miu code
 ```
+
+**TUI Widgets (Phase 3 - NEW):**
+
+Location: `miu_code/tui/widgets/`
+
+| Widget | Purpose |
+|--------|---------|
+| `StatusBar` | Footer status bar showing mode, path, token usage |
+| `WelcomeBanner` | Animated welcome banner with metadata (version, model, MCP) |
+| `ChatLog` | Chat message display with scrolling |
+| `MessageInput` | Text input field for user queries |
+| `LoadingSpinner` | Animated loading spinner |
+
+StatusBar features:
+```python
+from miu_code.tui.widgets import StatusBar
+from miu_core.modes import ModeManager
+from miu_core.usage import UsageTracker
+
+# Create status bar
+bar = StatusBar(
+    mode_manager=ModeManager(),
+    usage_tracker=UsageTracker(),
+    working_dir="/home/user/project"
+)
+
+# Update on mode/usage changes
+bar.update_usage(input_tokens=100, output_tokens=50)
+bar.update_path("/new/path")
+
+# Access mode manager for cycling
+mode_manager = bar.mode_manager
+```
+
+WelcomeBanner features:
+```python
+from miu_code.tui.widgets import WelcomeBanner
+
+banner = WelcomeBanner(
+    version="0.2.0",
+    model="claude-opus-4-20250805",
+    mcp_count=2,
+    working_dir="/home/user/miu-mono",
+    compact=True  # Use compact logo
+)
+```
+
+**Test Coverage (Phase 3):**
+- 40 widget tests covering StatusBar, WelcomeBanner, and integrations
+- Mode cycling and usage tracking
+- Path formatting (home directory abbreviation)
+- Animation state management
+- Widget initialization edge cases
+- Location: `tests/test_tui_widgets.py`
 
 ### miu-studio
 
@@ -677,10 +733,32 @@ pip install miu-core miu-code miu-studio
 - `deployment-guide.md` - Deployment and release procedures
 - `project-roadmap.md` - Feature roadmap and milestones
 
+## TUI Implementation (Phase 3)
+
+**Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
+
+**Components:**
+- StatusBar widget with mode/path/usage display
+- WelcomeBanner with animated intro and metadata
+- Integration with ModeManager and UsageTracker
+- 40 comprehensive widget tests
+
+**Test Coverage:**
+- StatusBar: 11 tests (instantiation, mode cycling, usage tracking, path formatting)
+- WelcomeBanner: 10 tests (metadata, path formatting, animation, logo parsing)
+- Integration tests: 12 tests (mode callbacks, usage accumulation)
+- Render/edge case tests: 7 tests (animation boundaries, widget initialization)
+
+**Files:**
+- `packages/miu_code/miu_code/tui/widgets/status.py` - NEW
+- `packages/miu_code/miu_code/tui/widgets/banner.py` - MODIFIED
+- `packages/miu_code/miu_code/tui/widgets/__init__.py` - MODIFIED (added StatusBar export)
+- `packages/miu_code/tests/test_tui_widgets.py` - NEW
+
 ---
 
 **Last Updated:** 2025-12-30
 **Maintained By:** Development Team
-**Current Tier:** Tier 4 Complete (All Phases 4A-4H Done)
+**Current Status:** Phase 3 Complete - TUI Widgets fully implemented and tested
 **PyPI Status:** All 5 packages published at version 0.1.0
 **Repository:** https://github.com/vanducng/miu-mono

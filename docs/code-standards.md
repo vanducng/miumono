@@ -311,6 +311,160 @@ async def safe_operation() -> Optional[Result]:
         raise
 ```
 
+## TUI Widgets (Textual Framework)
+
+### Widget Structure
+
+All TUI widgets in `miu_code.tui.widgets` follow these standards:
+
+**File Organization:**
+```
+miu_code/tui/widgets/
+├── __init__.py         # Public exports (Widget.py names)
+├── status.py           # StatusBar widget
+├── banner.py           # WelcomeBanner widget
+├── chat.py             # ChatLog widget
+├── input.py            # MessageInput widget
+└── loading.py          # LoadingSpinner widget
+```
+
+**Widget Naming:** Class names like `StatusBar`, `WelcomeBanner` (PascalCase with "Widget" suffix optional)
+
+### Reactive Properties
+
+Textual widgets use reactive properties for state management:
+
+```python
+from textual.widget import Widget
+from textual.reactive import reactive
+
+class CustomWidget(Widget):
+    """Widget with reactive state."""
+
+    # Declare reactive properties
+    label: reactive[str] = reactive("default")
+    value: reactive[int] = reactive(0)
+
+    def render(self) -> RenderResult:
+        """Render based on reactive properties."""
+        return Text(f"{self.label}: {self.value}")
+```
+
+**Rules:**
+- Use `reactive[Type]` type annotations for clarity
+- Initialize reactive properties with default values
+- Keep reactive properties simple (strings, ints, floats, bools)
+- Use private attributes (`_attr`) for complex state
+
+### Widget Integration Patterns
+
+**With ModeManager:**
+```python
+from miu_core.modes import ModeManager, AgentMode
+
+class StatusBar(Widget):
+    """Status bar with mode management."""
+
+    def __init__(
+        self,
+        mode_manager: ModeManager | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self._mode_manager = mode_manager or ModeManager()
+
+        # Subscribe to mode changes
+        self._mode_manager.on_change(self._on_mode_change)
+
+    def _on_mode_change(self, mode: AgentMode) -> None:
+        """Handle mode change event."""
+        # Update display when mode changes
+        self.update_display()
+```
+
+**With UsageTracker:**
+```python
+from miu_core.usage import UsageTracker
+
+class StatusBar(Widget):
+    """Status bar with token usage tracking."""
+
+    def __init__(
+        self,
+        usage_tracker: UsageTracker | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self._usage_tracker = usage_tracker or UsageTracker()
+
+    def update_usage(
+        self,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+    ) -> None:
+        """Update token usage display."""
+        self._usage_tracker.add_usage(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+```
+
+### Widget CSS
+
+**DEFAULT_CSS Pattern:**
+```python
+class CustomWidget(Widget):
+    """Widget with styling."""
+
+    DEFAULT_CSS = """
+    CustomWidget {
+        dock: bottom;  # or: top, left, right
+        height: auto;  # or: 100% or fixed number
+        width: 100%;
+        padding: 1 2;  # vertical horizontal
+        background: $surface;
+        color: $text;
+    }
+    """
+```
+
+**Color Palette:**
+- Use Textual's built-in variables: `$surface`, `$text`, `$accent`, `$success`, `$error`
+- Define custom colors in theme module (`miu_code/tui/theme.py`)
+- Use inline styles in `render()` for dynamic colors
+
+### Widget Testing (test_tui_widgets.py)
+
+**Test Structure:**
+```python
+class TestStatusBar:
+    """Tests for StatusBar widget."""
+
+    def test_instantiation(self) -> None:
+        """Test widget can be instantiated with defaults."""
+        widget = StatusBar()
+        assert widget is not None
+
+    def test_with_custom_managers(self) -> None:
+        """Test widget with injected dependencies."""
+        manager = ModeManager()
+        widget = StatusBar(mode_manager=manager)
+        assert widget._mode_manager is manager
+
+    def test_reactive_property_updates(self) -> None:
+        """Test reactive properties update correctly."""
+        widget = StatusBar()
+        widget.label = "new value"
+        assert widget.label == "new value"
+```
+
+**Testing Patterns:**
+- Test instantiation with defaults and custom values
+- Test reactive property updates
+- Test integration with managers (ModeManager, UsageTracker)
+- Test callback registration and invocation
+- Test formatting/rendering logic (without full Textual harness)
+
 ## Error Handling
 
 ### Exception Hierarchy
@@ -605,4 +759,5 @@ uv run pytest --cov
 
 **Document Status:** ACTIVE
 **Enforced By:** CI/CD Pipeline
-**Last Review:** 2025-12-29
+**Last Review:** 2025-12-30
+**Latest Addition:** TUI Widget standards (Phase 3)
