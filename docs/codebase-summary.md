@@ -59,6 +59,8 @@ miu-mono/
 | `miu_core.tools` | Tool registry and base tool abstractions |
 | `miu_core.patterns` | Multi-agent patterns (Orchestrator, Pipeline, Router) |
 | `miu_core.tracing` | OpenTelemetry integration with no-op fallback |
+| `miu_core.usage` | Token usage tracking and statistics (Phase 2) |
+| `miu_core.modes` | Agent mode management (normal, plan, ask) (Phase 2) |
 | `miu_core.version` | Version management |
 
 **Example Usage:**
@@ -70,6 +72,48 @@ from miu_core.agents import ReActAgent
 provider = AnthropicProvider()
 agent = ReActAgent(provider=provider)
 response = await agent.run("Hello!")
+```
+
+**Phase 2 Modules (New):**
+
+**miu_core.usage** - Token usage tracking:
+```python
+from miu_core import UsageTracker, UsageStats
+
+# Track token usage across a session
+tracker = UsageTracker(context_limit=200_000)
+tracker.add_usage(input_tokens=150, output_tokens=50)
+
+# Get statistics
+print(tracker.total_tokens)  # 200
+print(tracker.usage_percent)  # 0.1
+print(tracker.format_usage())  # "0% of 200k tokens"
+
+# Stats object
+stats = tracker.stats
+print(stats.input_tokens, stats.output_tokens)
+```
+
+**miu_core.modes** - Agent mode management:
+```python
+from miu_core import AgentMode, ModeManager
+
+# Manage agent operation modes
+mode_mgr = ModeManager(initial=AgentMode.NORMAL)
+
+# Cycle through modes: NORMAL -> PLAN -> ASK -> NORMAL
+next_mode = mode_mgr.cycle()  # Returns AgentMode.PLAN
+
+# Get current mode info
+print(mode_mgr.mode)  # AgentMode.PLAN
+print(mode_mgr.label)  # "plan mode"
+print(mode_mgr.format_status())  # "plan mode (shift+tab to cycle)"
+
+# Listen to mode changes
+def on_mode_change(mode: AgentMode):
+    print(f"Mode changed to: {mode.value}")
+
+mode_mgr.on_change(on_mode_change)
 ```
 
 ### miu-code
