@@ -14,8 +14,8 @@ from miu_core.commands import CommandExecutor
 console = Console()
 
 
-@click.command()
-@click.argument("query", required=False)
+@click.group(invoke_without_command=True)
+@click.option("--query", "-q", default=None, help="One-shot query")
 @click.option(
     "--model",
     "-m",
@@ -24,17 +24,31 @@ console = Console()
 )
 @click.option("--session", "-s", default=None, help="Session ID for persistence")
 @click.option("--acp", is_flag=True, help="Run as ACP server for editor integration")
-async def cli(query: str | None, model: str, session: str | None, acp: bool) -> None:
+@click.pass_context
+async def cli(
+    ctx: click.Context, query: str | None, model: str, session: str | None, acp: bool
+) -> None:
     """miu - AI coding agent.
 
-    Run with a query for one-shot execution, or without for interactive REPL.
+    Run with --query for one-shot execution, or without for interactive REPL.
+    Use 'miu code' to launch the TUI.
 
     Examples:
-        miu "read pyproject.toml"
-        miu --model openai:gpt-4o "hello"
-        miu -m google:gemini-2.0-flash "list files"
+        miu -q "read pyproject.toml"
+        miu code                     # Interactive TUI mode
+        miu --model openai:gpt-4o -q "hello"
+        miu -m google:gemini-2.0-flash -q "list files"
         miu --acp  # Run as ACP server for editor integration
     """
+    # Store model and session in context for subcommands
+    ctx.ensure_object(dict)
+    ctx.obj["model"] = model
+    ctx.obj["session"] = session
+
+    # If a subcommand was invoked, let it handle things
+    if ctx.invoked_subcommand is not None:
+        return
+
     # ACP mode - run as server
     if acp:
         from miu_code.acp.server import run_acp_server
@@ -91,6 +105,19 @@ async def cli(query: str | None, model: str, session: str | None, acp: bool) -> 
                 break
 
         console.print("\nGoodbye!")
+
+
+@cli.command()
+@click.pass_context
+def code(ctx: click.Context) -> None:
+    """Launch interactive TUI mode."""
+    from miu_code.tui.app import MiuCodeApp
+
+    model = ctx.obj.get("model", "anthropic:claude-sonnet-4-20250514")
+    session = ctx.obj.get("session")
+
+    app = MiuCodeApp(model=model, session_id=session)
+    app.run()
 
 
 def main() -> None:

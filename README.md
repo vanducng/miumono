@@ -44,14 +44,17 @@ pip install "miu-mono[all]"
 ## Quick Start
 
 ```bash
-# Run a query
-miu "explain this codebase"
+# One-shot query
+miu -q "explain this codebase"
 
-# Interactive mode
+# Interactive REPL mode
 miu
 
+# Interactive TUI mode
+miu code
+
 # With specific provider
-miu --provider google "summarize README.md"
+miu --model anthropic:claude-opus-4-20250805 -q "summarize README.md"
 ```
 
 ## Packages

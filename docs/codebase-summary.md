@@ -98,8 +98,9 @@ response = await agent.run("Hello!")
 - `miu-code` - Alias for `miu`
 
 **Features:**
-- One-shot queries: `miu "read package.json"`
-- Interactive REPL mode: `miu`
+- One-shot queries: `miu -q "read package.json"` or `miu --query "read package.json"`
+- Interactive REPL mode: `miu` (launch interactive mode)
+- Interactive TUI mode: `miu code` (graphical interface)
 - File operations: read, write, edit
 - Shell command execution
 - File pattern matching (glob)
@@ -110,10 +111,14 @@ response = await agent.run("Hello!")
 
 ```bash
 # One-shot query
-miu "read package.json"
+miu -q "read package.json"
+miu --query "read package.json"
 
-# Interactive mode
+# Interactive REPL mode
 miu
+
+# Interactive TUI mode
+miu code
 ```
 
 ### miu-studio
@@ -395,8 +400,10 @@ uv run ruff format .
 uv run pytest packages/miu_core/tests
 
 # Run CLI
-miu "your query"
-miu  # interactive mode
+miu -q "your query"          # One-shot query
+miu                          # Interactive REPL mode
+miu code                     # Interactive TUI mode
+miu --model openai:gpt-4o -q "query"  # With specific provider
 ```
 
 ## Session Management API (Tier 4 Phase 4B)

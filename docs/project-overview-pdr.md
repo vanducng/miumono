@@ -51,14 +51,15 @@ Enable developers to build production-grade AI agents that understand code and c
 #### FR-3: CLI Interface
 - **Requirement:** Command-line interface for agent interaction
 - **Features:**
-  - One-shot query mode: `miu "query"`
+  - One-shot query mode: `miu -q "query"` or `miu --query "query"`
   - Interactive REPL mode: `miu`
+  - Interactive TUI mode: `miu code`
   - Session persistence
 - **Acceptance Criteria:**
   - CLI is installable via pip/uv
-  - Both modes work correctly
+  - All modes work correctly (REPL, TUI, one-shot)
   - Session data persists between runs
-- **Status:** Implemented
+- **Status:** Implemented (Phase 1 CLI Fix Complete)
 
 #### FR-4: Agent Architecture
 - **Requirement:** Core agent framework supporting ReAct pattern

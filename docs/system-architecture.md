@@ -308,8 +308,9 @@ class Settings(BaseSettings):
 **Components:**
 
 - **Entry Point:** `miu` command
-  - One-shot mode: `miu "query"`
-  - Interactive mode: `miu` (launches REPL)
+  - One-shot mode: `miu -q "query"` or `miu --query "query"`
+  - Interactive REPL mode: `miu` (launches interactive prompt)
+  - Interactive TUI mode: `miu code` (launches graphical interface)
   - Option parsing and validation
 
 - **REPL Mode:** Interactive prompt
