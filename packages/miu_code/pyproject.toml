@@ -19,7 +19,7 @@ dependencies = [
     "asyncclick>=8.1",
     "rich>=13.0",
     "prompt-toolkit>=3.0",
-    "textual>=0.90",
+    "textual>=1.0.0",
 ]
 
 [project.scripts]

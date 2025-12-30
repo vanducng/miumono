@@ -1,10 +1,10 @@
 # miu-mono Codebase Summary
 
 **Project:** AI Agent Framework Monorepo
-**Version:** 0.1.0
-**Status:** Tier 4 - Type Safety & Protocol Hardening (Complete)
+**Version:** 0.2.0 (miu-code), 0.1.0 (others)
+**Status:** Phase 5 - TUI Vibe Refactor (Complete)
 **Updated:** 2025-12-30
-**PyPI Status:** All 5 packages published at version 0.1.0
+**PyPI Status:** All 5 packages published (miu-code v0.2.0)
 
 ## Overview
 
@@ -451,6 +451,29 @@ uv sync && uv run ruff check . && uv run mypy packages/ && uv run pytest
 | Linting | ruff | 0.8+ |
 | Type Checking | mypy | 1.13+ |
 
+## Makefile (Phase 5 - NEW)
+
+**Location:** `/Makefile`
+
+**Development Commands:**
+
+```bash
+make help          # Show available commands
+make install       # Install all dependencies (uv sync)
+make dev-install   # Install packages in editable mode
+make dev-tui       # Run TUI (miu code)
+make dev-watch     # Watch for changes and re-run TUI
+make test          # Run all tests
+make test-tui      # Run TUI-specific tests
+make test-cov      # Run tests with coverage
+make lint          # Run ruff check
+make format        # Run ruff format
+make typecheck     # Run mypy
+make all           # Run lint + typecheck + test
+```
+
+**Purpose:** Streamline common dev tasks. All commands use `uv` for workspace isolation.
+
 ## Dependencies Overview
 
 **Core Framework Dependencies:**
@@ -458,6 +481,9 @@ uv sync && uv run ruff check . && uv run mypy packages/ && uv run pytest
 - **httpx:** Async HTTP operations for provider APIs
 - **aiofiles:** Non-blocking file I/O
 - **packaging:** Version parsing and comparison
+
+**TUI Dependencies (Phase 5 - Updated):**
+- **textual:** >=1.0.0 (upgraded from >=0.90 for stability and features)
 
 **CLI Dependencies:**
 - **asyncclick:** Async-first CLI framework
@@ -759,11 +785,13 @@ pip install miu-core miu-code miu-studio
 - `deployment-guide.md` - Deployment and release procedures
 - `project-roadmap.md` - Feature roadmap and milestones
 
-## TUI Implementation (Phase 3-4)
+## TUI Implementation (Phase 3-5)
 
 **Phase 3 Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
 
 **Phase 4 TUI Integration Status:** Complete - Full TUI app integrated with agents, modes, and usage tracking
+
+**Phase 5 TUI Vibe Refactor Status:** Complete - Makefile added, Textual upgraded to v1.0.0+
 
 **Phase 3 Components:**
 - StatusBar widget with mode/path/usage display
@@ -803,6 +831,6 @@ pip install miu-core miu-code miu-studio
 
 **Last Updated:** 2025-12-30
 **Maintained By:** Development Team
-**Current Status:** Phase 3 Complete - TUI Widgets fully implemented and tested
-**PyPI Status:** All 5 packages published at version 0.1.0
+**Current Status:** Phase 5 Complete - TUI Vibe Refactor (Makefile + Textual 1.0.0)
+**PyPI Status:** miu-code v0.2.0 published; miu-core/examples/studio/mono at v0.1.0
 **Repository:** https://github.com/vanducng/miu-mono

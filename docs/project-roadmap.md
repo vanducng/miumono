@@ -1,7 +1,7 @@
 # miu-mono Project Roadmap
 
 **Project:** AI Agent Framework Monorepo
-**Version:** 0.1.0
+**Version:** 0.2.0 (miu-code), 0.1.0 (others)
 **Last Updated:** 2025-12-30
 
 ## Release Timeline
@@ -101,6 +101,27 @@
 
 ---
 
+## Phase 5: TUI Vibe Refactor
+**Status:** COMPLETE (2025-12-30)
+
+**Scope:**
+- Add Makefile for dev command convenience
+- Upgrade Textual dependency to v1.0.0+ (stability & features)
+- Maintain TUI widget integration (Phase 3-4 features)
+
+**Deliverables:**
+- Makefile with 12 dev commands (help, install, dev-tui, test, lint, etc.)
+- miu-code pyproject.toml: textual dependency updated >=0.90 → >=1.0.0
+- Documentation updated (codebase-summary.md, project-roadmap.md)
+- miu-code version bumped to v0.2.0
+
+**Artifacts:**
+- `/Makefile` (NEW)
+- `/packages/miu_code/pyproject.toml` (UPDATED)
+- `/docs/codebase-summary.md` (UPDATED)
+
+---
+
 ## Phase 2: Enhanced Features (2026 Q1)
 
 ### Phase 2A: Advanced Tooling
@@ -154,6 +175,9 @@
 | Core tools (6) | 1A | COMPLETE | P0 |
 | Session management | 1A | COMPLETE | P0 |
 | Type safety | 1A | COMPLETE | P0 |
+| TUI widgets (Phase 3) | 3 | COMPLETE | P0 |
+| TUI integration (Phase 4) | 4 | COMPLETE | P0 |
+| Makefile + Textual 1.0 (Phase 5) | 5 | COMPLETE | P0 |
 | Integration tests | 1B | PENDING | P0 |
 | API documentation | 1B | PENDING | P0 |
 | Security audit | 1B | PENDING | P1 |
@@ -244,4 +268,5 @@
 
 **Document Status:** ACTIVE
 **Maintainer:** Development Team
+**Last Review:** 2025-12-30 (Phase 5 Complete)
 **Next Review:** 2026-01-01
