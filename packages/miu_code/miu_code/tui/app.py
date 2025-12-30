@@ -1,17 +1,20 @@
 """Miu Code TUI Application - Vibe Inspired."""
 
 import os
+from pathlib import Path
 from typing import ClassVar
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.widgets import Input, Static
+from textual.containers import Horizontal, VerticalScroll
+from textual.widgets import Static
 
 from miu_code.agent.coding import CodingAgent
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
+from miu_code.tui.widgets.chat_input import ChatInputContainer
 from miu_code.tui.widgets.loading import LoadingSpinner
+from miu_code.tui.widgets.messages import BashOutputMessage
 from miu_core.models import (
     MessageStopEvent,
     TextDeltaEvent,
@@ -19,6 +22,7 @@ from miu_core.models import (
     ToolResultEvent,
 )
 from miu_core.modes import ModeManager
+from miu_core.paths import MiuPaths
 from miu_core.usage import UsageTracker
 
 # Version for display
@@ -128,11 +132,10 @@ class MiuCodeApp(App[None]):
 
         # Bottom app container (for input/approval switching later)
         with Static(id="bottom-app-container"):
-            # Input area with ">" prompt like vibe
-            with Vertical(id="input-box"):
-                with Horizontal(id="input-row"):
-                    yield Static(">", id="prompt")
-                    yield Input(placeholder="Ask anything...", id="input")
+            yield ChatInputContainer(
+                history_file=self._get_history_file(),
+                id="input-container",
+            )
 
         # Bottom bar: path left, mode indicator center, tokens right (always visible)
         with Horizontal(id="bottom-bar"):
@@ -145,7 +148,13 @@ class MiuCodeApp(App[None]):
     def on_mount(self) -> None:
         """Initialize agent on mount."""
         self._init_agent()
-        self.query_one("#input", Input).focus()
+        self.query_one("#input-container", ChatInputContainer).focus_input()
+
+    def _get_history_file(self) -> Path:
+        """Get history file path."""
+        paths = MiuPaths.get()
+        paths.ensure_dir(paths.code)
+        return paths.history
 
     def _init_agent(self) -> None:
         """Initialize the coding agent."""
@@ -169,18 +178,72 @@ class MiuCodeApp(App[None]):
         mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
         mode_indicator.update(mode_text)
 
-    async def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle input submission with streaming."""
-        query = event.value.strip()
-        if not query:
+    async def on_chat_input_container_submitted(self, event: ChatInputContainer.Submitted) -> None:
+        """Handle input submission."""
+        value = event.value.strip()
+        if not value:
             return
 
+        # Handle ! prefix for bash
+        if value.startswith("!"):
+            await self._handle_bash_command(value[1:])
+            return
+
+        # Handle / prefix for commands (future)
+        if value.startswith("/"):
+            await self._handle_command(value)
+            return
+
+        # Regular message
+        await self._handle_user_message(value)
+
+    async def _handle_bash_command(self, command: str) -> None:
+        """Execute bash command and display result."""
+        import subprocess
+
+        if not command:
+            return
+
+        chat = self.query_one("#chat", ChatLog)
+
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=False,
+                timeout=30,
+                cwd=self._working_dir,
+            )
+            stdout = result.stdout.decode("utf-8", errors="replace") if result.stdout else ""
+            stderr = result.stderr.decode("utf-8", errors="replace") if result.stderr else ""
+            output = stdout or stderr or "(no output)"
+
+            bash_msg = BashOutputMessage(
+                command=command,
+                cwd=self._working_dir,
+                output=output.strip(),
+                exit_code=result.returncode,
+            )
+            chat.mount(bash_msg)
+            self._scroll_to_bottom_deferred()
+
+        except subprocess.TimeoutExpired:
+            chat.add_error(f"Command timed out: {command}")
+        except Exception as e:
+            chat.add_error(f"Command failed: {e}")
+
+    async def _handle_command(self, command: str) -> None:
+        """Handle slash commands."""
+        chat = self.query_one("#chat", ChatLog)
+        chat.add_system_message(f"Command not implemented: {command}")
+
+    async def _handle_user_message(self, query: str) -> None:
+        """Handle regular user message with streaming."""
         if self._is_processing:
             return
 
-        input_widget = self.query_one("#input", Input)
-        input_widget.clear()
-
+        input_container = self.query_one("#input-container", ChatInputContainer)
         chat = self.query_one("#chat", ChatLog)
         chat.add_user_message(query)
 
@@ -195,7 +258,6 @@ class MiuCodeApp(App[None]):
         loading = self.query_one("#loading", LoadingSpinner)
         loading.start()
         self._is_processing = True
-        input_widget.disabled = True
 
         try:
             # Use streaming for real-time response
@@ -231,8 +293,7 @@ class MiuCodeApp(App[None]):
             # Stop loading animation
             loading.stop()
             self._is_processing = False
-            input_widget.disabled = False
-            input_widget.focus()
+            input_container.focus_input()
 
     def action_cycle_mode(self) -> None:
         """Cycle through agent modes."""

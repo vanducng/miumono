@@ -247,3 +247,46 @@ SystemMessage {
     width: 100%;
     height: auto;
 }
+
+/* Chat input container */
+ChatInputContainer {
+    height: auto;
+    width: 100%;
+}
+
+#input-container {
+    height: auto;
+    width: 100%;
+}
+
+/* Completion popup */
+#completion-popup {
+    width: 100%;
+    padding: 0 1;
+    color: $text;
+    background: $surface;
+    border-bottom: solid #666666;
+}
+
+/* Input body */
+#input-body {
+    height: auto;
+    width: 100%;
+    padding: 0 1;
+}
+
+/* Border style variants */
+#input-box.border-safe {
+    border-top: solid #27AE60;
+    border-bottom: solid #27AE60;
+}
+
+#input-box.border-warning {
+    border-top: solid #F39C12;
+    border-bottom: solid #F39C12;
+}
+
+#input-box.border-error {
+    border-top: solid #E74C3C;
+    border-bottom: solid #E74C3C;
+}

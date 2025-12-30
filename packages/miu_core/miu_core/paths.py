@@ -111,3 +111,8 @@ class MiuPaths:
             Path to log JSONL file
         """
         return self.logs / f"session_{session_id}.jsonl"
+
+    @property
+    def history(self) -> Path:
+        """Command history file path."""
+        return self.code / "history"
