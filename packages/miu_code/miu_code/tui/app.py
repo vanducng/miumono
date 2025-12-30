@@ -37,6 +37,8 @@ class MiuCodeApp(App[None]):
         Binding("ctrl+n", "new_session", "New"),
         Binding("ctrl+l", "clear_chat", "Clear"),
         Binding("shift+tab", "cycle_mode", "Cycle Mode", show=False, priority=True),
+        Binding("shift+up", "scroll_chat_up", "Scroll Up", show=False, priority=True),
+        Binding("shift+down", "scroll_chat_down", "Scroll Down", show=False, priority=True),
     ]
 
     def __init__(
@@ -55,12 +57,54 @@ class MiuCodeApp(App[None]):
         self._usage_tracker = UsageTracker()
         self._working_dir = os.getcwd()
 
+        # Auto-scroll state
+        self._auto_scroll = True
+
     def _format_path(self, path: str) -> str:
         """Format path for display (shorten home dir)."""
         home = os.path.expanduser("~")
         if path.startswith(home):
             return "~" + path[len(home) :]
         return path
+
+    def _is_scrolled_to_bottom(self, scroll_view: VerticalScroll) -> bool:
+        """Check if scroll view is at bottom (with threshold)."""
+        try:
+            threshold = 3
+            return scroll_view.scroll_y >= (scroll_view.max_scroll_y - threshold)
+        except Exception:
+            return True
+
+    def _scroll_to_bottom(self) -> None:
+        """Scroll chat to bottom."""
+        try:
+            chat_area = self.query_one("#chat-area", VerticalScroll)
+            chat_area.scroll_end(animate=False)
+        except Exception:
+            pass
+
+    def _scroll_to_bottom_deferred(self) -> None:
+        """Schedule scroll to bottom after refresh."""
+        self.call_after_refresh(self._scroll_to_bottom)
+
+    def action_scroll_chat_up(self) -> None:
+        """Scroll chat up and disable auto-scroll."""
+        try:
+            chat_area = self.query_one("#chat-area", VerticalScroll)
+            chat_area.scroll_relative(y=-5, animate=False)
+            self._auto_scroll = False
+        except Exception:
+            pass
+
+    def action_scroll_chat_down(self) -> None:
+        """Scroll chat down, re-enable auto-scroll if at bottom."""
+        try:
+            chat_area = self.query_one("#chat-area", VerticalScroll)
+            chat_area.scroll_relative(y=5, animate=False)
+            if self._is_scrolled_to_bottom(chat_area):
+                self._auto_scroll = True
+        except Exception:
+            pass
 
     def compose(self) -> ComposeResult:
         """Create child widgets - Vibe-inspired layout."""
@@ -77,18 +121,20 @@ class MiuCodeApp(App[None]):
                 compact=True,
                 id="banner",
             )
-            yield ChatLog(id="chat")
+            yield ChatLog(id="chat", scroll_callback=self._scroll_to_bottom_deferred)
 
-        # Loading indicator
+        # Loading indicator (outside scroll)
         yield LoadingSpinner(id="loading")
 
-        # Input area with ">" prompt like vibe
-        with Vertical(id="input-box"):
-            with Horizontal(id="input-row"):
-                yield Static(">", id="prompt")
-                yield Input(placeholder="Ask anything...", id="input")
+        # Bottom app container (for input/approval switching later)
+        with Static(id="bottom-app-container"):
+            # Input area with ">" prompt like vibe
+            with Vertical(id="input-box"):
+                with Horizontal(id="input-row"):
+                    yield Static(">", id="prompt")
+                    yield Input(placeholder="Ask anything...", id="input")
 
-        # Bottom bar: path left, mode indicator center, tokens right
+        # Bottom bar: path left, mode indicator center, tokens right (always visible)
         with Horizontal(id="bottom-bar"):
             yield Static(self._format_path(self._working_dir), id="path-display")
             yield Static("", id="spacer")
@@ -138,6 +184,9 @@ class MiuCodeApp(App[None]):
         chat = self.query_one("#chat", ChatLog)
         chat.add_user_message(query)
 
+        # Trigger scroll after user message
+        self._scroll_to_bottom_deferred()
+
         if not self._agent:
             chat.add_error("Agent not initialized")
             return
@@ -151,7 +200,11 @@ class MiuCodeApp(App[None]):
         try:
             # Use streaming for real-time response
             await chat.start_streaming()
+            chat_area = self.query_one("#chat-area", VerticalScroll)
             async for stream_event in self._agent.run_stream(query):
+                # Track if we were at bottom before update
+                was_at_bottom = self._is_scrolled_to_bottom(chat_area)
+
                 if isinstance(stream_event, TextDeltaEvent):
                     await chat.append_streaming(stream_event.text)
                 elif isinstance(stream_event, ToolExecutingEvent):
@@ -166,6 +219,11 @@ class MiuCodeApp(App[None]):
                             output_tokens=stream_event.usage.get("output_tokens", 0),
                         )
                         self._update_status_usage()
+
+                # Scroll if was at bottom and auto-scroll enabled
+                if was_at_bottom and self._auto_scroll:
+                    self._scroll_to_bottom_deferred()
+
             await chat.end_streaming()
         except Exception as e:
             chat.add_error(str(e))

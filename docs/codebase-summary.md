@@ -2,7 +2,7 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.2.0 (miu-code), 0.1.0 (others)
-**Status:** Phase 5 - TUI Vibe Refactor (Complete)
+**Status:** Phase 6 - Critical Bug Fixes (Complete)
 **Updated:** 2025-12-30
 **PyPI Status:** All 5 packages published (miu-code v0.2.0)
 
@@ -785,13 +785,15 @@ pip install miu-core miu-code miu-studio
 - `deployment-guide.md` - Deployment and release procedures
 - `project-roadmap.md` - Feature roadmap and milestones
 
-## TUI Implementation (Phase 3-5)
+## TUI Implementation (Phase 3-6)
 
 **Phase 3 Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
 
 **Phase 4 TUI Integration Status:** Complete - Full TUI app integrated with agents, modes, and usage tracking
 
 **Phase 5 TUI Vibe Refactor Status:** Complete - Makefile added, Textual upgraded to v1.0.0+
+
+**Phase 6 Critical Bug Fixes Status:** Complete - Auto-scroll, scroll helpers, key bindings, bottom-app-container, chat scroll callback
 
 **Phase 3 Components:**
 - StatusBar widget with mode/path/usage display
@@ -815,11 +817,29 @@ pip install miu-core miu-code miu-studio
 - Integration tests: 12 tests (mode callbacks, usage accumulation)
 - Render/edge case tests: 7 tests (animation boundaries, widget initialization)
 
+**Phase 6 Key Files (Critical Bug Fixes):**
+- `packages/miu_code/miu_code/tui/app.py` - UPDATED: Auto-scroll state, scroll helpers, scroll action bindings
+  - Added `_auto_scroll` flag to track auto-scroll state
+  - Added `_is_scrolled_to_bottom()` helper to check scroll position with 3-line threshold
+  - Added `_scroll_to_bottom()` to scroll chat to bottom without animation
+  - Added `_scroll_to_bottom_deferred()` to schedule scroll after refresh
+  - Added `action_scroll_chat_up()` and `action_scroll_chat_down()` for manual scrolling
+  - Added shift+up/shift+down bindings for manual scroll control
+  - Bottom app container ID for input/approval box styling
+- `packages/miu_code/miu_code/tui/widgets/chat.py` - UPDATED: Scroll callback pattern
+  - Added optional `scroll_callback` parameter to ChatLog.__init__()
+  - Added `_notify_scroll()` method to trigger parent scroll on streaming updates
+- `packages/miu_code/miu_code/tui/app.tcss` - UPDATED: Input box layout and hex borders
+  - Border colors changed to hex (#1ABC9C primary) for consistency
+  - Input box layout fixes with proper height/width specifications
+  - Bottom app container styling for input/approval display
+  - Proper border-top/border-bottom on input box
+
 **Phase 4 Key Files:**
-- `packages/miu_code/miu_code/tui/app.py` - NEW: MiuCodeApp main application with streaming integration
-- `packages/miu_code/miu_code/tui/app.tcss` - NEW: Teal/cyan brand styling
-- `packages/miu_core/miu_core/models/messages.py` - MODIFIED: MessageStopEvent.usage field added
-- `packages/miu_core/miu_core/providers/anthropic.py` - MODIFIED: Usage propagation in streaming
+- `packages/miu_code/miu_code/tui/app.py` - MiuCodeApp main application with streaming integration
+- `packages/miu_code/miu_code/tui/app.tcss` - Teal/cyan brand styling
+- `packages/miu_core/miu_core/models/messages.py` - MessageStopEvent.usage field added
+- `packages/miu_core/miu_core/providers/anthropic.py` - Usage propagation in streaming
 
 **Phase 3 Files:**
 - `packages/miu_code/miu_code/tui/widgets/status.py`
@@ -827,10 +847,35 @@ pip install miu-core miu-code miu-studio
 - `packages/miu_code/miu_code/tui/widgets/__init__.py`
 - `packages/miu_code/tests/test_tui_widgets.py`
 
+### Phase 6 Architecture Changes
+
+**Auto-Scroll Enhancement:**
+- Smart auto-scroll detection with 3-line threshold (prevents scroll jumps on last messages)
+- Manual scroll up (shift+up) disables auto-scroll, allowing user control
+- Deferred scroll scheduling prevents race conditions with DOM updates
+- Callback pattern enables chat widget to signal parent for scroll
+
+**Scroll Callback Pattern (chat.py):**
+```python
+# Parent creates ChatLog with scroll callback
+chat = ChatLog(scroll_callback=self._scroll_to_bottom_deferred)
+
+# Chat notifies parent on streaming updates
+def _notify_scroll(self) -> None:
+    if self._scroll_callback:
+        self._scroll_callback()
+```
+
+**CSS Layout Fixes:**
+- Input box now uses hex color `#1ABC9C` for consistency (variable references caused issues)
+- Bottom container properly sized and styled
+- Borders on input box (top/bottom) prevent layout shift
+- Input field (height auto) respects container constraints
+
 ---
 
 **Last Updated:** 2025-12-30
 **Maintained By:** Development Team
-**Current Status:** Phase 5 Complete - TUI Vibe Refactor (Makefile + Textual 1.0.0)
+**Current Status:** Phase 6 Complete - Critical Bug Fixes (Auto-scroll, Scroll Helpers, Key Bindings, Input Layout)
 **PyPI Status:** miu-code v0.2.0 published; miu-core/examples/studio/mono at v0.1.0
 **Repository:** https://github.com/vanducng/miu-mono

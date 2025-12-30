@@ -42,7 +42,7 @@ Footer {
     padding: 0 1;
 }
 
-/* Loading indicator */
+/* Loading indicator - fixed height outside scroll */
 #loading {
     height: 1;
     width: 100%;
@@ -50,12 +50,20 @@ Footer {
     margin: 0;
 }
 
-/* Input box container - vibe style with top border */
+/* Bottom app container - holds input or approval */
+#bottom-app-container {
+    height: auto;
+    width: 100%;
+    background: $surface;
+}
+
+/* Input box container - vibe style with borders */
 #input-box {
     height: auto;
     width: 100%;
     background: $surface;
     border-top: solid #666666;
+    border-bottom: solid #666666;
     padding: 0;
     margin: 0;
 }
@@ -72,7 +80,8 @@ Footer {
 #prompt {
     width: auto;
     height: auto;
-    color: $text;
+    color: $miu-primary;
+    text-style: bold;
     padding: 0 1 0 0;
 }
 
@@ -80,6 +89,7 @@ Footer {
 #input {
     height: auto;
     width: 1fr;
+    max-height: 8;
     border: none;
     background: transparent;
     padding: 0;

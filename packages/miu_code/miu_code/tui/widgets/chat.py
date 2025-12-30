@@ -1,5 +1,6 @@
 """Chat log widget with Vibe-inspired styling and streaming support."""
 
+from collections.abc import Callable
 from typing import Any
 
 from rich.text import Text
@@ -65,11 +66,17 @@ class ChatLog(VerticalScroll):
     }
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, scroll_callback: Callable[[], None] | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._streaming_md: Markdown | None = None
         self._stream: Any = None
         self._streaming_text = ""
+        self._scroll_callback = scroll_callback
+
+    def _notify_scroll(self) -> None:
+        """Notify parent to scroll."""
+        if self._scroll_callback:
+            self._scroll_callback()
 
     def clear(self) -> None:
         """Clear all messages from the chat log."""
@@ -80,14 +87,14 @@ class ChatLog(VerticalScroll):
         self.mount(MessageHeader("user"))
         msg = Static(text, classes="message-text")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_assistant_message(self, text: str) -> None:
         """Add a complete assistant message to the log."""
         self.mount(MessageHeader("assistant"))
         md = Markdown(text)
         self.mount(md)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     async def start_streaming(self) -> None:
         """Start a streaming assistant message."""
@@ -96,14 +103,14 @@ class ChatLog(VerticalScroll):
         self._streaming_md = Markdown("")
         self.mount(self._streaming_md)
         self._stream = Markdown.get_stream(self._streaming_md)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     async def append_streaming(self, chunk: str) -> None:
         """Append text to streaming message."""
         self._streaming_text += chunk
         if self._stream:
             await self._stream.write(chunk)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     async def end_streaming(self) -> None:
         """Finalize streaming message."""
@@ -112,7 +119,7 @@ class ChatLog(VerticalScroll):
         self._stream = None
         self._streaming_md = None
         self._streaming_text = ""
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_system_message(self, text: str) -> None:
         """Add a system message to the log."""
@@ -121,7 +128,7 @@ class ChatLog(VerticalScroll):
         sys_text.append(text, style=f"dim {SEMANTIC_COLORS['system']}")
         msg = Static(sys_text, classes="message-text")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_error(self, text: str) -> None:
         """Add an error message to the log."""
@@ -130,7 +137,7 @@ class ChatLog(VerticalScroll):
         err_text.append(text, style=SEMANTIC_COLORS["error"])
         msg = Static(err_text, classes="message-text")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_thinking_message(self, text: str) -> None:
         """Add a thinking/reasoning message to the log."""
@@ -139,7 +146,7 @@ class ChatLog(VerticalScroll):
         think_text.append(text, style=f"italic dim {SEMANTIC_COLORS['thinking']}")
         msg = Static(think_text, classes="message-text")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_tool_call(self, tool_name: str, args: str = "") -> None:
         """Add a tool call indicator to the log."""
@@ -151,7 +158,7 @@ class ChatLog(VerticalScroll):
             tool_text.append(f" {args}", style="dim")
         msg = Static(tool_text, classes="tool-info")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
 
     def add_tool_result(self, result: str, success: bool = True) -> None:
         """Add a tool result to the log."""
@@ -164,4 +171,4 @@ class ChatLog(VerticalScroll):
         result_text.append(display_result, style=f"dim {color}")
         msg = Static(result_text, classes="tool-info")
         self.mount(msg)
-        self.scroll_end(animate=False)
+        self._notify_scroll()
