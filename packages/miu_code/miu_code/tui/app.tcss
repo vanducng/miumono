@@ -187,3 +187,63 @@ Footer {
     margin: 0;
     padding: 0;
 }
+
+/* Spacer utility */
+.spacer {
+    width: 1fr;
+    height: auto;
+}
+
+/* User message */
+UserMessage {
+    margin-top: 1;
+    padding: 1 0;
+    width: 100%;
+    height: auto;
+    background: $surface;
+}
+
+/* Assistant message */
+AssistantMessage {
+    margin-top: 1;
+    width: 100%;
+    height: auto;
+}
+
+/* Reasoning message */
+ReasoningMessage {
+    margin-top: 1;
+    width: 100%;
+    height: auto;
+}
+
+/* Bash output */
+BashOutputMessage {
+    margin-top: 1;
+    width: 100%;
+    height: auto;
+}
+
+/* Tool messages */
+ToolCallMessage {
+    width: 100%;
+    height: auto;
+    margin-top: 1;
+}
+
+ToolResultMessage {
+    width: 100%;
+    height: auto;
+}
+
+/* Error message */
+ErrorMessage {
+    width: 100%;
+    height: auto;
+}
+
+/* System message */
+SystemMessage {
+    width: 100%;
+    height: auto;
+}
