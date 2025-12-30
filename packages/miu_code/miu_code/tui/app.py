@@ -1,8 +1,9 @@
 """Miu Code TUI Application - Vibe Inspired."""
 
+import asyncio
 import os
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
@@ -10,6 +11,7 @@ from textual.containers import Horizontal, VerticalScroll
 from textual.widgets import Static
 
 from miu_code.agent.coding import CodingAgent
+from miu_code.tui.widgets.approval import ApprovalApp
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
 from miu_code.tui.widgets.chat_input import ChatInputContainer
@@ -63,6 +65,11 @@ class MiuCodeApp(App[None]):
 
         # Auto-scroll state
         self._auto_scroll = True
+
+        # Approval state
+        self._pending_approval: asyncio.Future[tuple[bool, str | None]] | None = None
+        self._current_bottom_app: str = "input"  # "input" or "approval"
+        self._tools_always_approved: set[str] = set()
 
     def _format_path(self, path: str) -> str:
         """Format path for display (shorten home dir)."""
@@ -173,10 +180,118 @@ class MiuCodeApp(App[None]):
         token_display.update(self._usage_tracker.format_usage())
 
     def _update_mode_indicator(self) -> None:
-        """Update mode indicator in bottom bar."""
+        """Update mode indicator and input border in bottom bar."""
         mode_indicator = self.query_one("#mode-indicator", Static)
         mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
         mode_indicator.update(mode_text)
+
+        # Update input border color based on mode
+        try:
+            input_container = self.query_one("#input-container", ChatInputContainer)
+            mode = self._mode_manager.mode
+
+            if mode.name == "ASK":
+                input_container.set_border_style("border-safe")
+            elif mode.name == "NORMAL":
+                input_container.set_border_style("")
+            elif mode.name == "PLAN":
+                input_container.set_border_style("border-warning")
+        except Exception:
+            pass  # Container might not exist during approval
+
+    async def _show_approval_dialog(
+        self,
+        tool_name: str,
+        tool_args: dict[str, Any],
+    ) -> tuple[bool, str | None]:
+        """Show approval dialog and wait for response."""
+        # Check if always approved
+        if tool_name in self._tools_always_approved:
+            return (True, None)
+
+        # Create future for response
+        self._pending_approval = asyncio.get_event_loop().create_future()
+
+        # Switch to approval app
+        await self._switch_to_approval_app(tool_name, tool_args)
+
+        # Wait for response
+        try:
+            result = await self._pending_approval
+            return result
+        finally:
+            self._pending_approval = None
+
+    async def _switch_to_approval_app(self, tool_name: str, tool_args: dict[str, Any]) -> None:
+        """Switch bottom area to approval dialog."""
+        bottom_container = self.query_one("#bottom-app-container", Static)
+
+        # Remove existing widgets
+        for child in list(bottom_container.children):
+            await child.remove()
+
+        # Mount approval app
+        approval_app = ApprovalApp(
+            tool_name=tool_name,
+            tool_args=tool_args,
+            workdir=self._working_dir,
+        )
+        await bottom_container.mount(approval_app)
+        self._current_bottom_app = "approval"
+        self.call_after_refresh(approval_app.focus)
+        self._scroll_to_bottom()
+
+    async def _switch_to_input_app(self) -> None:
+        """Switch bottom area back to input."""
+        bottom_container = self.query_one("#bottom-app-container", Static)
+
+        # Remove existing widgets
+        for child in list(bottom_container.children):
+            await child.remove()
+
+        # Mount input container
+        input_container = ChatInputContainer(
+            history_file=self._get_history_file(),
+            id="input-container",
+        )
+        await bottom_container.mount(input_container)
+        self._current_bottom_app = "input"
+        input_container.focus_input()
+
+    def _needs_approval(self, tool_name: str) -> bool:
+        """Check if tool needs approval based on current mode."""
+        # If already approved for session, skip
+        if tool_name in self._tools_always_approved:
+            return False
+
+        # In ASK mode, all tools need approval
+        if self._mode_manager.mode.name == "ASK":
+            return True
+
+        # Some tools always need approval in NORMAL mode
+        dangerous_tools = {"bash", "write", "edit", "delete"}
+        return tool_name.lower() in dangerous_tools
+
+    async def on_approval_app_approval_granted(self, event: ApprovalApp.ApprovalGranted) -> None:
+        """Handle approval granted."""
+        if self._pending_approval and not self._pending_approval.done():
+            self._pending_approval.set_result((True, None))
+        await self._switch_to_input_app()
+
+    async def on_approval_app_approval_granted_always(
+        self, event: ApprovalApp.ApprovalGrantedAlways
+    ) -> None:
+        """Handle approval with always allow."""
+        self._tools_always_approved.add(event.tool_name)
+        if self._pending_approval and not self._pending_approval.done():
+            self._pending_approval.set_result((True, None))
+        await self._switch_to_input_app()
+
+    async def on_approval_app_approval_rejected(self, event: ApprovalApp.ApprovalRejected) -> None:
+        """Handle approval rejected."""
+        if self._pending_approval and not self._pending_approval.done():
+            self._pending_approval.set_result((False, "User rejected tool execution"))
+        await self._switch_to_input_app()
 
     async def on_chat_input_container_submitted(self, event: ChatInputContainer.Submitted) -> None:
         """Handle input submission."""

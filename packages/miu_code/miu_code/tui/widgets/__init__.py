@@ -1,5 +1,6 @@
 """TUI widgets package."""
 
+from miu_code.tui.widgets.approval import ApprovalApp
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
 from miu_code.tui.widgets.input import MessageInput
@@ -19,6 +20,7 @@ from miu_code.tui.widgets.status import StatusBar
 from miu_code.tui.widgets.tools import ToolCallMessage, ToolResultMessage
 
 __all__ = [
+    "ApprovalApp",
     "AssistantMessage",
     "BashOutputMessage",
     "ChatLog",
