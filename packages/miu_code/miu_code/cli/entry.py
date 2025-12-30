@@ -109,7 +109,7 @@ async def cli(
 
 @cli.command()
 @click.pass_context
-def code(ctx: click.Context) -> None:
+async def code(ctx: click.Context) -> None:
     """Launch interactive TUI mode."""
     from miu_code.tui.app import MiuCodeApp
 
@@ -117,7 +117,7 @@ def code(ctx: click.Context) -> None:
     session = ctx.obj.get("session")
 
     app = MiuCodeApp(model=model, session_id=session)
-    app.run()
+    await app.run_async()
 
 
 def main() -> None:
