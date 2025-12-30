@@ -72,7 +72,7 @@ class MiuCodeApp(App[None]):
         yield Container(ChatLog(id="chat"), id="main")
         yield Vertical(
             LoadingSpinner(id="loading"),
-            Input(placeholder="Ask anything... (Ctrl+C to quit)", id="input"),
+            Input(placeholder="> Ask anything...", id="input"),
             id="input-container",
         )
         yield StatusBar(

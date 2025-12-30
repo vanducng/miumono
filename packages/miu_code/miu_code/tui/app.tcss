@@ -59,16 +59,14 @@ Footer {
 /* Loading indicator */
 #loading {
     height: 1;
-    dock: bottom;
     padding: 0 1;
     margin: 0;
 }
 
 /* Input field - teal accent border */
 #input {
-    dock: bottom;
     height: auto;
-    margin: 1 1;
+    margin: 0;
     border: solid $miu-primary;
     background: $surface;
 }
@@ -81,8 +79,9 @@ Footer {
 #input-container {
     dock: bottom;
     height: auto;
-    padding: 0;
-    margin: 0 1;
+    min-height: 3;
+    padding: 0 1;
+    margin: 0;
 }
 
 /* Message styling classes */
