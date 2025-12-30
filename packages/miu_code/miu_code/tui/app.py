@@ -5,14 +5,13 @@ from typing import ClassVar
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Container, Vertical
-from textual.widgets import Input
+from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Input, Static
 
 from miu_code.agent.coding import CodingAgent
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
 from miu_code.tui.widgets.loading import LoadingSpinner
-from miu_code.tui.widgets.status import StatusBar
 from miu_core.models import (
     MessageStopEvent,
     TextDeltaEvent,
@@ -37,7 +36,7 @@ class MiuCodeApp(App[None]):
         Binding("ctrl+c", "quit", "Quit"),
         Binding("ctrl+n", "new_session", "New"),
         Binding("ctrl+l", "clear_chat", "Clear"),
-        Binding("shift+tab", "cycle_mode", "Mode", show=True),
+        Binding("shift+tab", "cycle_mode", "Cycle Mode", show=False, priority=True),
     ]
 
     def __init__(
@@ -56,32 +55,46 @@ class MiuCodeApp(App[None]):
         self._usage_tracker = UsageTracker()
         self._working_dir = os.getcwd()
 
+    def _format_path(self, path: str) -> str:
+        """Format path for display (shorten home dir)."""
+        home = os.path.expanduser("~")
+        if path.startswith(home):
+            return "~" + path[len(home) :]
+        return path
+
     def compose(self) -> ComposeResult:
-        """Create child widgets."""
+        """Create child widgets - Vibe-inspired layout."""
         # Get short model name for display
         model_short = self.model.split(":")[-1] if ":" in self.model else self.model
 
-        yield WelcomeBanner(
-            version=__version__,
-            model=model_short,
-            mcp_count=0,  # TODO: detect MCP servers
-            working_dir=self._working_dir,
-            compact=True,
-            id="banner",
-        )
-        yield Container(ChatLog(id="chat"), id="main")
-        yield Vertical(
-            LoadingSpinner(id="loading"),
-            Input(placeholder="> Ask anything...", id="input"),
-            id="input-container",
-        )
-        yield StatusBar(
-            mode_manager=self._mode_manager,
-            usage_tracker=self._usage_tracker,
-            working_dir=self._working_dir,
-            id="status",
-        )
-        # Footer removed - StatusBar replaces it
+        # Chat area with scrollable banner (scrolls away like vibe)
+        with VerticalScroll(id="chat-area"):
+            yield WelcomeBanner(
+                version=__version__,
+                model=model_short,
+                mcp_count=0,
+                working_dir=self._working_dir,
+                compact=True,
+                id="banner",
+            )
+            yield ChatLog(id="chat")
+
+        # Loading indicator
+        yield LoadingSpinner(id="loading")
+
+        # Input area with ">" prompt like vibe
+        with Vertical(id="input-box"):
+            with Horizontal(id="input-row"):
+                yield Static(">", id="prompt")
+                yield Input(placeholder="Ask anything...", id="input")
+
+        # Bottom bar: path left, mode indicator center, tokens right
+        with Horizontal(id="bottom-bar"):
+            yield Static(self._format_path(self._working_dir), id="path-display")
+            yield Static("", id="spacer")
+            mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
+            yield Static(mode_text, id="mode-indicator")
+            yield Static(self._usage_tracker.format_usage(), id="token-display")
 
     def on_mount(self) -> None:
         """Initialize agent on mount."""
@@ -100,9 +113,15 @@ class MiuCodeApp(App[None]):
         self._update_status_usage()
 
     def _update_status_usage(self) -> None:
-        """Update status bar token display."""
-        status = self.query_one("#status", StatusBar)
-        status.token_usage = self._usage_tracker.format_usage()
+        """Update token display in bottom bar."""
+        token_display = self.query_one("#token-display", Static)
+        token_display.update(self._usage_tracker.format_usage())
+
+    def _update_mode_indicator(self) -> None:
+        """Update mode indicator in bottom bar."""
+        mode_indicator = self.query_one("#mode-indicator", Static)
+        mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
+        mode_indicator.update(mode_text)
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission with streaming."""
@@ -160,6 +179,7 @@ class MiuCodeApp(App[None]):
     def action_cycle_mode(self) -> None:
         """Cycle through agent modes."""
         self._mode_manager.cycle()
+        self._update_mode_indicator()
         chat = self.query_one("#chat", ChatLog)
         chat.add_system_message(f"Switched to {self._mode_manager.label}")
 

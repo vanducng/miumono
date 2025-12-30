@@ -1,87 +1,131 @@
-/* Miu Code TUI Styles - Teal/Cyan Brand Theme */
+/* Miu Code TUI Styles - Vibe Inspired Layout */
 
 /* Miu brand color variables */
 $miu-primary: #1ABC9C;
 $miu-light: #48C9B0;
 $miu-secondary: #16A085;
-$miu-accent: #0E6655;
-$miu-highlight: #76D7C4;
 
 Screen {
     background: $surface;
 }
 
-/* Header - minimal with teal accent */
+/* Hide default header/footer */
 Header {
-    dock: top;
-    background: $surface-darken-1;
-    color: $miu-primary;
-    text-style: bold;
-    height: 1;
+    display: none;
 }
 
-/* Footer - hidden, replaced by StatusBar */
 Footer {
     display: none;
 }
 
-/* Status bar - replaces footer */
-#status {
-    dock: bottom;
-    height: 1;
-    background: $surface-darken-1;
-    color: $text-muted;
-    padding: 0 1;
+/* Chat area - takes remaining space, scrollable */
+#chat-area {
+    height: 1fr;
+    width: 100%;
+    background: $surface;
+    padding: 0;
+    scrollbar-gutter: stable;
 }
 
-/* Banner container */
+/* Banner inside chat area - scrolls away */
 #banner {
     height: auto;
     padding: 0 1;
-    margin-bottom: 0;
+    margin: 0;
 }
 
-/* Main content area */
-#main {
-    width: 100%;
-    height: 1fr;
-    padding: 0 1;
-}
-
-/* Chat log - clean, minimal borders */
+/* Chat log inside scroll area */
 #chat {
-    height: 100%;
+    height: auto;
+    min-height: 1;
     border: none;
-    padding: 1;
-    scrollbar-gutter: stable;
+    padding: 0 1;
 }
 
 /* Loading indicator */
 #loading {
     height: 1;
+    width: 100%;
     padding: 0 1;
     margin: 0;
 }
 
-/* Input field - teal accent border */
+/* Input box container - vibe style with top border */
+#input-box {
+    height: auto;
+    width: 100%;
+    background: $surface;
+    border-top: solid $text-muted;
+    padding: 0;
+    margin: 0;
+}
+
+/* Input row with prompt + input */
+#input-row {
+    height: auto;
+    width: 100%;
+    padding: 0 1;
+    align: left middle;
+}
+
+/* Prompt ">" character */
+#prompt {
+    width: auto;
+    height: auto;
+    color: $text;
+    padding: 0 1 0 0;
+}
+
+/* Input field - no border (container has border) */
 #input {
     height: auto;
-    margin: 0;
-    border: solid $miu-primary;
-    background: $surface;
+    width: 1fr;
+    border: none;
+    background: transparent;
+    padding: 0;
 }
 
 #input:focus {
-    border: solid $miu-highlight;
+    border: none;
 }
 
-/* Input container for grouping */
-#input-container {
-    dock: bottom;
-    height: auto;
-    min-height: 3;
+/* Bottom bar - simple like vibe */
+#bottom-bar {
+    height: 1;
+    width: 100%;
+    background: $surface;
     padding: 0 1;
-    margin: 0;
+    align: left middle;
+}
+
+/* Path display - left side */
+#path-display {
+    width: auto;
+    height: auto;
+    color: $miu-primary;
+    padding: 0;
+}
+
+/* Spacer - fills middle */
+#spacer {
+    width: 1fr;
+    height: auto;
+}
+
+/* Mode indicator - right side before tokens */
+#mode-indicator {
+    width: auto;
+    height: auto;
+    color: $text-muted;
+    padding: 0 2 0 0;
+}
+
+/* Token display - far right */
+#token-display {
+    width: auto;
+    height: auto;
+    color: $miu-primary;
+    padding: 0;
 }
 
 /* Message styling classes */
@@ -116,37 +160,20 @@ Footer {
 }
 
 /* Scrollbar styling */
-#chat > ScrollBar {
+#chat-area > ScrollBar {
     width: 1;
 }
 
-#chat > ScrollBar > .scrollbar--bar {
+#chat-area > ScrollBar > .scrollbar--bar {
     color: $miu-primary 30%;
 }
 
-#chat > ScrollBar > .scrollbar--bar-hover {
+#chat-area > ScrollBar > .scrollbar--bar-hover {
     color: $miu-primary 60%;
 }
 
-#chat > ScrollBar > .scrollbar--bar-active {
-    color: $miu-highlight;
-}
-
-/* Markdown styling in chat */
+/* Markdown styling */
 #chat Markdown {
     margin: 0;
     padding: 0;
-}
-
-/* Mode indicator styling in status bar */
-.mode-normal {
-    color: $miu-primary;
-}
-
-.mode-plan {
-    color: #F39C12;
-}
-
-.mode-ask {
-    color: #9B59B6;
 }
