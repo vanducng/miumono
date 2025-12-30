@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from miu_core.logging.types import LogEntry, LogEventType
+from miu_core.paths import MiuPaths
 
 
 class SessionLogger:
@@ -14,9 +15,9 @@ class SessionLogger:
         """Initialize session logger.
 
         Args:
-            save_dir: Directory to save log files
+            save_dir: Directory to save log files (defaults to ~/.miu/logs)
         """
-        self.save_dir = save_dir or Path.cwd() / ".miu" / "logs"
+        self.save_dir = save_dir or MiuPaths.get().logs
         self._entries: list[LogEntry] = []
         self._session_id: str = ""
         self._active = False

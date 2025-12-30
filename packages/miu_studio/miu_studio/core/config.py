@@ -4,6 +4,13 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from miu_core.paths import MiuPaths
+
+
+def _default_session_dir() -> str:
+    """Get default session directory from MiuPaths."""
+    return str(MiuPaths.get().studio / "sessions")
+
 
 class Settings(BaseSettings):
     """Application settings from environment variables."""
@@ -24,12 +31,17 @@ class Settings(BaseSettings):
     max_tokens: int = 4096
     max_iterations: int = 10
 
-    # Sessions
-    session_dir: str = ".miu/sessions"
+    # Sessions (defaults to ~/.miu/studio/sessions)
+    session_dir: str = ""  # Set dynamically below
     session_timeout: int = 3600  # 1 hour
 
     # Logging
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+
+    def model_post_init(self, __context: object) -> None:
+        """Set dynamic defaults after init."""
+        if not self.session_dir:
+            self.session_dir = _default_session_dir()
 
 
 settings = Settings()

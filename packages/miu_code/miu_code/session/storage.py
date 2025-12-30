@@ -5,6 +5,7 @@ import uuid
 from pathlib import Path
 
 from miu_core.models import Message
+from miu_core.paths import MiuPaths
 
 
 class SessionStorage:
@@ -13,10 +14,11 @@ class SessionStorage:
     def __init__(
         self,
         session_id: str | None = None,
-        working_dir: str = ".",
+        working_dir: str | None = None,  # Deprecated, kept for backward compat
     ) -> None:
         self.session_id = session_id or str(uuid.uuid4())[:8]
-        self.base_dir = Path(working_dir) / ".miu" / "sessions"
+        # Use centralized ~/.miu/sessions by default
+        self.base_dir = MiuPaths.get().sessions
 
     @property
     def session_file(self) -> Path:
