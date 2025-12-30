@@ -61,6 +61,43 @@ class ToolResultEvent(StreamEvent):
     output: str
 
 
+class ReasoningStartEvent(StreamEvent):
+    """Agent started reasoning/thinking."""
+
+    type: Literal["reasoning_start"] = "reasoning_start"
+
+
+class ReasoningDeltaEvent(StreamEvent):
+    """Reasoning content chunk."""
+
+    type: Literal["reasoning_delta"] = "reasoning_delta"
+    text: str
+
+
+class ReasoningEndEvent(StreamEvent):
+    """Agent finished reasoning."""
+
+    type: Literal["reasoning_end"] = "reasoning_end"
+
+
+class ToolApprovalRequestEvent(StreamEvent):
+    """Tool execution needs approval."""
+
+    type: Literal["tool_approval_request"] = "tool_approval_request"
+    tool_name: str
+    args: dict[str, Any] = Field(default_factory=dict)
+    description: str = ""
+
+
+class ToolApprovalResponseEvent(StreamEvent):
+    """Response to tool approval request."""
+
+    type: Literal["tool_approval_response"] = "tool_approval_response"
+    tool_name: str
+    approved: bool
+    feedback: str | None = None
+
+
 class TextContent(BaseModel):
     """Text content block."""
 

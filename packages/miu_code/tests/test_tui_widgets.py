@@ -15,7 +15,7 @@ class TestStatusBar:
         """Test StatusBar can be instantiated with default values."""
         bar = StatusBar()
 
-        assert bar.mode_label == " normal (shift+tab to cycle)"
+        assert bar.mode_label == "normal (shift+tab to cycle)"
         assert bar.current_path == ""
         assert bar.token_usage == "0% of 200k tokens"
 
@@ -45,7 +45,7 @@ class TestStatusBar:
         assert bar.current_path == "/tmp/test/dir"
 
     def test_statusbar_mode_cycling(self) -> None:
-        """Test StatusBar updates on mode cycle."""
+        """Test StatusBar updates on mode cycle through all 4 modes."""
         mode_manager = ModeManager()
         bar = StatusBar(mode_manager=mode_manager)
 
@@ -56,6 +56,9 @@ class TestStatusBar:
 
         mode_manager.cycle()
         assert "ask mode" in bar.mode_label
+
+        mode_manager.cycle()
+        assert "auto mode" in bar.mode_label
 
         mode_manager.cycle()
         assert "normal" in bar.mode_label
@@ -262,18 +265,18 @@ class TestStatusBarModeIntegration:
         assert "plan mode" in updated_label
 
     def test_multiple_mode_cycles(self) -> None:
-        """Test StatusBar tracks multiple mode cycles."""
+        """Test StatusBar tracks multiple mode cycles through all 4 modes."""
         mode_manager = ModeManager()
         bar = StatusBar(mode_manager=mode_manager)
 
         modes_seen = [bar.mode_label]
 
-        for _ in range(3):
+        for _ in range(4):
             mode_manager.cycle()
             modes_seen.append(bar.mode_label)
 
-        # Should see normal, plan, ask, normal again
-        assert len(set(modes_seen)) >= 3  # At least 3 different modes
+        # Should see normal, plan, ask, auto, normal again
+        assert len(set(modes_seen)) >= 4  # At least 4 different modes
 
 
 class TestStatusBarUsageIntegration:

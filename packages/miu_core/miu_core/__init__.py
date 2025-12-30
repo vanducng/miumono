@@ -8,7 +8,9 @@ __version__ = get_version()
 __all__ = [
     "AgentMode",
     "MiuPaths",
+    "ModeConfig",
     "ModeManager",
+    "ModeSafety",
     "Orchestrator",
     "OrchestratorConfig",
     "Pipeline",
@@ -18,6 +20,7 @@ __all__ = [
     "UsageStats",
     "UsageTracker",
     "__version__",
+    "next_mode",
 ]
 
 
@@ -40,7 +43,7 @@ def __getattr__(name: str) -> object:
 
         return getattr(usage, name)
 
-    if name in ("AgentMode", "ModeManager"):
+    if name in ("AgentMode", "ModeConfig", "ModeManager", "ModeSafety", "next_mode"):
         from miu_core import modes
 
         return getattr(modes, name)
