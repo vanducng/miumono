@@ -55,7 +55,7 @@ Footer {
     height: auto;
     width: 100%;
     background: $surface;
-    border-top: solid $text-muted;
+    border-top: solid #666666;
     padding: 0;
     margin: 0;
 }
