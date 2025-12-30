@@ -1,9 +1,11 @@
 """Coding agent implementation."""
 
+from collections.abc import AsyncIterator
+
 from miu_code.session.storage import SessionStorage
 from miu_code.tools import get_all_tools
 from miu_core.agents import AgentConfig, ReActAgent
-from miu_core.models import Response
+from miu_core.models import Response, StreamEvent
 from miu_core.providers import create_provider
 from miu_core.tools import Tool, ToolRegistry
 
@@ -62,6 +64,14 @@ class CodingAgent:
         self.session.save(self._agent.memory.messages)
 
         return response
+
+    async def run_stream(self, query: str) -> AsyncIterator[StreamEvent]:
+        """Run a query with streaming and persist session."""
+        async for event in self._agent.run_stream(query):
+            yield event
+
+        # Save updated session after streaming completes
+        self.session.save(self._agent.memory.messages)
 
     def get_tools(self) -> list[Tool]:
         """Get all registered tools.

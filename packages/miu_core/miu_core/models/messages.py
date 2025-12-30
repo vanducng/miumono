@@ -5,6 +5,62 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
+# Streaming event types
+class StreamEvent(BaseModel):
+    """Base streaming event."""
+
+    type: str
+
+
+class TextDeltaEvent(StreamEvent):
+    """Text chunk event during streaming."""
+
+    type: Literal["text_delta"] = "text_delta"
+    text: str
+
+
+class ToolUseStartEvent(StreamEvent):
+    """Tool use started event."""
+
+    type: Literal["tool_use_start"] = "tool_use_start"
+    id: str
+    name: str
+
+
+class ToolUseInputEvent(StreamEvent):
+    """Tool use input delta event."""
+
+    type: Literal["tool_use_input"] = "tool_use_input"
+    id: str
+    input_delta: str
+
+
+class MessageStopEvent(StreamEvent):
+    """Message complete event."""
+
+    type: Literal["message_stop"] = "message_stop"
+    stop_reason: str
+    usage: dict[str, int] | None = None
+
+
+class ToolExecutingEvent(StreamEvent):
+    """Tool execution started event."""
+
+    type: Literal["tool_executing"] = "tool_executing"
+    tool_name: str
+    tool_id: str
+
+
+class ToolResultEvent(StreamEvent):
+    """Tool execution result event."""
+
+    type: Literal["tool_result"] = "tool_result"
+    tool_name: str
+    tool_id: str
+    success: bool
+    output: str
+
+
 class TextContent(BaseModel):
     """Text content block."""
 

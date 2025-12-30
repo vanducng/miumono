@@ -1,12 +1,17 @@
 """Anthropic Claude provider."""
 
+from collections.abc import AsyncIterator
 from typing import Any
 
 from miu_core.models import (
     Message,
+    MessageStopEvent,
     Response,
+    StreamEvent,
     TextContent,
+    TextDeltaEvent,
     ToolUseContent,
+    ToolUseStartEvent,
     Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
@@ -127,3 +132,47 @@ class AnthropicProvider(LLMProvider):
                 output_tokens=response.usage.output_tokens,
             ),
         )
+
+    async def stream(
+        self,
+        messages: list[Message],
+        tools: list[ToolSchema] | list[dict[str, Any]] | None = None,
+        system: str | None = None,
+        max_tokens: int = 4096,
+    ) -> AsyncIterator[StreamEvent]:
+        """Stream messages from Claude."""
+        api_messages = self._convert_messages(messages)
+
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": api_messages,
+            "max_tokens": max_tokens,
+        }
+        if system:
+            kwargs["system"] = system
+        if tools:
+            kwargs["tools"] = tools
+
+        async with self._client.messages.stream(**kwargs) as stream:
+            async for event in stream:
+                if event.type == "content_block_start":
+                    block = event.content_block
+                    if block.type == "tool_use":
+                        yield ToolUseStartEvent(id=block.id, name=block.name)
+                elif event.type == "content_block_delta":
+                    delta = event.delta
+                    if delta.type == "text_delta":
+                        yield TextDeltaEvent(text=delta.text)
+                elif event.type == "message_stop":
+                    # Get final message for stop reason and usage
+                    final = await stream.get_final_message()
+                    usage_dict = None
+                    if final.usage:
+                        usage_dict = {
+                            "input_tokens": final.usage.input_tokens,
+                            "output_tokens": final.usage.output_tokens,
+                        }
+                    yield MessageStopEvent(
+                        stop_reason=final.stop_reason or "end_turn",
+                        usage=usage_dict,
+                    )

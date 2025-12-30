@@ -2,7 +2,7 @@
 
 **Project:** Miumono - AI Agent Framework
 **Version:** 0.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30
 
 ## Architecture Overview
 
@@ -336,7 +336,69 @@ Command Parser
         └─ Loop
 ```
 
-### 6. Session Management (miu-code)
+### 6. TUI Application Layer (miu-code - Phase 4)
+
+**Location:** `packages/miu_code/miu_code/tui/`
+
+**Main Application:** `MiuCodeApp`
+
+- **Framework:** Textual (async TUI framework)
+- **Entry Point:** `miu code` command
+- **Status:** Phase 4 complete with streaming integration
+
+**Key Components:**
+
+- **StatusBar Widget:** Footer showing:
+  - Current mode (NORMAL | PLAN | ASK)
+  - Working directory path (abbreviated with ~)
+  - Token usage (input/output counts)
+  - Real-time updates during streaming
+
+- **Message Streaming:** Real-time event handling
+  - `TextDeltaEvent` - append response text
+  - `ToolExecutingEvent` - show tool invocation
+  - `ToolResultEvent` - display tool output
+  - `MessageStopEvent` - finalize response and update usage
+
+- **Mode Management:** Keyboard cycling
+  - `shift+tab` cycles through modes (NORMAL → PLAN → ASK → NORMAL)
+  - Visual indicator in StatusBar
+  - System message on mode change
+
+- **Session Control:**
+  - `ctrl+n` - New session (resets agent)
+  - `ctrl+l` - Clear chat log
+  - `ctrl+c` - Quit application
+
+- **State Managers:**
+  - `ModeManager` - handles mode state and transitions
+  - `UsageTracker` - accumulates token usage across session
+  - Agent initialization and session persistence
+
+**Token Usage Tracking Flow:**
+```
+Streaming Response
+    │
+    ├─ TextDeltaEvent → append to chat
+    ├─ ToolExecutingEvent → show tool call
+    ├─ ToolResultEvent → show result
+    │
+    ▼
+MessageStopEvent (includes usage dict)
+    │
+    ├─ Extract input_tokens, output_tokens
+    ├─ Add to UsageTracker
+    │
+    ▼
+StatusBar Update (token display)
+```
+
+**Data Models (Phase 4 additions):**
+- `MessageStopEvent.usage` - dict[str, int] | None with token counts
+- Propagated from Anthropic provider streaming
+- Updated in real-time as response completes
+
+### 7. Session Management (miu-code)
 
 **Location:** `packages/miu_code/miu_code/session/`
 

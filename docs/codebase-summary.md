@@ -163,9 +163,35 @@ miu --query "read package.json"
 # Interactive REPL mode
 miu
 
-# Interactive TUI mode
+# Interactive TUI mode (Phase 4 - Full Textual app)
 miu code
+
+# TUI with specific model
+miu code --model "anthropic:claude-opus-4-20250805"
 ```
+
+**TUI Application (Phase 4 - Full Integration):**
+
+**Interactive Controls:**
+- `shift+tab` - Cycle through modes (NORMAL → PLAN → ASK → NORMAL)
+- `ctrl+n` - Start new session (resets agent, clears history)
+- `ctrl+l` - Clear chat log
+- `ctrl+c` - Quit application
+
+**Keyboard Bindings:**
+- Enter - Submit query/command
+- `ctrl+c` - Exit application
+
+**Status Display (StatusBar):**
+- **Left:** Current mode indicator
+- **Center:** Working directory path (abbreviated with ~)
+- **Right:** Token usage (input/output counts, total percentage)
+
+**Features:**
+- Real-time streaming responses
+- Tool execution display during agent reasoning
+- Token usage tracking (accumulated across session)
+- Session persistence (can create multiple sessions)
 
 **TUI Widgets (Phase 3 - NEW):**
 
@@ -733,27 +759,45 @@ pip install miu-core miu-code miu-studio
 - `deployment-guide.md` - Deployment and release procedures
 - `project-roadmap.md` - Feature roadmap and milestones
 
-## TUI Implementation (Phase 3)
+## TUI Implementation (Phase 3-4)
 
-**Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
+**Phase 3 Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
 
-**Components:**
+**Phase 4 TUI Integration Status:** Complete - Full TUI app integrated with agents, modes, and usage tracking
+
+**Phase 3 Components:**
 - StatusBar widget with mode/path/usage display
 - WelcomeBanner with animated intro and metadata
 - Integration with ModeManager and UsageTracker
 - 40 comprehensive widget tests
 
-**Test Coverage:**
+**Phase 4 Integration Features:**
+- Full MiuCodeApp with Textual-based interface
+- Real-time streaming event handling (TextDelta, ToolExecuting, ToolResult)
+- Token usage tracking from streaming responses
+- Mode cycling with shift+tab (normal → plan → ask)
+- Dynamic StatusBar showing current mode | working directory | token usage
+- Session management (new session via ctrl+n)
+- Chat clearing (ctrl+l)
+- MessageStopEvent now includes usage field for token propagation
+
+**Phase 3 Test Coverage:**
 - StatusBar: 11 tests (instantiation, mode cycling, usage tracking, path formatting)
 - WelcomeBanner: 10 tests (metadata, path formatting, animation, logo parsing)
 - Integration tests: 12 tests (mode callbacks, usage accumulation)
 - Render/edge case tests: 7 tests (animation boundaries, widget initialization)
 
-**Files:**
-- `packages/miu_code/miu_code/tui/widgets/status.py` - NEW
-- `packages/miu_code/miu_code/tui/widgets/banner.py` - MODIFIED
-- `packages/miu_code/miu_code/tui/widgets/__init__.py` - MODIFIED (added StatusBar export)
-- `packages/miu_code/tests/test_tui_widgets.py` - NEW
+**Phase 4 Key Files:**
+- `packages/miu_code/miu_code/tui/app.py` - NEW: MiuCodeApp main application with streaming integration
+- `packages/miu_code/miu_code/tui/app.tcss` - NEW: Teal/cyan brand styling
+- `packages/miu_core/miu_core/models/messages.py` - MODIFIED: MessageStopEvent.usage field added
+- `packages/miu_core/miu_core/providers/anthropic.py` - MODIFIED: Usage propagation in streaming
+
+**Phase 3 Files:**
+- `packages/miu_code/miu_code/tui/widgets/status.py`
+- `packages/miu_code/miu_code/tui/widgets/banner.py`
+- `packages/miu_code/miu_code/tui/widgets/__init__.py`
+- `packages/miu_code/tests/test_tui_widgets.py`
 
 ---
 

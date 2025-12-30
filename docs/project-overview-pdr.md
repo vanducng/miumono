@@ -2,8 +2,8 @@
 
 **Project Name:** Miumono - AI Agent Framework Monorepo
 **Version:** 0.1.0 (MVP Tier 1 Delivered)
-**Status:** Phase 1A Complete - Ready for Phase 1B
-**Last Updated:** 2025-12-29
+**Status:** Phase 4 Complete - TUI Integration Finished
+**Last Updated:** 2025-12-30
 
 ## Executive Summary
 
@@ -156,9 +156,9 @@ Enable developers to build production-grade AI agents that understand code and c
 - Session management
 - Depends on miu-core
 
-## Implementation Phase (Phase 1A - COMPLETE)
+## Implementation Phases (PHASE 4 ACTIVE)
 
-### Tier 1 MVP Deliverables (Completed)
+### Tier 1 MVP Deliverables (Completed Phase 1A)
 - [x] Workspace setup with UV monorepo
 - [x] Package structure (miu_core, miu_code)
 - [x] Core agent framework with ReAct pattern
@@ -171,18 +171,39 @@ Enable developers to build production-grade AI agents that understand code and c
 - [x] Code quality tooling (Ruff, MyPy, Pytest)
 - [x] Type-safe implementations across codebase
 
-### Phase 1B - Next (Testing & Comprehensive Docs)
-- [ ] Integration test coverage
-- [ ] Comprehensive API documentation
-- [ ] Deployment guide completion
-- [ ] Security audit and fixes
-- [ ] Example applications
-- [x] Release-Please configuration (Phase 1A+)
+### Phase 1B (Testing & Comprehensive Docs) - COMPLETE
+- [x] Integration test coverage
+- [x] Comprehensive API documentation
+- [x] Deployment guide completion
+- [x] Security audit and fixes
+- [x] Example applications
+- [x] Release-Please configuration
 
-### Phase 1C & Beyond
+### Phase 2 (Mode Management & Usage Tracking) - COMPLETE
+- [x] ModeManager for mode cycling (NORMAL → PLAN → ASK)
+- [x] UsageTracker for token usage statistics
+- [x] Integration with core framework
+
+### Phase 3 (TUI Widgets) - COMPLETE
+- [x] StatusBar widget with mode/path/usage display
+- [x] WelcomeBanner widget with metadata
+- [x] ChatLog widget for message display
+- [x] LoadingSpinner widget
+- [x] 40+ widget tests
+
+### Phase 4 (TUI Integration) - COMPLETE
+- [x] MiuCodeApp main application
+- [x] Real-time streaming event handling
+- [x] Token usage tracking in streaming
+- [x] Mode cycling with shift+tab
+- [x] Session management (ctrl+n, ctrl+l)
+- [x] MessageStopEvent.usage field
+- [x] Usage propagation in Anthropic provider
+
+### Phase 1C & Beyond - PLANNED
 - [ ] CI/CD pipeline (GitHub Actions) with release automation
-- [ ] PyPI release automation via GitHub Actions
-- [ ] Web UI interface
+- [ ] PyPI release automation via GitHub Actions (DONE for v0.1.0)
+- [ ] Web UI interface (miu-studio Phase 4B complete)
 - [ ] Advanced debugging tools
 - [ ] Plugin system architecture
 - [ ] Performance benchmarking

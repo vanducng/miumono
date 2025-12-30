@@ -20,11 +20,18 @@ Header {
     height: 1;
 }
 
-/* Footer - subtle, informative */
+/* Footer - hidden, replaced by StatusBar */
 Footer {
+    display: none;
+}
+
+/* Status bar - replaces footer */
+#status {
     dock: bottom;
-    background: $surface-darken-1;
     height: 1;
+    background: $surface-darken-1;
+    color: $text-muted;
+    padding: 0 1;
 }
 
 /* Banner container */
@@ -110,18 +117,37 @@ Footer {
 }
 
 /* Scrollbar styling */
-RichLog > ScrollBar {
+#chat > ScrollBar {
     width: 1;
 }
 
-RichLog > ScrollBar > .scrollbar--bar {
+#chat > ScrollBar > .scrollbar--bar {
     color: $miu-primary 30%;
 }
 
-RichLog > ScrollBar > .scrollbar--bar-hover {
+#chat > ScrollBar > .scrollbar--bar-hover {
     color: $miu-primary 60%;
 }
 
-RichLog > ScrollBar > .scrollbar--bar-active {
+#chat > ScrollBar > .scrollbar--bar-active {
     color: $miu-highlight;
+}
+
+/* Markdown styling in chat */
+#chat Markdown {
+    margin: 0;
+    padding: 0;
+}
+
+/* Mode indicator styling in status bar */
+.mode-normal {
+    color: $miu-primary;
+}
+
+.mode-plan {
+    color: #F39C12;
+}
+
+.mode-ask {
+    color: #9B59B6;
 }
