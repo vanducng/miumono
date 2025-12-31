@@ -42,14 +42,14 @@ class TestCoreCodeToolIntegration:
         """Test writing and reading a file through tool registry."""
         file_path = str(temp_dir / "test.txt")
 
-        # Write file
+        # Write file (tool name is "Write" with capital W)
         write_result = await registry_with_code_tools.execute(
-            "write", ctx, file_path=file_path, content="Hello, World!"
+            "Write", ctx, file_path=file_path, content="Hello, World!"
         )
         assert write_result.success
 
-        # Read file
-        read_result = await registry_with_code_tools.execute("read", ctx, file_path=file_path)
+        # Read file (tool name is "Read" with capital R)
+        read_result = await registry_with_code_tools.execute("Read", ctx, file_path=file_path)
         assert read_result.success
         assert "Hello, World!" in read_result.output
 
@@ -62,12 +62,12 @@ class TestCoreCodeToolIntegration:
 
         # Write initial content
         await registry_with_code_tools.execute(
-            "write", ctx, file_path=file_path, content="def hello():\n    print('hello')"
+            "Write", ctx, file_path=file_path, content="def hello():\n    print('hello')"
         )
 
         # Edit content
         edit_result = await registry_with_code_tools.execute(
-            "edit",
+            "Edit",
             ctx,
             file_path=file_path,
             old_string="hello",
@@ -77,7 +77,7 @@ class TestCoreCodeToolIntegration:
         assert edit_result.success
 
         # Verify changes
-        read_result = await registry_with_code_tools.execute("read", ctx, file_path=file_path)
+        read_result = await registry_with_code_tools.execute("Read", ctx, file_path=file_path)
         assert "world" in read_result.output
         assert "hello" not in read_result.output
 
@@ -90,11 +90,11 @@ class TestCoreCodeToolIntegration:
         for i in range(3):
             file_path = str(temp_dir / f"file{i}.py")
             await registry_with_code_tools.execute(
-                "write", ctx, file_path=file_path, content=f"# File {i}"
+                "Write", ctx, file_path=file_path, content=f"# File {i}"
             )
 
         # Glob for python files
-        glob_result = await registry_with_code_tools.execute("glob", ctx, pattern="*.py")
+        glob_result = await registry_with_code_tools.execute("Glob", ctx, pattern="*.py")
         assert glob_result.success
         assert "file0.py" in glob_result.output
         assert "file1.py" in glob_result.output
@@ -107,20 +107,20 @@ class TestCoreCodeToolIntegration:
         """Test grep finds content in files created by write tool."""
         # Create files with specific content
         await registry_with_code_tools.execute(
-            "write",
+            "Write",
             ctx,
             file_path=str(temp_dir / "main.py"),
             content="def main():\n    pass",
         )
         await registry_with_code_tools.execute(
-            "write",
+            "Write",
             ctx,
             file_path=str(temp_dir / "utils.py"),
             content="def helper():\n    pass",
         )
 
         # Grep for function definitions
-        grep_result = await registry_with_code_tools.execute("grep", ctx, pattern=r"def \w+")
+        grep_result = await registry_with_code_tools.execute("Grep", ctx, pattern=r"def \w+")
         assert grep_result.success
         assert "main" in grep_result.output
         assert "helper" in grep_result.output
@@ -163,7 +163,7 @@ class TestCoreCodeAgentIntegration:
                         content=[
                             ToolUseContent(
                                 id="t1",
-                                name="read",
+                                name="Read",  # Tool name is "Read" with capital R
                                 input={"file_path": str(test_file)},
                             )
                         ],
