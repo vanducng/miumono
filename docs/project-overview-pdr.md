@@ -2,8 +2,8 @@
 
 **Project Name:** Miumono - AI Agent Framework Monorepo
 **Version:** 0.1.0 (MVP Tier 1 Delivered)
-**Status:** Phase 4 Complete - TUI Integration Finished
-**Last Updated:** 2025-12-30
+**Status:** Phase 4 Complete + Phase 02 Code Quality Fixes
+**Last Updated:** 2026-01-01
 
 ## Executive Summary
 
@@ -98,12 +98,15 @@ Enable developers to build production-grade AI agents that understand code and c
 #### NFR-4: Security
 - **File Operations:** Validate paths to prevent directory traversal (implemented Phase 01)
 - **Shell Execution:** Use subprocess with proper escaping (implemented Phase 01)
+- **Bash Tool:** Intentional shell=True design documented for user convenience (Phase 02)
 - **Provider Keys:** Use environment variables for credentials (env: ANTHROPIC_API_KEY, etc)
 - **CORS Restriction:** Hardened to localhost only, configurable via MIU_CORS_ORIGINS (Phase 01)
 - **Rate Limiting:** 10 req/min on API endpoints via slowapi (Phase 01)
 - **Input Validation:** Session IDs (UUID), message sizes (64KB max), script paths (Phase 01)
 - **Security Headers:** CSP, Cache-Control on responses (Phase 01)
-- **Status:** Phase 01 security hardening complete
+- **WebSocket Timeout:** 300s (5 min) idle timeout for connection management (Phase 02)
+- **UTC Timestamps:** datetime.now(UTC) for Python 3.12+ compatibility (Phase 02)
+- **Status:** Phase 01 security hardening complete, Phase 02 code quality complete
 
 #### NFR-5: Documentation
 - **API Documentation:** All public APIs must be documented
@@ -213,6 +216,13 @@ Enable developers to build production-grade AI agents that understand code and c
 - [x] MCP JSON size limits (10MB max to prevent memory exhaustion)
 - [x] CSP and security headers (Content-Security-Policy on static content)
 - [x] slowapi dependency added to miu-studio
+
+### Phase 02 - Code Quality Fixes (COMPLETE)
+- [x] UTC timezone-aware datetime (datetime.now(UTC) across logging/api/services)
+- [x] Python 3.12+ compatibility verified (UTC import from datetime module)
+- [x] WebSocket idle timeout (300s/5min) for connection management
+- [x] Bash tool security documentation (intentional shell=True design)
+- [x] Documentation updates (code-standards.md, system-architecture.md, pdr.md)
 
 ### Phase 1C & Beyond - PLANNED
 - [ ] CI/CD pipeline (GitHub Actions) with release automation

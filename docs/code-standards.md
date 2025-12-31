@@ -15,6 +15,32 @@ This document defines the code standards, patterns, and best practices for Miumo
 - **Virtual Environment:** `.venv` (local), created by `uv sync`
 - **Package Manager:** UV with workspace configuration
 
+### Timezone-Aware Datetime (Python 3.12+)
+
+Use `datetime.now(UTC)` for timezone-aware UTC timestamps (Phase 02 compatibility):
+
+```python
+from datetime import UTC, datetime
+
+# Good - UTC timezone aware (Python 3.12+)
+timestamp = datetime.now(UTC)
+datetime_field: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+# Avoid - naive datetime (no timezone)
+timestamp = datetime.now()  # Not timezone aware
+
+# Also acceptable - datetime.utcnow() still works
+import datetime as dt
+timestamp = dt.datetime.utcnow()  # Deprecated but works
+```
+
+**Used in:**
+- `miu_core.logging.types.LogEntry` (timestamp field)
+- `miu_core.logging.session_logger.SessionLogger` (session timestamps)
+- `miu_studio.models.api.SessionMessage` (message timestamps)
+- `miu_studio.services.chat_service.ChatService` (message timestamps)
+- `miu_studio.services.session_manager.SessionManager` (session timestamps)
+
 ## Code Style & Formatting
 
 ### Ruff Configuration
@@ -665,6 +691,29 @@ def validate_script_path(script: Path) -> bool:
         return any(script.is_relative_to(base) for base in allowed_bases)
     except (ValueError, OSError):
         return False
+```
+
+### Bash Tool Security (Phase 02)
+
+Bash tool uses shell=True intentionally for user convenience (pipes, redirects, env vars, shell expansion).
+
+**Security Model:** User is executing commands in their own environment.
+- Path validation NOT applied (user may need full system access)
+- For untrusted input: use subprocess with shell=False instead
+- Document security implications in docstrings
+
+**Implementation:** `miu_code.tools.bash.BashTool`
+```python
+"""Bash command execution tool.
+
+Security Note:
+    Uses shell=True (via create_subprocess_shell) for user convenience -
+    enables pipes, redirects, env vars, and shell expansion.
+    This is intentional: user is executing commands in their own environment.
+    Path validation is NOT applied as user may need full system access.
+
+    For untrusted input, use subprocess with shell=False instead.
+"""
 ```
 
 ### CORS & Rate Limiting (Phase 01)

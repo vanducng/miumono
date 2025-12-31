@@ -1,4 +1,13 @@
-"""Bash command tool."""
+"""Bash command execution tool.
+
+Security Note:
+    Uses shell=True (via create_subprocess_shell) for user convenience -
+    enables pipes, redirects, env vars, and shell expansion.
+    This is intentional: user is executing commands in their own environment.
+    Path validation is NOT applied as user may need full system access.
+
+    For untrusted input, use subprocess with shell=False instead.
+"""
 
 import asyncio
 import os

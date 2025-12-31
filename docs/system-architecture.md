@@ -283,6 +283,12 @@ class FileTool(BaseTool):
   - Prevents API abuse and DoS attacks
   - Key function: Remote client IP address
 
+- **WebSocket Idle Timeout:** Connection management (Phase 02)
+  - Idle timeout: 300 seconds (5 minutes)
+  - Closes inactive WebSocket connections
+  - Prevents resource exhaustion from abandoned connections
+  - Implemented in `miu_studio.api.routes.chat.websocket_chat`
+
 - **Security Headers:** Response protection
   - Content-Security-Policy on static content
   - Cache-Control headers on streaming endpoints
@@ -322,6 +328,23 @@ class Settings(BaseSettings):
     # Session management
     session_dir: str = ".miu/sessions"
     session_timeout: int = 3600
+```
+
+**WebSocket Configuration (Phase 02):**
+```python
+# In miu_studio.api.routes.chat
+MAX_MESSAGE_SIZE = 64 * 1024          # 64KB max message size (DoS prevention)
+WEBSOCKET_IDLE_TIMEOUT = 300          # 5 minutes idle timeout (Phase 02)
+
+# Implementation
+try:
+    data = await asyncio.wait_for(
+        websocket.receive_json(),
+        timeout=WEBSOCKET_IDLE_TIMEOUT,  # 300 seconds
+    )
+except TimeoutError:
+    await websocket.close(code=1000, reason="Idle timeout")
+    return
 ```
 
 ### 5. CLI Layer (miu-code)
@@ -679,6 +702,9 @@ async def execute_tool_safely(tool: Tool) -> ToolResult:
 | MCP JSON Size Limits | `stdio.py` | Prevent memory exhaustion | 01 |
 | CSP Headers | `main.py` | Prevent XSS attacks | 01 |
 | Cache-Control Headers | `chat.py` | Control response caching | 01 |
+| Bash Security Doc | `bash.py` | Document shell=True design | 02 |
+| WebSocket Idle Timeout | `chat.py` | Prevent abandoned connections (5min) | 02 |
+| UTC Timezone Usage | `logging`, `api.py`, `chat_service.py` | Python 3.12+ compatibility | 02 |
 
 ## Extensibility Points
 

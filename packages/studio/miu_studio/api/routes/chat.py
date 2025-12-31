@@ -1,5 +1,6 @@
 """Chat API routes for miu-studio."""
 
+import asyncio
 import uuid
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
@@ -20,6 +21,9 @@ _chat_service = get_chat_service()
 
 # Security: Max message size to prevent DoS (64KB)
 MAX_MESSAGE_SIZE = 64 * 1024
+
+# WebSocket idle timeout (5 minutes) - closes inactive connections
+WEBSOCKET_IDLE_TIMEOUT = 300
 
 
 def _validate_session_id(session_id: str) -> None:
@@ -90,7 +94,15 @@ async def websocket_chat(websocket: WebSocket, session_id: str) -> None:
 
     try:
         while True:
-            data = await websocket.receive_json()
+            try:
+                data = await asyncio.wait_for(
+                    websocket.receive_json(),
+                    timeout=WEBSOCKET_IDLE_TIMEOUT,
+                )
+            except TimeoutError:
+                await websocket.close(code=1000, reason="Idle timeout")
+                return
+
             message = data.get("message", "")
 
             if not message:
