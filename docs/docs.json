@@ -23,7 +23,7 @@
   ],
   "topbarCtaButton": {
     "name": "Get Started",
-    "url": "/introduction"
+    "url": "/getting-started/introduction"
   },
   "tabs": [
     {
@@ -50,23 +50,39 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "quickstart", "installation"]
+      "pages": [
+        "getting-started/introduction",
+        "getting-started/quickstart",
+        "getting-started/installation"
+      ]
     },
     {
       "group": "Core Concepts",
-      "pages": ["architecture", "packages"]
+      "pages": [
+        "core-concepts/architecture",
+        "core-concepts/packages"
+      ]
     },
     {
       "group": "Guides",
-      "pages": ["deployment", "code-standards", "release-management"]
+      "pages": [
+        "guides/deployment",
+        "guides/code-standards",
+        "guides/release-management"
+      ]
     },
     {
-      "group": "Reference",
-      "pages": ["roadmap", "codebase-summary"]
+      "group": "Contributing",
+      "pages": [
+        "contributing/roadmap",
+        "contributing/codebase-summary"
+      ]
     },
     {
       "group": "API Reference",
-      "pages": ["api-reference/overview"]
+      "pages": [
+        "api-reference/overview"
+      ]
     }
   ],
   "footerSocials": {

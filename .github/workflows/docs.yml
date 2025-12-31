@@ -1,5 +1,6 @@
 # Documentation deployment workflow
-# Deploys MkDocs to GitHub Pages
+# Mintlify docs are deployed via Mintlify GitHub App
+# This workflow validates docs on PR and triggers deployment on push to main
 
 name: Docs
 
@@ -8,56 +9,70 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
-      - 'mkdocs.yml'
-      - 'packages/**/README.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  build:
-    name: Build Documentation
+  validate:
+    name: Validate Documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install dependencies
+      - name: Check docs.json exists
         run: |
-          uv sync
-          uv pip install mkdocs-material mkdocstrings[python]
+          if [ ! -f docs/docs.json ]; then
+            echo "Error: docs/docs.json not found"
+            exit 1
+          fi
+          echo "docs.json found"
 
-      - name: Build docs
-        run: uv run mkdocs build
+      - name: Validate docs.json syntax
+        run: |
+          python3 -c "import json; json.load(open('docs/docs.json'))"
+          echo "docs.json is valid JSON"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site/
+      - name: Check required MDX files exist
+        run: |
+          # Check navigation entries exist
+          for file in \
+            "docs/getting-started/introduction.mdx" \
+            "docs/getting-started/quickstart.mdx" \
+            "docs/getting-started/installation.mdx" \
+            "docs/core-concepts/architecture.mdx" \
+            "docs/core-concepts/packages.mdx" \
+            "docs/guides/code-standards.mdx" \
+            "docs/guides/deployment.mdx" \
+            "docs/guides/release-management.mdx" \
+            "docs/contributing/roadmap.mdx" \
+            "docs/contributing/codebase-summary.mdx" \
+            "docs/api-reference/overview.mdx"
+          do
+            if [ ! -f "$file" ]; then
+              echo "Warning: $file not found"
+            else
+              echo "Found: $file"
+            fi
+          done
 
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      - name: Check assets exist
+        run: |
+          for file in \
+            "docs/favicon.svg" \
+            "docs/logo/logo-light.svg" \
+            "docs/logo/logo-dark.svg"
+          do
+            if [ ! -f "$file" ]; then
+              echo "Warning: $file not found"
+            else
+              echo "Found: $file"
+            fi
+          done
 
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Summary
+        run: |
+          echo "Documentation validation complete"
+          echo "Mintlify will auto-deploy via GitHub App on push to main"
