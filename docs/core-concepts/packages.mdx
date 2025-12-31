@@ -1,0 +1,142 @@
+---
+title: Packages
+description: "Overview of Miumono packages and their purposes"
+---
+
+# Packages
+
+Miumono is organized as a monorepo with five independently versioned packages.
+
+## Package Structure
+
+```
+miu-mono (Monorepo)
+├── packages/miu_core/       → miu-core (core framework)
+├── packages/miu_code/       → miu-code (CLI agent)
+├── packages/miu_examples/   → miu-examples (examples)
+├── packages/miu_studio/     → miu-studio (web UI)
+└── packages/miu_mono/       → miu-mono (meta-package)
+```
+
+## Core Packages
+
+<CardGroup cols={2}>
+  <Card title="miu-core" icon="cube">
+    **Core Framework Library**
+
+    The foundation providing agent abstractions, tool registry, LLM provider interfaces, and data models.
+
+    ```bash
+    pip install miu-core
+    ```
+  </Card>
+  <Card title="miu-code" icon="terminal">
+    **AI Coding Agent**
+
+    CLI/TUI interface with coding-specific tools (read, write, edit, bash, glob, grep).
+
+    ```bash
+    pip install miu-code
+    ```
+  </Card>
+  <Card title="miu-studio" icon="browser">
+    **Web Server & UI**
+
+    FastAPI-based web server with REST API and browser interface.
+
+    ```bash
+    pip install miu-studio
+    ```
+  </Card>
+  <Card title="miu-examples" icon="book">
+    **Example Applications**
+
+    Usage patterns and example implementations.
+
+    ```bash
+    pip install miu-examples
+    ```
+  </Card>
+</CardGroup>
+
+## Meta Package
+
+**miu-mono** is a convenience package that installs everything:
+
+```bash
+pip install "miu-mono[all]"
+```
+
+## Provider Extras
+
+Install only the LLM providers you need:
+
+<Tabs>
+  <Tab title="Anthropic">
+    ```bash
+    pip install "miu-core[anthropic]"
+    ```
+
+    Includes the Anthropic SDK for Claude models.
+  </Tab>
+  <Tab title="Google">
+    ```bash
+    pip install "miu-core[google]"
+    ```
+
+    Includes the Google Generative AI SDK for Gemini models.
+  </Tab>
+  <Tab title="OpenAI">
+    ```bash
+    pip install "miu-core[openai]"
+    ```
+
+    Includes the OpenAI SDK for GPT models.
+  </Tab>
+  <Tab title="All Providers">
+    ```bash
+    pip install "miu-core[all]"
+    ```
+
+    Includes all provider SDKs.
+  </Tab>
+</Tabs>
+
+## Dependencies
+
+### miu-core Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| pydantic | Data validation and settings |
+| httpx | Async HTTP client |
+| aiofiles | Async file operations |
+| packaging | Version parsing |
+
+### miu-code Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| miu-core | Core framework |
+| textual | TUI framework |
+| rich | Terminal formatting |
+
+### miu-studio Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| miu-core | Core framework |
+| fastapi | Web framework |
+| uvicorn | ASGI server |
+
+## Version Management
+
+Each package is independently versioned using [Release-Please](https://github.com/google-github-actions/release-please-action) with [Conventional Commits](https://www.conventionalcommits.org/).
+
+```bash
+# Feature - MINOR bump (0.1.0 → 0.2.0)
+git commit -m "feat(agent): add streaming support"
+
+# Bug fix - PATCH bump (0.1.0 → 0.1.1)
+git commit -m "fix(tools): resolve validation bug"
+```

@@ -1,0 +1,143 @@
+---
+title: Installation
+description: "Complete installation guide for Miumono packages"
+---
+
+# Installation Guide
+
+Miumono offers flexible installation options depending on your use case.
+
+## System Requirements
+
+- **Python:** 3.11 or higher
+- **Operating Systems:** macOS, Linux, Windows (via WSL)
+- **Package Manager:** pip, uv, or pipx
+
+## Quick Install Scripts
+
+<Tabs>
+  <Tab title="Unix/macOS">
+    ```bash
+    curl -LsSf https://raw.githubusercontent.com/vanducng/miu-mono/main/scripts/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ```powershell
+    irm https://raw.githubusercontent.com/vanducng/miu-mono/main/scripts/install.ps1 | iex
+    ```
+  </Tab>
+</Tabs>
+
+## Package Installation
+
+### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager:
+
+```bash
+# Install as a tool
+uv tool install miu-code
+
+# Run without installing
+uvx miu-code "your query"
+```
+
+### Using pip
+
+```bash
+# Core framework only
+pip install miu-core
+
+# CLI agent
+pip install miu-code
+
+# All packages
+pip install "miu-mono[all]"
+```
+
+## Available Packages
+
+| Package | PyPI Command | Description |
+|---------|-------------|-------------|
+| miu-core | `pip install miu-core` | Core framework library |
+| miu-code | `pip install miu-code` | AI coding agent with CLI/TUI |
+| miu-examples | `pip install miu-examples` | Example applications |
+| miu-studio | `pip install miu-studio` | Web server and UI |
+| miu-mono | `pip install miu-mono` | Meta-package (all-in-one) |
+
+## Provider-Specific Extras
+
+Install only the LLM providers you need:
+
+```bash
+# Single provider
+pip install "miu-core[anthropic]"
+pip install "miu-core[google]"
+pip install "miu-core[openai]"
+
+# All providers
+pip install "miu-core[all]"
+```
+
+## Development Installation
+
+For contributing or development:
+
+```bash
+# Clone repository
+git clone https://github.com/vanducng/miu-mono.git
+cd miu-mono
+
+# Install dependencies with uv
+uv sync
+
+# Run tests
+uv run pytest
+
+# Lint and type check
+uv run ruff check .
+uv run mypy packages/
+```
+
+## Environment Variables
+
+Configure your API keys:
+
+```bash
+# Anthropic (default provider)
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Google Gemini
+export GOOGLE_API_KEY="..."
+
+# OpenAI
+export OPENAI_API_KEY="sk-..."
+```
+
+<Warning>
+Never commit API keys to version control. Use environment variables or `.env` files.
+</Warning>
+
+## Verifying Installation
+
+```bash
+# Check version
+miu --version
+
+# Test with a simple query
+miu -q "Hello, what can you help me with?"
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Command not found">
+    Ensure the installation directory is in your PATH. For uv tool installs, run `uv tool update-shell`.
+  </Accordion>
+  <Accordion title="API key errors">
+    Verify your API key is set correctly with `echo $ANTHROPIC_API_KEY` (or your chosen provider).
+  </Accordion>
+  <Accordion title="Python version mismatch">
+    Miumono requires Python 3.11+. Check with `python --version`.
+  </Accordion>
+</AccordionGroup>

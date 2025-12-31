@@ -1,0 +1,175 @@
+---
+title: Codebase Summary
+description: "Technical overview of the Miumono codebase structure"
+---
+
+# Codebase Summary
+
+Technical overview of the miu-mono monorepo structure and implementation.
+
+## Project Structure
+
+```
+miu-mono/
+├── packages/
+│   ├── miu_core/           # Core framework (0.1.0)
+│   ├── miu_code/           # CLI agent (0.2.0)
+│   ├── miu_studio/         # Web server (0.1.0)
+│   ├── miu_examples/       # Examples (0.1.0)
+│   └── miu_mono/           # Meta-package (0.1.0)
+├── .github/                # GitHub Actions workflows
+├── docs/                   # Documentation
+├── pyproject.toml          # Root workspace config
+└── README.md               # Quick start
+```
+
+## miu-core Modules
+
+<Tabs>
+  <Tab title="Agents">
+    **`miu_core.agents`** - Agent framework base classes
+
+    ```python
+    from miu_core.agents import ReActAgent
+    from miu_core.providers import AnthropicProvider
+
+    provider = AnthropicProvider()
+    agent = ReActAgent(provider=provider)
+    response = await agent.run("Hello!")
+    ```
+  </Tab>
+  <Tab title="Providers">
+    **`miu_core.providers`** - LLM provider integrations
+
+    - `AnthropicProvider` - Claude models
+    - `OpenAIProvider` - GPT models
+    - `GoogleProvider` - Gemini models
+  </Tab>
+  <Tab title="Tools">
+    **`miu_core.tools`** - Tool registry and abstractions
+
+    ```python
+    from miu_core.tools import ToolRegistry, BaseTool
+
+    registry = ToolRegistry()
+    registry.register(my_tool)
+    result = await registry.execute("tool_name", args)
+    ```
+  </Tab>
+  <Tab title="Patterns">
+    **`miu_core.patterns`** - Multi-agent patterns
+
+    - `Orchestrator` - Task coordination with dependencies
+    - `Pipeline` - Sequential processing chain
+    - `Router` - Request routing to specialists
+  </Tab>
+</Tabs>
+
+## miu-code Tools
+
+| Tool | Purpose | Parameters |
+|------|---------|-----------|
+| `read` | Read file contents | path: str |
+| `write` | Write new file | path: str, content: str |
+| `edit` | Modify existing file | path: str, old: str, new: str |
+| `bash` | Execute shell command | command: str |
+| `glob` | Find files by pattern | pattern: str |
+| `grep` | Search file contents | pattern: str, path: str |
+
+## TUI Components
+
+**Location:** `miu_code/tui/`
+
+<AccordionGroup>
+  <Accordion title="StatusBar">
+    Footer showing mode, path, and token usage with real-time updates during streaming.
+  </Accordion>
+  <Accordion title="Mode Management">
+    Keyboard cycling through NORMAL → PLAN → ASK modes via shift+tab.
+  </Accordion>
+  <Accordion title="Session Control">
+    - `ctrl+n` - New session
+    - `ctrl+l` - Clear chat
+    - `ctrl+c` - Quit
+  </Accordion>
+</AccordionGroup>
+
+## Usage Tracking
+
+```python
+from miu_core import UsageTracker
+
+tracker = UsageTracker(context_limit=200_000)
+tracker.add_usage(input_tokens=150, output_tokens=50)
+
+print(tracker.total_tokens)    # 200
+print(tracker.usage_percent)   # 0.1%
+print(tracker.format_usage())  # "0% of 200k tokens"
+```
+
+## Mode Management
+
+```python
+from miu_core import AgentMode, ModeManager
+
+manager = ModeManager()
+manager.on_change(lambda mode: print(f"Mode: {mode}"))
+
+manager.cycle()  # NORMAL → PLAN
+manager.cycle()  # PLAN → ASK
+manager.set_mode(AgentMode.NORMAL)
+```
+
+## Dependencies
+
+### Core Framework
+
+| Package | Purpose |
+|---------|---------|
+| pydantic≥2.0 | Data validation |
+| httpx≥0.27 | Async HTTP |
+| aiofiles≥23.0 | Async file ops |
+| packaging≥24.0 | Version management |
+
+### Optional Providers
+
+| Package | Provider |
+|---------|----------|
+| anthropic≥0.40 | Claude |
+| openai≥1.50 | GPT |
+| google-genai≥0.8 | Gemini |
+| mcp≥1.0 | MCP support |
+
+### CLI/TUI
+
+| Package | Purpose |
+|---------|---------|
+| textual≥1.0.0 | TUI framework |
+| rich | Terminal formatting |
+| asyncclick | CLI framework |
+
+## Development Setup
+
+```bash
+# Clone and install
+git clone https://github.com/vanducng/miu-mono.git
+cd miu-mono
+uv sync
+
+# Run tests
+uv run pytest --cov
+
+# Type check
+uv run mypy packages/
+
+# Lint
+uv run ruff check .
+```
+
+## Build System
+
+- **Package Manager:** UV with workspace management
+- **Build Backend:** hatchling
+- **Type Checking:** MyPy (strict mode)
+- **Linting:** Ruff
+- **Testing:** Pytest with asyncio

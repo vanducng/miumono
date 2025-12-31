@@ -1,0 +1,166 @@
+---
+title: Deployment Guide
+description: "Deploy Miumono packages to PyPI and manage releases"
+---
+
+# Deployment Guide
+
+This guide covers deployment of miu-mono packages to PyPI using Release-Please for automated versioning.
+
+## Release Process
+
+<Steps>
+  <Step title="Conventional Commits">
+    All commits must follow Conventional Commits format:
+
+    ```bash
+    # Feature - MINOR bump (0.1.0 → 0.2.0)
+    git commit -m "feat(agent): add streaming support"
+
+    # Bug fix - PATCH bump (0.1.0 → 0.1.1)
+    git commit -m "fix(tools): resolve validation bug"
+
+    # Breaking change - MAJOR bump (0.1.0 → 1.0.0)
+    git commit -m "feat(api): redesign Provider interface
+
+    BREAKING CHANGE: Provider.execute() renamed to Provider.invoke()"
+    ```
+  </Step>
+  <Step title="Release-Please Creates PR">
+    When commits are pushed to `main`:
+    - GitHub Actions triggers Release-Please
+    - Creates separate PR for each package with changes
+    - Updates `pyproject.toml` version and `CHANGELOG.md`
+  </Step>
+  <Step title="Review & Merge">
+    Review the generated PR, verify version bumps and CHANGELOG accuracy, then merge.
+  </Step>
+  <Step title="PyPI Publication">
+    After merge, GitHub creates a release which triggers automatic PyPI publication via OIDC trusted publishing.
+  </Step>
+</Steps>
+
+## Commit Types
+
+| Type | Effect | Changelog |
+|------|--------|-----------|
+| `feat` | Minor bump | Visible |
+| `fix` | Patch bump | Visible |
+| `perf` | Patch bump | Visible |
+| `refactor` | Patch bump | Hidden |
+| `docs` | No bump | Hidden |
+| `chore` | No bump | Hidden |
+
+## Configuration Files
+
+<Tabs>
+  <Tab title="Manifest">
+    **`.release-please-manifest.json`**
+
+    Tracks current version for each package:
+    ```json
+    {
+      "packages/miu_core": "0.1.0",
+      "packages/miu_code": "0.1.0",
+      "packages/miu_examples": "0.1.0",
+      "packages/miu_studio": "0.1.0",
+      "packages/miu_mono": "0.1.0"
+    }
+    ```
+  </Tab>
+  <Tab title="Config">
+    **`release-please-config.json`**
+
+    | Setting | Value | Purpose |
+    |---------|-------|---------|
+    | `release-type` | `python` | Semver + pyproject.toml |
+    | `separate-pull-requests` | `true` | One PR per package |
+    | `include-component-in-tag` | `true` | Tag: `miu-core-v0.1.0` |
+  </Tab>
+</Tabs>
+
+## GitHub Actions Workflows
+
+### Release-Please Workflow
+
+**File:** `.github/workflows/release-please.yml`
+
+- **Triggers:** Push to main, manual dispatch
+- **Jobs:** Creates release PRs and GitHub releases
+- **Outputs:** Per-package release flags and tag names
+
+### Publish Workflow
+
+**File:** `.github/workflows/release.yml`
+
+- **Triggers:** GitHub release event
+- **Features:** Per-package matrix builds, OIDC trusted publishing
+- **No tokens needed** - uses PyPI trusted publishing
+
+## PyPI Trusted Publishing
+
+Miumono uses OIDC trusted publishing - no API tokens stored in secrets:
+
+1. GitHub Actions requests OIDC token
+2. Exchanges token with PyPI for temporary credentials
+3. Publishes without storing secrets
+
+<Info>
+All 5 packages are configured with trusted publishers on PyPI.
+</Info>
+
+## Manual Build
+
+```bash
+# Build all packages
+uv build
+
+# Build specific package
+cd packages/miu_core && uv build
+
+# Verify installation
+pip install --upgrade miu-code==0.2.0
+```
+
+## Tag Format
+
+With Release-Please configuration:
+```
+miu-core-v0.2.0       # miu_core package
+miu-code-v0.1.5       # miu_code patch
+miu-studio-v0.3.0     # miu_studio feature
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Release PR Not Created">
+    **Cause:** No commits with conventional format
+
+    **Solution:** Ensure commits use `feat:`, `fix:`, or `perf:` prefixes
+  </Accordion>
+  <Accordion title="Wrong Version Bump">
+    **Cause:** Commit type doesn't match intent
+
+    **Solution:** Use correct type - `feat:` for minor, `fix:` for patch, `BREAKING CHANGE:` for major
+  </Accordion>
+  <Accordion title="PyPI Publish Fails">
+    **Cause:** Trusted publisher not configured or version already published
+
+    **Solution:**
+    1. Verify trusted publisher in PyPI project settings
+    2. Check workflow has `id-token: write` permission
+    3. Verify version isn't already published
+  </Accordion>
+</AccordionGroup>
+
+## Version Checklist
+
+<Checklist>
+- All commits use conventional format
+- Tests pass: `uv run pytest`
+- Type check passes: `uv run mypy packages/`
+- Linting passes: `uv run ruff check .`
+- Release PR reviewed and merged
+- PyPI publication successful
+</Checklist>

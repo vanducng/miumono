@@ -1,0 +1,61 @@
+---
+title: Introduction
+description: "Miumono - AI Agent Framework for building coding assistants"
+---
+
+# Welcome to Miumono
+
+Miumono is a Python-based AI agent framework designed to simplify building AI-powered coding assistants. It provides a modular, extensible architecture for integrating multiple LLM providers with code manipulation tools.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running with Miumono in minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Multiple installation options for your workflow
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Understand the modular architecture
+  </Card>
+  <Card title="Packages" icon="box" href="/packages">
+    Explore the available packages
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion title="Multi-Provider Support" icon="brain">
+    Support for Anthropic Claude, Google Gemini, and OpenAI GPT through a unified interface.
+  </Accordion>
+  <Accordion title="ReAct Agent Pattern" icon="arrows-rotate">
+    Built-in reasoning and acting loop with tool execution for autonomous task completion.
+  </Accordion>
+  <Accordion title="Rich Tool System" icon="wrench">
+    File operations, code execution, and extensible tool registry for custom functionality.
+  </Accordion>
+  <Accordion title="Multiple Interfaces" icon="display">
+    CLI, TUI (Textual), and Web UI (FastAPI) for different use cases.
+  </Accordion>
+  <Accordion title="OpenTelemetry Tracing" icon="chart-line">
+    Built-in observability and tracing for debugging and monitoring.
+  </Accordion>
+  <Accordion title="MCP Integration" icon="plug">
+    Model Context Protocol support for extended capabilities.
+  </Accordion>
+</AccordionGroup>
+
+## Packages Overview
+
+| Package | Description |
+|---------|-------------|
+| **miu-core** | Core framework library with providers and tools |
+| **miu-code** | AI coding agent with CLI/TUI interfaces |
+| **miu-examples** | Example applications and usage patterns |
+| **miu-studio** | Web server and UI for browser-based interaction |
+| **miu-mono** | Meta-package that installs everything |
+
+## Requirements
+
+- Python 3.11 or higher
+- API key for at least one LLM provider (Anthropic, OpenAI, or Google)
