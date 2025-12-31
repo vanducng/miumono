@@ -20,16 +20,16 @@ jobs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
       # Per-package outputs
-      miu-core--release_created: ${{ steps.release.outputs['packages/miu_core--release_created'] }}
-      miu-core--tag_name: ${{ steps.release.outputs['packages/miu_core--tag_name'] }}
-      miu-code--release_created: ${{ steps.release.outputs['packages/miu_code--release_created'] }}
-      miu-code--tag_name: ${{ steps.release.outputs['packages/miu_code--tag_name'] }}
-      miu-examples--release_created: ${{ steps.release.outputs['packages/miu_examples--release_created'] }}
-      miu-examples--tag_name: ${{ steps.release.outputs['packages/miu_examples--tag_name'] }}
-      miu-studio--release_created: ${{ steps.release.outputs['packages/miu_studio--release_created'] }}
-      miu-studio--tag_name: ${{ steps.release.outputs['packages/miu_studio--tag_name'] }}
-      miu-mono--release_created: ${{ steps.release.outputs['packages/miu_mono--release_created'] }}
-      miu-mono--tag_name: ${{ steps.release.outputs['packages/miu_mono--tag_name'] }}
+      miu-core--release_created: ${{ steps.release.outputs['packages/core--release_created'] }}
+      miu-core--tag_name: ${{ steps.release.outputs['packages/core--tag_name'] }}
+      miu-code--release_created: ${{ steps.release.outputs['packages/code--release_created'] }}
+      miu-code--tag_name: ${{ steps.release.outputs['packages/code--tag_name'] }}
+      miu-examples--release_created: ${{ steps.release.outputs['packages/examples--release_created'] }}
+      miu-examples--tag_name: ${{ steps.release.outputs['packages/examples--tag_name'] }}
+      miu-studio--release_created: ${{ steps.release.outputs['packages/studio--release_created'] }}
+      miu-studio--tag_name: ${{ steps.release.outputs['packages/studio--tag_name'] }}
+      miu-mono--release_created: ${{ steps.release.outputs['packages/miu--release_created'] }}
+      miu-mono--tag_name: ${{ steps.release.outputs['packages/miu--tag_name'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release

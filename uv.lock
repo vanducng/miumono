@@ -971,7 +971,7 @@ wheels = [
 [[package]]
 name = "miu-code"
 version = "0.2.0"
-source = { editable = "packages/miu_code" }
+source = { editable = "packages/code" }
 dependencies = [
     { name = "asyncclick" },
     { name = "miu-core", extra = ["anthropic"] },
@@ -983,7 +983,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "asyncclick", specifier = ">=8.1" },
-    { name = "miu-core", extras = ["anthropic"], editable = "packages/miu_core" },
+    { name = "miu-core", extras = ["anthropic"], editable = "packages/core" },
     { name = "prompt-toolkit", specifier = ">=3.0" },
     { name = "rich", specifier = ">=13.0" },
     { name = "textual", specifier = ">=1.0.0" },
@@ -992,7 +992,7 @@ requires-dist = [
 [[package]]
 name = "miu-core"
 version = "0.2.0"
-source = { editable = "packages/miu_core" }
+source = { editable = "packages/core" }
 dependencies = [
     { name = "aiofiles" },
     { name = "httpx" },
@@ -1035,7 +1035,7 @@ requires-dist = [
     { name = "google-genai", marker = "extra == 'google'", specifier = ">=0.8" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
-    { name = "miu-core", extras = ["anthropic", "openai", "google", "mcp", "tracing"], marker = "extra == 'all'", editable = "packages/miu_core" },
+    { name = "miu-core", extras = ["anthropic", "openai", "google", "mcp", "tracing"], marker = "extra == 'all'", editable = "packages/core" },
     { name = "openai", marker = "extra == 'openai'", specifier = ">=1.50" },
     { name = "opentelemetry-api", marker = "extra == 'tracing'", specifier = ">=1.28" },
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'tracing'", specifier = ">=1.28" },
@@ -1048,7 +1048,7 @@ provides-extras = ["anthropic", "openai", "google", "mcp", "tracing", "all"]
 [[package]]
 name = "miu-examples"
 version = "0.2.0"
-source = { editable = "packages/miu_examples" }
+source = { editable = "packages/examples" }
 dependencies = [
     { name = "miu-core", extra = ["all"] },
 ]
@@ -1060,7 +1060,7 @@ rag = [
 
 [package.metadata]
 requires-dist = [
-    { name = "miu-core", extras = ["all"], editable = "packages/miu_core" },
+    { name = "miu-core", extras = ["all"], editable = "packages/core" },
     { name = "qdrant-client", marker = "extra == 'rag'", specifier = ">=1.12" },
 ]
 provides-extras = ["rag"]
@@ -1068,7 +1068,7 @@ provides-extras = ["rag"]
 [[package]]
 name = "miu-mono"
 version = "1.0.0"
-source = { editable = "packages/miu_mono" }
+source = { editable = "packages/miu" }
 dependencies = [
     { name = "asyncclick" },
     { name = "miu-code" },
@@ -1090,18 +1090,18 @@ studio = [
 [package.metadata]
 requires-dist = [
     { name = "asyncclick", specifier = ">=8.0" },
-    { name = "miu-code", editable = "packages/miu_code" },
-    { name = "miu-core", extras = ["all"], editable = "packages/miu_core" },
-    { name = "miu-examples", marker = "extra == 'examples'", editable = "packages/miu_examples" },
+    { name = "miu-code", editable = "packages/code" },
+    { name = "miu-core", extras = ["all"], editable = "packages/core" },
+    { name = "miu-examples", marker = "extra == 'examples'", editable = "packages/examples" },
     { name = "miu-mono", extras = ["examples", "studio"], marker = "extra == 'all'" },
-    { name = "miu-studio", marker = "extra == 'studio'", editable = "packages/miu_studio" },
+    { name = "miu-studio", marker = "extra == 'studio'", editable = "packages/studio" },
 ]
 provides-extras = ["examples", "studio", "all"]
 
 [[package]]
 name = "miu-studio"
 version = "0.2.0"
-source = { editable = "packages/miu_studio" }
+source = { editable = "packages/studio" }
 dependencies = [
     { name = "aiofiles" },
     { name = "fastapi" },
@@ -1115,7 +1115,7 @@ dependencies = [
 requires-dist = [
     { name = "aiofiles", specifier = ">=23.0" },
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "miu-core", extras = ["anthropic"], editable = "packages/miu_core" },
+    { name = "miu-core", extras = ["anthropic"], editable = "packages/core" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
     { name = "websockets", specifier = ">=13.0" },
@@ -1144,9 +1144,9 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "miu-code", editable = "packages/miu_code" },
-    { name = "miu-core", extras = ["anthropic"], editable = "packages/miu_core" },
-    { name = "miu-studio", editable = "packages/miu_studio" },
+    { name = "miu-code", editable = "packages/code" },
+    { name = "miu-core", extras = ["anthropic"], editable = "packages/core" },
+    { name = "miu-studio", editable = "packages/studio" },
     { name = "mypy", specifier = ">=1.13" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", specifier = ">=8.0" },
@@ -2021,15 +2021,15 @@ wheels = [
 
 [[package]]
 name = "sse-starlette"
-version = "3.1.1"
+version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "starlette" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/08/8f554b0e5bad3e4e880521a1686d96c05198471eed860b0eb89b57ea3636/sse_starlette-3.1.1.tar.gz", hash = "sha256:bffa531420c1793ab224f63648c059bcadc412bf9fdb1301ac8de1cf9a67b7fb", size = 24306, upload-time = "2025-12-26T15:22:53.836Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/34/f5df66cb383efdbf4f2db23cabb27f51b1dcb737efaf8a558f6f1d195134/sse_starlette-3.1.2.tar.gz", hash = "sha256:55eff034207a83a0eb86de9a68099bd0157838f0b8b999a1b742005c71e33618", size = 26303, upload-time = "2025-12-31T08:02:20.023Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/31/4c281581a0f8de137b710a07f65518b34bcf333b201cfa06cfda9af05f8a/sse_starlette-3.1.1-py3-none-any.whl", hash = "sha256:bb38f71ae74cfd86b529907a9fda5632195dfa6ae120f214ea4c890c7ee9d436", size = 12442, upload-time = "2025-12-26T15:22:52.911Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/95/8c4b76eec9ae574474e5d2997557cebf764bcd3586458956c30631ae08f4/sse_starlette-3.1.2-py3-none-any.whl", hash = "sha256:cd800dd349f4521b317b9391d3796fa97b71748a4da9b9e00aafab32dda375c8", size = 12484, upload-time = "2025-12-31T08:02:18.894Z" },
 ]
 
 [[package]]

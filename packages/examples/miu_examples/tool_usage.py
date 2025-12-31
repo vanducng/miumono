@@ -106,7 +106,7 @@ class CalculatorTool(Tool):
             if isinstance(node, ast.Expression):
                 return _eval(node.body)
             elif isinstance(node, ast.Constant):
-                if isinstance(node.value, (int, float)):
+                if isinstance(node.value, int | float):
                     return node.value
                 raise ValueError(f"Unsupported constant: {node.value!r}")
             elif isinstance(node, ast.BinOp):

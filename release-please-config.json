@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "packages": {
-    "packages/miu_core": {
+    "packages/core": {
       "release-type": "python",
       "package-name": "miu-core",
       "changelog-path": "CHANGELOG.md",
@@ -13,7 +13,7 @@
         }
       ]
     },
-    "packages/miu_code": {
+    "packages/code": {
       "release-type": "python",
       "package-name": "miu-code",
       "changelog-path": "CHANGELOG.md",
@@ -25,7 +25,7 @@
         }
       ]
     },
-    "packages/miu_examples": {
+    "packages/examples": {
       "release-type": "python",
       "package-name": "miu-examples",
       "changelog-path": "CHANGELOG.md",
@@ -37,7 +37,7 @@
         }
       ]
     },
-    "packages/miu_studio": {
+    "packages/studio": {
       "release-type": "python",
       "package-name": "miu-studio",
       "changelog-path": "CHANGELOG.md",
@@ -49,7 +49,7 @@
         }
       ]
     },
-    "packages/miu_mono": {
+    "packages/miu": {
       "release-type": "python",
       "package-name": "miu-mono",
       "changelog-path": "CHANGELOG.md",

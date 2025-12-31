@@ -60,7 +60,7 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
-mypy_path = "packages/miu_core:packages/miu_code:packages/miu_studio:packages/miu_mono"
+mypy_path = "packages/core:packages/code:packages/studio:packages/miu"
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]
@@ -77,7 +77,7 @@ disallow_untyped_decorators = false
 # ========================================
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["packages/miu_core/tests", "packages/miu_code/tests", "packages/miu_studio/tests"]
-pythonpath = ["packages/miu_core", "packages/miu_code", "packages/miu_studio"]
+testpaths = ["packages/core/tests", "packages/code/tests", "packages/studio/tests"]
+pythonpath = ["packages/core", "packages/code", "packages/studio"]
 addopts = "-v --tb=short"
 filterwarnings = ["ignore::DeprecationWarning"]

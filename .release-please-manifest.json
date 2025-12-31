@@ -1,7 +1,7 @@
 {
-  "packages/miu_core": "0.2.0",
-  "packages/miu_code": "0.2.0",
-  "packages/miu_examples": "0.2.0",
-  "packages/miu_studio": "0.2.0",
-  "packages/miu_mono": "1.0.0"
+  "packages/core": "0.2.0",
+  "packages/code": "0.2.0",
+  "packages/examples": "0.2.0",
+  "packages/studio": "0.2.0",
+  "packages/miu": "1.0.0"
 }

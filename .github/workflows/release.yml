@@ -14,11 +14,11 @@ on:
         required: true
         type: choice
         options:
-          - miu_core
-          - miu_code
-          - miu_examples
-          - miu_studio
-          - miu_mono
+          - core
+          - code
+          - examples
+          - studio
+          - miu
           - all
       test_pypi:
         description: 'Publish to Test PyPI instead'
@@ -39,15 +39,15 @@ jobs:
             TAG="${{ github.event.release.tag_name }}"
             # Extract package from tag (format: package-name-vX.Y.Z)
             if [[ "$TAG" =~ ^miu-core-v ]]; then
-              echo 'packages=["miu_core"]' >> $GITHUB_OUTPUT
+              echo 'packages=["core"]' >> $GITHUB_OUTPUT
             elif [[ "$TAG" =~ ^miu-code-v ]]; then
-              echo 'packages=["miu_code"]' >> $GITHUB_OUTPUT
+              echo 'packages=["code"]' >> $GITHUB_OUTPUT
             elif [[ "$TAG" =~ ^miu-examples-v ]]; then
-              echo 'packages=["miu_examples"]' >> $GITHUB_OUTPUT
+              echo 'packages=["examples"]' >> $GITHUB_OUTPUT
             elif [[ "$TAG" =~ ^miu-studio-v ]]; then
-              echo 'packages=["miu_studio"]' >> $GITHUB_OUTPUT
+              echo 'packages=["studio"]' >> $GITHUB_OUTPUT
             elif [[ "$TAG" =~ ^miu-mono-v ]]; then
-              echo 'packages=["miu_mono"]' >> $GITHUB_OUTPUT
+              echo 'packages=["miu"]' >> $GITHUB_OUTPUT
             else
               echo "Unknown tag format: $TAG"
               exit 1
@@ -55,7 +55,7 @@ jobs:
           else
             # workflow_dispatch
             if [[ "${{ inputs.package }}" == "all" ]]; then
-              echo 'packages=["miu_core","miu_code","miu_examples","miu_studio","miu_mono"]' >> $GITHUB_OUTPUT
+              echo 'packages=["core","code","examples","studio","miu"]' >> $GITHUB_OUTPUT
             else
               echo 'packages=["${{ inputs.package }}"]' >> $GITHUB_OUTPUT
             fi
