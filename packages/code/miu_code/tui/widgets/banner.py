@@ -11,10 +11,12 @@ from miu_code.tui.theme import MIU_COLORS, VIBE_COLORS
 
 # ASCII art logo for miu - compact version
 MIU_LOGO_COMPACT = [
-    "  _ __ ___ (_)_   _",
-    " | '_ ` _ \\| | | | |",
-    " | | | | | | | |_| |",
-    " |_| |_| |_|_|\\__,_|",
+    " ███╗   ███╗██╗██╗   ██╗",
+    " ████╗ ████║██║██║   ██║",
+    " ██╔████╔██║██║██║   ██║",
+    " ██║╚██╔╝██║██║██║   ██║",
+    " ██║ ╚═╝ ██║██║╚██████╔╝",
+    " ╚═╝     ╚═╝╚═╝ ╚═════╝ ",
 ]
 
 
@@ -23,7 +25,7 @@ class WelcomeBanner(Widget):
 
     DEFAULT_CSS = """
     WelcomeBanner {
-        height: 7;
+        height: 10;
         width: 100%;
         padding: 0 1;
         margin-bottom: 1;
