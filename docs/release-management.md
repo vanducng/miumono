@@ -444,6 +444,6 @@ See `docs/deployment-guide.md` for detailed PyPI setup instructions.
 **Phase 3C Updates:**
 - Added PyPI trusted publisher configuration section
 - Verified all 5 packages use correct naming: miu-core, miu-code, miu-examples, miu-studio, miu
-- Confirmed tag format: {package}-v{version} (e.g., miu-core-v1.0.0)
+- Confirmed tag format: `{package}-v{version}` (e.g., miu-core-v1.0.0)
 - Cross-referenced deployment-guide.md for detailed OIDC setup
 - No breaking changes - validation-only phase

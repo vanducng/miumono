@@ -247,7 +247,7 @@ Publishes packages to PyPI using per-package matrix strategy:
 **build** - Matrix job, one per package:
 - Checks out code
 - Installs uv
-- Builds with `uv build packages/{package}`
+- Builds with `uv build packages/\{package\}`
 - Uploads artifacts per package
 
 **publish-testpypi** - Optional validation publishing:
