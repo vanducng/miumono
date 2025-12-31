@@ -31,9 +31,9 @@ class Agent(ABC):
         memory: MemoryInterface | None = None,
     ) -> None:
         self.provider = provider
-        self.tools = tools or ToolRegistry()
-        self.config = config or AgentConfig()
-        self.memory = memory or ShortTermMemory()
+        self.tools = tools if tools is not None else ToolRegistry()
+        self.config = config if config is not None else AgentConfig()
+        self.memory = memory if memory is not None else ShortTermMemory()
 
     @abstractmethod
     async def run(self, query: str) -> Response:

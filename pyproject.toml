@@ -77,7 +77,7 @@ disallow_untyped_decorators = false
 # ========================================
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["packages/core/tests", "packages/code/tests", "packages/studio/tests"]
+testpaths = ["packages/core/tests", "packages/code/tests", "packages/studio/tests", "tests/integration"]
 pythonpath = ["packages/core", "packages/code", "packages/studio"]
 addopts = "-v --tb=short"
 filterwarnings = ["ignore::DeprecationWarning"]
