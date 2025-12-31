@@ -69,7 +69,7 @@ class WelcomeBanner(Widget):
     def render(self) -> RenderableType:
         """Render the banner as a single Text object."""
         # Build info lines for side panel
-        info_lines = []
+        info_lines: list[str] = []
         if self.version:
             info_lines.append(f"Miu Code v{self.version}")
         if self.model:
@@ -83,14 +83,24 @@ class WelcomeBanner(Widget):
         primary = MIU_COLORS["primary"]
         info_color = VIBE_COLORS["orange_gold"]
 
-        # Logo lines with side info
+        # Calculate max info width for consistent padding
+        max_info_width = max((len(info) for info in info_lines), default=0)
+        separator = "    "
+
+        # Logo lines with side info (all lines padded to same width)
         for line_idx, logo_line in enumerate(self._lines):
             if line_idx > 0:
                 result.append("\n")
             result.append(logo_line, style=f"bold {primary}")
-            if self._compact and line_idx < len(info_lines):
-                result.append("    ", style="")
-                result.append(info_lines[line_idx], style=f"dim {info_color}")
+
+            # Add info or padding to maintain alignment
+            if self._compact:
+                result.append(separator, style="")
+                if line_idx < len(info_lines):
+                    info_text = info_lines[line_idx].ljust(max_info_width)
+                    result.append(info_text, style=f"dim {info_color}")
+                else:
+                    result.append(" " * max_info_width, style="")
 
         # Empty line
         result.append("\n")
