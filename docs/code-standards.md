@@ -2,7 +2,7 @@
 
 **Project:** Miumono
 **Version:** 0.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2026-01-01
 
 ## Overview
 
@@ -126,7 +126,18 @@ result = some_function(arg1, arg2) + \
     another_function(arg3, arg4)
 ```
 
-## Type Safety & MyPy
+## Type Safety & MyPy (Phase 03)
+
+### py.typed Markers (Phase 03)
+
+All packages include `py.typed` marker files to indicate they are type-checked:
+
+**Locations:**
+- `packages/core/miu_core/py.typed`
+- `packages/code/miu_code/py.typed`
+- `packages/studio/miu_studio/py.typed`
+
+These empty marker files signal to type checkers that the package includes inline type annotations and is safe for use with strict type checking. When consumers install these packages, their type checkers will use our type information.
 
 ### MyPy Configuration
 
@@ -143,6 +154,18 @@ plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 mypy_path = "packages/miu_core:packages/miu_code"
 exclude = ["tests/"]
+```
+
+**Type Checking Command:**
+```bash
+# Type check all packages
+uv run mypy packages/
+
+# Type check specific package
+uv run mypy packages/miu_core
+
+# With detailed output
+uv run mypy packages/ --show-error-codes --pretty
 ```
 
 ### Type Annotation Standards
@@ -530,11 +553,25 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("Missing required api_key in config")
 ```
 
-## Testing Standards
+## Testing Standards (Phase 03)
 
-### Test Structure
+### Test Structure & Organization
 
-**File:** `packages/<package>/tests/test_<module>.py`
+**File Structure:**
+```
+packages/<package>/tests/
+├── conftest.py           # Shared fixtures for package
+├── __init__.py
+├── test_<module>.py      # Tests for specific modules
+└── test_<feature>.py     # Feature-specific tests
+
+tests/integration/
+├── conftest.py           # Cross-package shared fixtures
+├── __init__.py
+└── test_<integration>.py # Cross-package tests
+```
+
+**Class-Based Test Structure:**
 
 ```python
 import pytest
@@ -578,13 +615,90 @@ def test_various_inputs(input: str, expected: str) -> None:
     assert process(input) == expected
 ```
 
+### Test Fixtures (Phase 03)
+
+**Shared Fixture Hierarchy:**
+
+Package-level fixtures in `packages/<package>/tests/conftest.py` are reusable within that package.
+Integration fixtures in `tests/integration/conftest.py` are shared across packages.
+
+**Core Package Fixtures** (`packages/core/tests/conftest.py`):
+- `mock_provider` - Basic mock LLM provider with configurable responses
+- `mock_provider_with_tools` - Mock provider that returns tool use actions
+- `sample_messages` - Pre-built conversation messages for testing
+- `sample_tool_result` - Sample ToolResultContent for tool execution
+- `memory` - ShortTermMemory instance for conversation history
+- `memory_with_messages` - Memory pre-populated with sample messages
+- `tool_registry` - Empty ToolRegistry ready for registration
+- `tool_context` - Default ToolContext with working directory
+- `temp_dir` - Temporary directory for file operations
+- `tool_context_with_dir` - ToolContext with temp working directory
+- `mock_tool_success` - Mock tool returning success
+- `mock_tool_failure` - Mock tool returning failure
+
+**Code Package Fixtures** (`packages/code/tests/conftest.py`):
+- `temp_dir` - Temporary directory for file operations
+- `ctx` - ToolContext with temp working directory
+- `tool_registry` - Empty ToolRegistry for code tools
+- `memory` - ShortTermMemory instance
+- `mode_manager` - ModeManager with default mode
+- `mode_manager_plan` - ModeManager in PLAN mode
+- `usage_tracker` - UsageTracker with default limits
+- `usage_tracker_100k` - UsageTracker with 100k token limit
+- `sample_python_file` - Sample Python module with functions/classes
+- `sample_config_file` - Sample JSON config file
+- `nested_dir_structure` - Multi-level directory structure with files
+- `mock_provider` - AsyncMock LLM provider
+- `home_dir` - User home directory path
+- `cwd` - Current working directory path
+
+**Studio Package Fixtures** (`packages/studio/tests/conftest.py`):
+- `temp_session_dir` - Temporary directory for session storage
+- `session_manager` - SessionManager with temp directory
+- `chat_service` - ChatService with test session manager
+- `client` - FastAPI TestClient with injected session manager
+- `client_with_chat` - TestClient with both session and chat services
+- `session_id` - Create session and return its UUID
+- `session_with_messages` - Session with pre-populated messages
+- `valid_uuid` - Valid UUID format for testing (non-existent)
+- `invalid_uuids` - List of invalid UUID formats
+
+**Integration Fixtures** (`tests/integration/conftest.py`):
+- `temp_dir` - Temporary directory for integration tests
+- `tool_registry` - ToolRegistry with EchoTool for testing
+- `memory` - ShortTermMemory instance
+- `mock_provider` - MockProvider with configurable responses
+- `agent_config` - Default AgentConfig for ReActAgent
+- `react_agent` - Fully configured ReActAgent for testing
+
 ### Testing Conventions
 
 - **Coverage Target:** ≥80% per package
-- **Async Tests:** Use `@pytest.mark.asyncio`
+- **Async Tests:** Use `@pytest.mark.asyncio` decorator
 - **Mocking:** Use `unittest.mock` for external dependencies
-- **Fixtures:** Reusable test fixtures for common setup
+- **Fixtures:** Define in `conftest.py` for reusability
 - **Naming:** `test_<function_name>` or `test_<scenario>`
+- **Isolation:** Each test independent; fixtures create fresh instances
+- **Integration Tests:** Place cross-package tests in `tests/integration/`
+
+### Running Tests
+
+```bash
+# All tests with coverage
+uv run pytest --cov
+
+# Specific package
+uv run pytest packages/miu_core/
+
+# Integration tests only
+uv run pytest tests/integration/
+
+# With verbose output
+uv run pytest -v
+
+# Watch mode (requires pytest-watch)
+uv run pytest-watch
+```
 
 ## Documentation Standards
 
@@ -932,5 +1046,8 @@ uv run pytest --cov
 
 **Document Status:** ACTIVE
 **Enforced By:** CI/CD Pipeline
-**Last Review:** 2025-12-30
-**Latest Addition:** TUI Widget standards (Phase 3)
+**Last Review:** 2026-01-01
+**Latest Additions:**
+- Phase 03: Test Infrastructure (fixtures, conftest, integration tests)
+- Phase 03: py.typed markers for type-checking exports
+- Phase 03: 15 ReAct agent tests and cross-package integration tests
