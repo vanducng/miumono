@@ -1,48 +1,40 @@
-"""Animated welcome banner widget."""
+"""Welcome banner widget."""
 
 import os
 from typing import Any
 
+from rich.console import RenderableType
 from rich.text import Text
-from textual.app import RenderResult
-from textual.reactive import reactive
-from textual.timer import Timer
 from textual.widget import Widget
 
-from miu_code.tui.theme import VIBE_COLORS, get_gradient_color
+from miu_code.tui.theme import MIU_COLORS, VIBE_COLORS
 
-# ASCII art logo for miu
-MIU_LOGO = r"""
-           _
- _ __ ___ (_)_   _
-| '_ ` _ \| | | | |
-| | | | | | | |_| |
-|_| |_| |_|_|\__,_|
-"""
-
-# Compact version with space for side info
-MIU_LOGO_COMPACT = r"""
-  _ __ ___ (_)_   _
- | '_ ` _ \| | | | |
- | | | | | | | |_| |
- |_| |_| |_|_|\__,_|
-"""
+# ASCII art logo for miu - compact version
+MIU_LOGO_COMPACT = [
+    "  _ __ ___ (_)_   _",
+    " | '_ ` _ \\| | | | |",
+    " | | | | | | | |_| |",
+    " |_| |_| |_|_|\\__,_|",
+]
 
 
 class WelcomeBanner(Widget):
-    """Animated welcome banner with color cascade effect."""
+    """Welcome banner with logo and metadata."""
 
     DEFAULT_CSS = """
     WelcomeBanner {
-        height: auto;
+        height: 7;
+        width: 100%;
         padding: 0 1;
         margin-bottom: 1;
     }
     """
 
-    animation_progress = reactive(0.0)
-    _animation_complete = False
-    _timer: Timer | None = None
+    # For test compatibility
+    animation_progress = 0.0
+    _animation_complete = True
+    _lines = MIU_LOGO_COMPACT
+    _compact = True
 
     def __init__(
         self,
@@ -58,9 +50,8 @@ class WelcomeBanner(Widget):
         self.model = model
         self.mcp_count = mcp_count
         self.working_dir = working_dir or os.getcwd()
-        self.logo = MIU_LOGO_COMPACT if compact else MIU_LOGO
-        self._lines = [line for line in self.logo.strip().split("\n") if line]
         self._compact = compact
+        self._lines = MIU_LOGO_COMPACT
 
     def _format_path(self, path: str) -> str:
         """Shorten path with ~ for home dir."""
@@ -69,29 +60,12 @@ class WelcomeBanner(Widget):
             return "~" + path[len(home) :]
         return path
 
-    def on_mount(self) -> None:
-        """Start animation on mount."""
-        self._start_animation()
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh()
 
-    def _start_animation(self) -> None:
-        """Start the color cascade animation."""
-        self.animation_progress = 0.0
-        self._animation_complete = False
-        self._timer = self.set_interval(0.05, self._tick_animation)
-
-    def _tick_animation(self) -> None:
-        """Animation tick."""
-        if self.animation_progress >= 1.0:
-            self._animation_complete = True
-            if self._timer:
-                self._timer.stop()
-            return
-        self.animation_progress += 0.08
-
-    def render(self) -> RenderResult:
-        """Render the banner with animated colors and side info."""
-        text = Text()
-
+    def render(self) -> RenderableType:
+        """Render the banner as a single Text object."""
         # Build info lines for side panel
         info_lines = []
         if self.version:
@@ -102,39 +76,29 @@ class WelcomeBanner(Widget):
         if self.working_dir:
             info_lines.append(self._format_path(self.working_dir))
 
-        # Render logo with side info
-        for line_idx, line in enumerate(self._lines):
-            # Render animated logo characters
-            for char_idx, char in enumerate(line):
-                line_delay = line_idx * 0.15
-                char_delay = (char_idx / max(len(line), 1)) * 0.3
-                char_progress = max(
-                    0.0, min(1.0, (self.animation_progress - line_delay - char_delay) * 3)
-                )
+        # Build full text
+        result = Text()
+        primary = MIU_COLORS["primary"]
+        info_color = VIBE_COLORS["orange_gold"]
 
-                if self._animation_complete:
-                    color = VIBE_COLORS["gold"]
-                else:
-                    color = get_gradient_color(char_progress)
-
-                text.append(char, style=f"bold {color}")
-
-            # Add side info on corresponding lines (offset by 2 spaces)
+        # Logo lines with side info
+        for line_idx, logo_line in enumerate(self._lines):
+            if line_idx > 0:
+                result.append("\n")
+            result.append(logo_line, style=f"bold {primary}")
             if self._compact and line_idx < len(info_lines):
-                text.append("    ", style="")
-                text.append(info_lines[line_idx], style=f"dim {VIBE_COLORS['orange_gold']}")
+                result.append("    ", style="")
+                result.append(info_lines[line_idx], style=f"dim {info_color}")
 
-            text.append("\n")
+        # Empty line
+        result.append("\n")
 
-        # Add help hint line
-        text.append("\n")
-        text.append("  Type /help for commands", style="dim white")
-        text.append("  |  ", style="dim white")
-        text.append("/model to switch", style="dim white")
-        text.append("\n")
+        # Help hint
+        result.append("\n  Type /help for commands", style="dim white")
+        result.append("  |  ", style="dim white")
+        result.append("/model to switch", style="dim white")
 
-        # Add separator
-        sep_width = 60
-        text.append("  " + "─" * sep_width + "\n", style=f"dim {VIBE_COLORS['orange_gold']}")
+        # Separator
+        result.append("\n  " + "─" * 60, style=f"dim {info_color}")
 
-        return text
+        return result

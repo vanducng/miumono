@@ -79,6 +79,11 @@ class ChatInputContainer(Vertical):
         if self._body:
             self._body.focus_input()
 
+    def clear_input(self) -> None:
+        """Clear the input value."""
+        if self._body:
+            self._body.value = ""
+
     def on_chat_input_body_submitted(self, event: ChatInputBody.Submitted) -> None:
         """Handle submission from body."""
         event.stop()

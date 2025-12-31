@@ -19,7 +19,7 @@ Footer {
 }
 
 /* Chat area - takes remaining space, scrollable */
-#chat-area {
+#chat {
     height: 1fr;
     width: 100%;
     background: $surface;
@@ -27,27 +27,51 @@ Footer {
     scrollbar-gutter: stable;
 }
 
-/* Banner inside chat area - scrolls away */
+/* Banner inside chat area - scrolls with content */
 #banner {
-    height: auto;
-    padding: 0 1;
-    margin: 0;
-}
-
-/* Chat log inside scroll area */
-#chat {
-    height: auto;
-    min-height: 1;
-    border: none;
-    padding: 0 1;
-}
-
-/* Loading indicator - fixed height outside scroll */
-#loading {
-    height: 1;
     width: 100%;
-    padding: 0 1;
-    margin: 0;
+    height: auto;
+    border: round $surface;
+    border-title-align: center;
+    text-align: center;
+    content-align: center middle;
+    padding: 2 0;
+    margin: 1 0 0 0;
+    color: $text;
+}
+
+/* Messages container inside scroll area */
+#messages {
+    layout: stream;
+    width: 100%;
+    height: auto;
+    text-align: left;
+    margin-top: 1;
+    margin-bottom: 0;
+}
+
+/* Loading area: loading content (left) + mode indicator (right) */
+#loading-area {
+    height: auto;
+    width: 100%;
+    background: $surface;
+    padding: 1 1 0 1;
+    layout: horizontal;
+    align: left middle;
+}
+
+#loading-area-content {
+    width: 1fr;
+    height: auto;
+    align: left middle;
+}
+
+/* Mode indicator - right side of loading area */
+#mode-indicator {
+    width: auto;
+    height: auto;
+    color: $text-muted;
+    padding: 0;
 }
 
 /* Bottom app container - holds input or approval */
@@ -62,19 +86,12 @@ Footer {
     height: auto;
     width: 100%;
     background: $surface;
-    border-top: solid #666666;
-    border-bottom: solid #666666;
-    padding: 0;
-    margin: 0;
+    border-top: solid $foreground-muted;
+    border-bottom: solid $foreground-muted;
+    padding: 0 1;
 }
 
-/* Input row with prompt + input */
-#input-row {
-    height: auto;
-    width: 100%;
-    padding: 0 1;
-    align: left middle;
-}
+/* Input row with prompt + input - removed, using Horizontal default */
 
 /* Prompt ">" character */
 #prompt {
@@ -87,12 +104,14 @@ Footer {
 
 /* Input field - no border (container has border) */
 #input {
-    height: auto;
     width: 1fr;
-    max-height: 8;
-    border: none;
+    height: auto;
+    max-height: 16;
     background: transparent;
+    color: $text;
+    border: none;
     padding: 0;
+    scrollbar-visibility: hidden;
 }
 
 #input:focus {
@@ -101,11 +120,12 @@ Footer {
 
 /* Bottom bar - simple like vibe */
 #bottom-bar {
-    height: 1;
+    height: auto;
     width: 100%;
     background: $surface;
     padding: 0 1;
     align: left middle;
+    layout: horizontal;
 }
 
 /* Path display - left side */
@@ -120,14 +140,6 @@ Footer {
 #spacer {
     width: 1fr;
     height: auto;
-}
-
-/* Mode indicator - right side before tokens */
-#mode-indicator {
-    width: auto;
-    height: auto;
-    color: $text-muted;
-    padding: 0 2 0 0;
 }
 
 /* Token display - far right */
@@ -162,30 +174,42 @@ Footer {
 
 /* Tool call styling */
 .tool-call {
+    width: 100%;
+    height: auto;
     color: $miu-primary;
 }
 
 .tool-result {
+    width: 100%;
+    height: auto;
     color: $text-muted;
 }
 
 /* Scrollbar styling */
-#chat-area > ScrollBar {
+#chat > ScrollBar {
     width: 1;
 }
 
-#chat-area > ScrollBar > .scrollbar--bar {
+#chat > ScrollBar > .scrollbar--bar {
     color: $miu-primary 30%;
 }
 
-#chat-area > ScrollBar > .scrollbar--bar-hover {
+#chat > ScrollBar > .scrollbar--bar-hover {
     color: $miu-primary 60%;
 }
 
 /* Markdown styling */
-#chat Markdown {
+#messages Markdown {
+    width: 100%;
+    height: auto;
     margin: 0;
     padding: 0;
+}
+
+Markdown MarkdownFence {
+    overflow-x: auto;
+    scrollbar-size-horizontal: 1;
+    max-width: 95%;
 }
 
 /* Spacer utility */
@@ -271,8 +295,6 @@ ChatInputContainer {
 /* Input body */
 #input-body {
     height: auto;
-    width: 100%;
-    padding: 0 1;
 }
 
 /* Border style variants */
@@ -289,4 +311,10 @@ ChatInputContainer {
 #input-box.border-error {
     border-top: solid #E74C3C;
     border-bottom: solid #E74C3C;
+}
+
+/* Global container rule - ensures full width */
+Horizontal {
+    width: 100%;
+    height: auto;
 }

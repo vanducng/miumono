@@ -47,10 +47,11 @@ class ChatTextArea(TextArea):
     DEFAULT_CSS = """
     ChatTextArea {
         height: auto;
-        max-height: 8;
+        max-height: 16;
         border: none;
         background: transparent;
         padding: 0;
+        scrollbar-visibility: hidden;
     }
     """
 
@@ -89,12 +90,14 @@ class ChatTextArea(TextArea):
         return f"{self._input_mode}{text}"
 
     def load_text(self, text: str) -> None:
-        """Load text into editor."""
-        self.text = text
+        """Load text into editor using parent's load_text method."""
+        # Call parent's load_text which handles text replacement properly
+        # without triggering recursive reactive updates
+        super().load_text(text)
 
     def clear_text(self) -> None:
         """Clear the text area."""
-        self.text = ""
+        super().load_text("")
         self._input_mode = ">"
 
     def set_cursor_offset(self, offset: int) -> None:
@@ -133,8 +136,8 @@ class ChatTextArea(TextArea):
         """Handle key events."""
         key = event.key
 
-        # Submit on Enter (without shift)
-        if key == "enter" and not event.shift:
+        # Submit on Enter (without shift) - in Textual, shift+enter is a separate key
+        if key == "enter":
             event.prevent_default()
             full_text = self.get_full_text().strip()
             if full_text:

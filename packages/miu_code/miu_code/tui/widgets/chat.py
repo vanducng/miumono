@@ -4,74 +4,43 @@ from collections.abc import Callable
 from typing import Any
 
 from rich.text import Text
-from textual.containers import VerticalScroll
-from textual.widgets import Markdown, Static
+from textual.widgets import Static
 
 from miu_code.tui.theme import SEMANTIC_COLORS, VIBE_COLORS
+from miu_code.tui.widgets.messages import AssistantMessage, UserMessage
 
 
-class MessageHeader(Static):
-    """Header for a chat message."""
-
-    def __init__(self, role: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.role = role
-
-    def on_mount(self) -> None:
-        """Set header content based on role."""
-        header = Text()
-        if self.role == "user":
-            header.append("> ", style=f"bold {VIBE_COLORS['gold']}")
-            header.append("You", style=f"bold {SEMANTIC_COLORS['user']}")
-        elif self.role == "assistant":
-            header.append("◆ ", style=f"bold {VIBE_COLORS['orange']}")
-            header.append("Agent", style=f"bold {SEMANTIC_COLORS['assistant']}")
-        elif self.role == "system":
-            header.append("→ ", style=f"dim {VIBE_COLORS['orange_gold']}")
-            header.append("System", style=f"dim {SEMANTIC_COLORS['system']}")
-        elif self.role == "error":
-            header.append("✗ ", style=f"bold {SEMANTIC_COLORS['error']}")
-            header.append("Error", style=f"bold {SEMANTIC_COLORS['error']}")
-        elif self.role == "tool":
-            header.append("⚡ ", style=f"bold {VIBE_COLORS['orange']}")
-            header.append("Tool", style=f"bold {VIBE_COLORS['orange_gold']}")
-        self.update(header)
-
-
-class ChatLog(VerticalScroll):
-    """Scrollable chat log with streaming support."""
+class ChatLog(Static):
+    """Chat log container with streaming support (like mistral-vibe's #messages)."""
 
     DEFAULT_CSS = """
     ChatLog {
-        height: 1fr;
-        scrollbar-gutter: stable;
-    }
-    ChatLog > MessageHeader {
+        layout: stream;
+        width: 100%;
         height: auto;
-        margin-top: 1;
-    }
-    ChatLog > Markdown {
-        height: auto;
-        margin-left: 2;
-        margin-bottom: 1;
     }
     ChatLog > Static.message-text {
         height: auto;
+        width: 100%;
         margin-left: 2;
         margin-bottom: 1;
     }
     ChatLog > Static.tool-info {
         height: auto;
+        width: 100%;
         margin-left: 2;
     }
     """
 
     def __init__(self, scroll_callback: Callable[[], None] | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self._streaming_md: Markdown | None = None
-        self._stream: Any = None
-        self._streaming_text = ""
+        self._streaming_msg: AssistantMessage | None = None
+        self._streaming_mounted: bool = False
         self._scroll_callback = scroll_callback
+
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh()
 
     def _notify_scroll(self) -> None:
         """Notify parent to scroll."""
@@ -84,41 +53,43 @@ class ChatLog(VerticalScroll):
 
     def add_user_message(self, text: str) -> None:
         """Add a user message to the log."""
-        self.mount(MessageHeader("user"))
-        msg = Static(text, classes="message-text")
+        msg = UserMessage(text)
         self.mount(msg)
         self._notify_scroll()
 
     def add_assistant_message(self, text: str) -> None:
         """Add a complete assistant message to the log."""
-        self.mount(MessageHeader("assistant"))
-        md = Markdown(text)
-        self.mount(md)
+        msg = AssistantMessage(text)
+        self.mount(msg)
         self._notify_scroll()
 
     async def start_streaming(self) -> None:
-        """Start a streaming assistant message."""
-        self._streaming_text = ""
-        self.mount(MessageHeader("assistant"))
-        self._streaming_md = Markdown("")
-        self.mount(self._streaming_md)
-        self._stream = Markdown.get_stream(self._streaming_md)
-        self._notify_scroll()
+        """Prepare for streaming - widget is mounted on first content."""
+        # Don't mount yet - wait for actual content
+        self._streaming_msg = None
+        self._streaming_mounted = False
 
     async def append_streaming(self, chunk: str) -> None:
-        """Append text to streaming message."""
-        self._streaming_text += chunk
-        if self._stream:
-            await self._stream.write(chunk)
+        """Append text to streaming message, mounting on first chunk."""
+        if not chunk:
+            return
+
+        # Mount on first content (like mistral-vibe)
+        if not self._streaming_mounted:
+            self._streaming_msg = AssistantMessage(chunk)
+            self.mount(self._streaming_msg)
+            self._streaming_mounted = True
+        elif self._streaming_msg:
+            await self._streaming_msg.append_content(chunk)
+
         self._notify_scroll()
 
     async def end_streaming(self) -> None:
         """Finalize streaming message."""
-        if self._stream:
-            await self._stream.stop()
-        self._stream = None
-        self._streaming_md = None
-        self._streaming_text = ""
+        if self._streaming_msg:
+            await self._streaming_msg.stop_stream()
+        self._streaming_msg = None
+        self._streaming_mounted = False
         self._notify_scroll()
 
     def add_system_message(self, text: str) -> None:
@@ -132,8 +103,8 @@ class ChatLog(VerticalScroll):
 
     def add_error(self, text: str) -> None:
         """Add an error message to the log."""
-        self.mount(MessageHeader("error"))
         err_text = Text()
+        err_text.append("✗ ", style=f"bold {SEMANTIC_COLORS['error']}")
         err_text.append(text, style=SEMANTIC_COLORS["error"])
         msg = Static(err_text, classes="message-text")
         self.mount(msg)

@@ -42,6 +42,7 @@ class MiuCodeApp(App[None]):
         Binding("ctrl+c", "quit", "Quit"),
         Binding("ctrl+n", "new_session", "New"),
         Binding("ctrl+l", "clear_chat", "Clear"),
+        Binding("escape", "interrupt", "Interrupt", show=False, priority=True),
         Binding("shift+tab", "cycle_mode", "Cycle Mode", show=False, priority=True),
         Binding("shift+up", "scroll_chat_up", "Scroll Up", show=False, priority=True),
         Binding("shift+down", "scroll_chat_down", "Scroll Down", show=False, priority=True),
@@ -57,6 +58,8 @@ class MiuCodeApp(App[None]):
         self.session_id = session_id
         self._agent: CodingAgent | None = None
         self._is_processing = False
+        self._interrupt_requested = False
+        self._agent_task: asyncio.Task[None] | None = None
 
         # State managers
         self._mode_manager = ModeManager()
@@ -89,8 +92,8 @@ class MiuCodeApp(App[None]):
     def _scroll_to_bottom(self) -> None:
         """Scroll chat to bottom."""
         try:
-            chat_area = self.query_one("#chat-area", VerticalScroll)
-            chat_area.scroll_end(animate=False)
+            chat = self.query_one("#chat", VerticalScroll)
+            chat.scroll_end(animate=False)
         except Exception:
             pass
 
@@ -98,11 +101,23 @@ class MiuCodeApp(App[None]):
         """Schedule scroll to bottom after refresh."""
         self.call_after_refresh(self._scroll_to_bottom)
 
+    def _anchor_if_scrollable(self) -> None:
+        """Anchor chat to bottom if auto-scroll is enabled."""
+        if not self._auto_scroll:
+            return
+        try:
+            chat = self.query_one("#chat", VerticalScroll)
+            if chat.max_scroll_y == 0:
+                return
+            chat.anchor()
+        except Exception:
+            pass
+
     def action_scroll_chat_up(self) -> None:
         """Scroll chat up and disable auto-scroll."""
         try:
-            chat_area = self.query_one("#chat-area", VerticalScroll)
-            chat_area.scroll_relative(y=-5, animate=False)
+            chat = self.query_one("#chat", VerticalScroll)
+            chat.scroll_relative(y=-5, animate=False)
             self._auto_scroll = False
         except Exception:
             pass
@@ -110,9 +125,9 @@ class MiuCodeApp(App[None]):
     def action_scroll_chat_down(self) -> None:
         """Scroll chat down, re-enable auto-scroll if at bottom."""
         try:
-            chat_area = self.query_one("#chat-area", VerticalScroll)
-            chat_area.scroll_relative(y=5, animate=False)
-            if self._is_scrolled_to_bottom(chat_area):
+            chat = self.query_one("#chat", VerticalScroll)
+            chat.scroll_relative(y=5, animate=False)
+            if self._is_scrolled_to_bottom(chat):
                 self._auto_scroll = True
         except Exception:
             pass
@@ -122,8 +137,9 @@ class MiuCodeApp(App[None]):
         # Get short model name for display
         model_short = self.model.split(":")[-1] if ":" in self.model else self.model
 
-        # Chat area with scrollable banner (scrolls away like vibe)
-        with VerticalScroll(id="chat-area"):
+        # Chat area (scrollable) - contains banner and messages
+        with VerticalScroll(id="chat"):
+            # Banner at top (scrolls with content)
             yield WelcomeBanner(
                 version=__version__,
                 model=model_short,
@@ -132,24 +148,25 @@ class MiuCodeApp(App[None]):
                 compact=True,
                 id="banner",
             )
-            yield ChatLog(id="chat", scroll_callback=self._scroll_to_bottom_deferred)
+            yield ChatLog(id="messages", scroll_callback=self._scroll_to_bottom_deferred)
 
-        # Loading indicator (outside scroll)
-        yield LoadingSpinner(id="loading")
+        # Loading area: loading content (left) + mode indicator (right)
+        with Horizontal(id="loading-area"):
+            yield LoadingSpinner(id="loading-area-content")
+            mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
+            yield Static(mode_text, id="mode-indicator")
 
-        # Bottom app container (for input/approval switching later)
+        # Bottom app container (for input/approval switching)
         with Static(id="bottom-app-container"):
             yield ChatInputContainer(
                 history_file=self._get_history_file(),
                 id="input-container",
             )
 
-        # Bottom bar: path left, mode indicator center, tokens right (always visible)
+        # Bottom bar: path left, spacer, tokens right
         with Horizontal(id="bottom-bar"):
             yield Static(self._format_path(self._working_dir), id="path-display")
             yield Static("", id="spacer")
-            mode_text = f"{self._mode_manager.label} (shift+tab to cycle)"
-            yield Static(mode_text, id="mode-indicator")
             yield Static(self._usage_tracker.format_usage(), id="token-display")
 
     def on_mount(self) -> None:
@@ -299,6 +316,14 @@ class MiuCodeApp(App[None]):
         if not value:
             return
 
+        # Clear input immediately (like mistral-vibe)
+        input_container = self.query_one("#input-container", ChatInputContainer)
+        input_container.clear_input()
+
+        # If agent is running, interrupt it first
+        if self._is_processing:
+            await self._interrupt_agent()
+
         # Handle ! prefix for bash
         if value.startswith("!"):
             await self._handle_bash_command(value[1:])
@@ -309,8 +334,8 @@ class MiuCodeApp(App[None]):
             await self._handle_command(value)
             return
 
-        # Regular message
-        await self._handle_user_message(value)
+        # Regular message - run in worker for responsive UI
+        self.run_worker(self._handle_user_message(value), exclusive=False)
 
     async def _handle_bash_command(self, command: str) -> None:
         """Execute bash command and display result."""
@@ -319,7 +344,7 @@ class MiuCodeApp(App[None]):
         if not command:
             return
 
-        chat = self.query_one("#chat", ChatLog)
+        chat = self.query_one("#messages", ChatLog)
 
         try:
             result = subprocess.run(
@@ -350,37 +375,47 @@ class MiuCodeApp(App[None]):
 
     async def _handle_command(self, command: str) -> None:
         """Handle slash commands."""
-        chat = self.query_one("#chat", ChatLog)
+        chat = self.query_one("#messages", ChatLog)
         chat.add_system_message(f"Command not implemented: {command}")
 
     async def _handle_user_message(self, query: str) -> None:
         """Handle regular user message with streaming."""
-        if self._is_processing:
-            return
+        chat = self.query_one("#messages", ChatLog)
 
-        input_container = self.query_one("#input-container", ChatInputContainer)
-        chat = self.query_one("#chat", ChatLog)
+        # Check if at bottom before adding message
+        chat_scroll = self.query_one("#chat", VerticalScroll)
+        if self._is_scrolled_to_bottom(chat_scroll):
+            self._auto_scroll = True
+
         chat.add_user_message(query)
 
-        # Trigger scroll after user message
+        # Scroll after user message
         self._scroll_to_bottom_deferred()
+        self.call_after_refresh(self._anchor_if_scrollable)
 
         if not self._agent:
             chat.add_error("Agent not initialized")
             return
 
         # Start loading animation
-        loading = self.query_one("#loading", LoadingSpinner)
+        loading = self.query_one("#loading-area-content", LoadingSpinner)
         loading.start()
         self._is_processing = True
+        self._interrupt_requested = False
 
         try:
             # Use streaming for real-time response
             await chat.start_streaming()
-            chat_area = self.query_one("#chat-area", VerticalScroll)
+            chat_scroll = self.query_one("#chat", VerticalScroll)
+
+            # Check if at bottom before streaming starts - enable auto-scroll
+            if self._is_scrolled_to_bottom(chat_scroll):
+                self._auto_scroll = True
+
             async for stream_event in self._agent.run_stream(query):
-                # Track if we were at bottom before update
-                was_at_bottom = self._is_scrolled_to_bottom(chat_area)
+                # Check for interrupt
+                if self._interrupt_requested:
+                    break
 
                 if isinstance(stream_event, TextDeltaEvent):
                     await chat.append_streaming(stream_event.text)
@@ -397,37 +432,80 @@ class MiuCodeApp(App[None]):
                         )
                         self._update_status_usage()
 
-                # Scroll if was at bottom and auto-scroll enabled
-                if was_at_bottom and self._auto_scroll:
-                    self._scroll_to_bottom_deferred()
+                # Schedule scroll after layout refresh (like mistral-vibe)
+                if self._auto_scroll:
+                    self.call_after_refresh(self._anchor_if_scrollable)
 
             await chat.end_streaming()
+
+            if self._interrupt_requested:
+                chat.add_system_message("Interrupted")
+
+        except asyncio.CancelledError:
+            await chat.end_streaming()
+            chat.add_system_message("Interrupted")
         except Exception as e:
+            await chat.end_streaming()
             chat.add_error(str(e))
         finally:
             # Stop loading animation
             loading.stop()
             self._is_processing = False
-            input_container.focus_input()
+            self._interrupt_requested = False
+            self._agent_task = None
+            # Focus input after completion
+            try:
+                input_container = self.query_one("#input-container", ChatInputContainer)
+                input_container.focus_input()
+            except Exception:
+                pass
+
+    async def _interrupt_agent(self) -> None:
+        """Interrupt the running agent."""
+        if not self._is_processing or self._interrupt_requested:
+            return
+
+        self._interrupt_requested = True
+
+        # Cancel the task if it exists
+        if self._agent_task and not self._agent_task.done():
+            self._agent_task.cancel()
+            try:
+                await self._agent_task
+            except asyncio.CancelledError:
+                pass
+
+    def action_interrupt(self) -> None:
+        """Handle escape key - interrupt agent or focus input."""
+        if self._is_processing:
+            self.run_worker(self._interrupt_agent(), exclusive=False)
+        else:
+            # Focus input if not processing
+            try:
+                input_container = self.query_one("#input-container", ChatInputContainer)
+                input_container.focus_input()
+            except Exception:
+                pass
+        self._scroll_to_bottom()
 
     def action_cycle_mode(self) -> None:
         """Cycle through agent modes."""
         self._mode_manager.cycle()
         self._update_mode_indicator()
-        chat = self.query_one("#chat", ChatLog)
+        chat = self.query_one("#messages", ChatLog)
         chat.add_system_message(f"Switched to {self._mode_manager.label}")
 
     def action_new_session(self) -> None:
         """Start a new session."""
         self.session_id = None
         self._init_agent()
-        chat = self.query_one("#chat", ChatLog)
+        chat = self.query_one("#messages", ChatLog)
         chat.clear()
         chat.add_system_message("Started new session")
 
     def action_clear_chat(self) -> None:
         """Clear the chat log."""
-        chat = self.query_one("#chat", ChatLog)
+        chat = self.query_one("#messages", ChatLog)
         chat.clear()
 
 

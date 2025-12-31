@@ -65,6 +65,10 @@ class LoadingSpinner(Widget):
             self._timer.stop()
             self._timer = None
 
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh()
+
     def _tick_animation(self) -> None:
         """Animation tick."""
         if not self.is_loading:

@@ -76,6 +76,10 @@ class UserMessage(Static):
             yield NonSelectableStatic("> ", classes="user-message-prompt")
             yield Static(self._content, markup=False, classes="user-message-content")
 
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh()
+
 
 class AssistantMessage(Static):
     """Assistant message with streaming markdown support."""
@@ -101,6 +105,12 @@ class AssistantMessage(Static):
         height: auto;
         padding: 0;
     }
+    AssistantMessage .assistant-message-content Markdown {
+        width: 100%;
+        height: auto;
+        padding: 0;
+        margin: 0;
+    }
     """
 
     def __init__(self, content: str = "") -> None:
@@ -115,6 +125,10 @@ class AssistantMessage(Static):
             with Vertical(classes="assistant-message-content"):
                 self._markdown = Markdown("")
                 yield self._markdown
+
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh()
 
     def _ensure_stream(self) -> MarkdownStream | None:
         """Get or create markdown stream."""
@@ -216,6 +230,10 @@ class ReasoningMessage(SpinnerMixin, Static):
 
     def on_mount(self) -> None:
         self.start_spinner_timer()
+
+    def on_resize(self) -> None:
+        """Refresh on resize to ensure proper layout."""
+        self.refresh_spinner()
 
     async def on_click(self) -> None:
         """Toggle collapsed state on click."""

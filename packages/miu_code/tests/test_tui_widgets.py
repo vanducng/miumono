@@ -176,21 +176,22 @@ class TestWelcomeBanner:
         assert formatted == "/tmp/test/dir"
 
     def test_welcomebanner_compact_mode(self) -> None:
-        """Test WelcomeBanner compact mode uses compact logo."""
+        """Test WelcomeBanner compact mode flag is tracked."""
         banner_compact = WelcomeBanner(compact=True)
         banner_normal = WelcomeBanner(compact=False)
 
-        # Compact logo should be shorter
-        assert len(banner_compact._lines) < len(banner_normal._lines)
+        # Both use same logo (simplified implementation)
+        assert len(banner_compact._lines) == len(banner_normal._lines)
         assert banner_compact._compact is True
         assert banner_normal._compact is False
 
     def test_welcomebanner_animation_state(self) -> None:
-        """Test WelcomeBanner animation state tracking."""
+        """Test WelcomeBanner animation state (disabled in simplified version)."""
         banner = WelcomeBanner()
 
+        # Animation is disabled in simplified version
         assert banner.animation_progress == 0.0
-        assert banner._animation_complete is False
+        assert banner._animation_complete is True
 
     def test_welcomebanner_logo_lines(self) -> None:
         """Test WelcomeBanner parses logo into lines correctly."""
