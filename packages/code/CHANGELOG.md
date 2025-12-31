@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-code-v1.0.0...miu-code-v1.0.1) (2025-12-31)
+
+
+### Bug Fixes
+
+* **tui:** align logo lines with consistent padding ([0f36685](https://github.com/vanducng/miu-mono/commit/0f366855eaf5326a026fd8b38ac8f9f672bebae9))
+* **tui:** improve ASCII art logo rendering ([17f9cca](https://github.com/vanducng/miu-mono/commit/17f9ccaec169c86feed6b32cda5e558e01c6207e))
+
 ## [1.0.0](https://github.com/vanducng/miu-mono/compare/miu-code-v0.2.0...miu-code-v1.0.0) (2025-12-31)
 
 
