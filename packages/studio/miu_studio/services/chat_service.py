@@ -1,7 +1,7 @@
 """Chat service for handling agent interactions."""
 
 from collections.abc import AsyncIterator
-from datetime import datetime
+from datetime import UTC, datetime
 
 from miu_studio.models.api import Session, SessionMessage, StreamChunk
 from miu_studio.services.session_manager import SessionManager
@@ -35,7 +35,7 @@ class ChatService:
         user_msg = SessionMessage(
             role="user",
             content=message,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         session.messages.append(user_msg)
 
@@ -46,7 +46,7 @@ class ChatService:
         assistant_msg = SessionMessage(
             role="assistant",
             content=response_text,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         session.messages.append(assistant_msg)
 
@@ -76,7 +76,7 @@ class ChatService:
         user_msg = SessionMessage(
             role="user",
             content=message,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         session.messages.append(user_msg)
 
@@ -90,7 +90,7 @@ class ChatService:
         assistant_msg = SessionMessage(
             role="assistant",
             content=full_response,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         session.messages.append(assistant_msg)
 

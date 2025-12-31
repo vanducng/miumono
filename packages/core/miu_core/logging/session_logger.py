@@ -1,6 +1,6 @@
 """Session logger for debugging and replay."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +32,7 @@ class SessionLogger:
             The session ID
         """
         if session_id is None:
-            session_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            session_id = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         self._session_id = session_id
         self._entries = []
         self._active = True
@@ -63,7 +63,7 @@ class SessionLogger:
             Created log entry
         """
         entry = LogEntry(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             event_type=event_type,
             content=content,
             metadata=metadata,

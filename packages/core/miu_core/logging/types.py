@@ -1,6 +1,6 @@
 """Logging type definitions."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -23,7 +23,7 @@ class LogEventType(str, Enum):
 class LogEntry(BaseModel):
     """A single log entry."""
 
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     event_type: LogEventType
     content: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)

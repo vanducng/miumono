@@ -1,6 +1,6 @@
 """API models for miu-studio sessions and chat."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -49,7 +49,7 @@ class SessionMessage(BaseModel):
 
     role: Literal["user", "assistant", "system"]
     content: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class CreateSessionRequest(BaseModel):

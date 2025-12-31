@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import aiofiles
@@ -56,7 +56,7 @@ class SessionManager:
 
     async def create_session(self, request: CreateSessionRequest | None = None) -> Session:
         """Create a new session."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         session = Session(
             id=str(uuid.uuid4()),
             name=request.name if request else None,
@@ -83,7 +83,7 @@ class SessionManager:
 
     async def update_session(self, session: Session) -> Session:
         """Update a session."""
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(UTC)
         await self._save_session(session)
         return session
 
