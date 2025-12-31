@@ -72,6 +72,18 @@ jobs:
             fi
           done
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mintlify CLI
+        run: npm install -g mintlify
+
+      - name: Check broken links
+        working-directory: docs
+        run: mintlify broken-links
+
       - name: Summary
         run: |
           echo "Documentation validation complete"
