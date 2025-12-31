@@ -1,0 +1,177 @@
+---
+title: Release Management
+description: "Release-Please configuration and release workflow"
+---
+
+# Release Management
+
+Miumono uses **Release-Please** for automated versioning, changelog generation, and release management.
+
+## How It Works
+
+<Steps>
+  <Step title="Commit with Conventional Format">
+    ```bash
+    git commit -m "feat(agent): add streaming support"
+    ```
+  </Step>
+  <Step title="Release-Please Creates PR">
+    Analyzes commits, updates versions, generates CHANGELOG
+  </Step>
+  <Step title="Review & Merge">
+    Verify changelog and version bumps, then merge
+  </Step>
+  <Step title="Automatic Release">
+    GitHub creates release, triggers PyPI publication
+  </Step>
+</Steps>
+
+## Commit Types
+
+| Type | Section | Version Bump |
+|------|---------|--------------|
+| `feat` | Features | Minor |
+| `fix` | Bug Fixes | Patch |
+| `perf` | Performance | Patch |
+| `refactor` | Refactoring | Patch (hidden) |
+| `docs` | Documentation | None |
+| `chore` | Miscellaneous | None |
+
+## Commit Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+<Tabs>
+  <Tab title="Feature">
+    ```bash
+    git commit -m "feat(agent): add message streaming"
+    ```
+  </Tab>
+  <Tab title="Bug Fix">
+    ```bash
+    git commit -m "fix(bash): handle shell errors gracefully"
+    ```
+  </Tab>
+  <Tab title="Breaking Change">
+    ```bash
+    git commit -m "feat(api): redesign tool interface
+
+    BREAKING CHANGE: Tool.execute() signature changed to Tool.run(context)"
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration Files
+
+### Manifest
+
+**`.release-please-manifest.json`** - Version source of truth:
+
+```json
+{
+  "packages/miu_core": "0.1.0",
+  "packages/miu_code": "0.1.0",
+  "packages/miu_examples": "0.1.0",
+  "packages/miu_studio": "0.1.0",
+  "packages/miu_mono": "0.1.0"
+}
+```
+
+### Config
+
+**`release-please-config.json`** - Main configuration:
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `release-type` | `python` | Semver + pyproject.toml |
+| `separate-pull-requests` | `true` | One PR per package |
+| `include-component-in-tag` | `true` | Tag: `miu-core-v0.1.0` |
+
+## Version Strategy
+
+Semantic Versioning (SemVer):
+
+```
+MAJOR.MINOR.PATCH
+  │      │      └─ Bug fixes (fix: commits)
+  │      └──────── New features (feat: commits)
+  └───────────── Breaking changes (BREAKING CHANGE)
+```
+
+Examples:
+- `0.1.0` → `0.1.1` (patch fix)
+- `0.1.1` → `0.2.0` (new feature)
+- `0.2.0` → `1.0.0` (breaking change)
+
+## Tag Format
+
+```
+miu-core-v0.2.0      # miu_core package
+miu-code-v0.1.1      # miu_code patch
+miu-v1.0.0           # miu meta-package
+```
+
+## CHANGELOG Generation
+
+Each package maintains its own `CHANGELOG.md`:
+
+```markdown
+# Changelog
+
+## [0.2.0](link) (2025-12-30)
+
+### Features
+* add streaming support ([abc1234](link))
+
+### Bug Fixes
+* resolve file validation issue ([ghi9012](link))
+```
+
+## Before Committing
+
+<Checklist>
+- Code follows standards in `docs/code-standards.md`
+- Tests pass: `uv run pytest`
+- Type check passes: `uv run mypy packages/`
+- Lint passes: `uv run ruff check .`
+</Checklist>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Release PR Not Created">
+    **Cause:** No commits with conventional format since last release
+
+    **Solution:** Ensure commits use `feat:`, `fix:`, etc.
+  </Accordion>
+  <Accordion title="Wrong Version Bumped">
+    **Cause:** Commit type doesn't match intended change
+
+    **Solution:** Use correct type - `feat:` for minor, `fix:` for patch
+  </Accordion>
+  <Accordion title="CHANGELOG Has Wrong Content">
+    **Cause:** Release-Please scans commit messages
+
+    **Solution:** Ensure conventional commits before release PR creation
+  </Accordion>
+</AccordionGroup>
+
+## Manual Release Trigger
+
+```bash
+# Using Release-Please CLI
+npx release-please release-pr \
+  --repo-url=https://github.com/vanducng/miu-mono \
+  --token=$GITHUB_TOKEN
+
+# Create releases
+npx release-please github-release \
+  --repo-url=https://github.com/vanducng/miu-mono \
+  --token=$GITHUB_TOKEN
+```

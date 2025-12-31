@@ -1,0 +1,141 @@
+---
+title: Project Roadmap
+description: "Development roadmap and feature timeline for Miumono"
+---
+
+# Project Roadmap
+
+Current status and planned development phases for Miumono.
+
+## Release Timeline
+
+<Steps>
+  <Step title="Phase 1A: MVP Tier 1 ✓">
+    **Status:** COMPLETE (2025-12-29)
+
+    - Core framework with agent abstractions
+    - Multi-provider LLM support
+    - 6 core tools
+    - CLI interface
+    - Type-safe codebase
+  </Step>
+  <Step title="Phase 1B: Testing & Docs">
+    **Status:** NEXT (Target: 2026-01-15)
+
+    - Integration test coverage (80%+)
+    - API documentation
+    - Security audit
+    - Example applications
+  </Step>
+  <Step title="Phase 1C: CI/CD ✓">
+    **Status:** COMPLETE (2025-12-30)
+
+    - GitHub Actions pipeline
+    - PyPI release automation
+    - Release-Please integration
+  </Step>
+  <Step title="MVP Release ✓">
+    **Status:** COMPLETE (2025-12-30)
+
+    All 5 packages published to PyPI
+  </Step>
+</Steps>
+
+## Published Packages
+
+<CardGroup cols={2}>
+  <Card title="miu-core" icon="cube" href="https://pypi.org/project/miu-core/">
+    Core framework library (v0.1.0)
+  </Card>
+  <Card title="miu-code" icon="terminal" href="https://pypi.org/project/miu-code/">
+    CLI agent (v0.2.0)
+  </Card>
+  <Card title="miu-studio" icon="browser" href="https://pypi.org/project/miu-studio/">
+    Web server & UI (v0.1.0)
+  </Card>
+  <Card title="miu-examples" icon="book" href="https://pypi.org/project/miu-examples/">
+    Example applications (v0.1.0)
+  </Card>
+</CardGroup>
+
+## Feature Status
+
+| Feature | Phase | Status | Priority |
+|---------|-------|--------|----------|
+| Core framework | 1A | Complete | P0 |
+| Multi-provider support | 1A | Complete | P0 |
+| CLI interface | 1A | Complete | P0 |
+| Core tools (6) | 1A | Complete | P0 |
+| TUI widgets | 3-4 | Complete | P0 |
+| Integration tests | 1B | Pending | P0 |
+| API documentation | 1B | Pending | P0 |
+| Security audit | 1B | Pending | P1 |
+| CI/CD pipeline | 1C | Complete | P1 |
+| Debugging tools | 2A | Planned | P2 |
+| Web UI | 2B | Planned | P2 |
+| Plugin system | 3 | Planned | P3 |
+
+## Future Phases
+
+### Phase 2: Enhanced Features (2026 Q1)
+
+<Tabs>
+  <Tab title="Advanced Tooling">
+    - Debugging tools (step, breakpoint, inspect)
+    - Code analysis tools (lint, format, test)
+    - Git integration tools
+    - Docker/container support
+  </Tab>
+  <Tab title="Web UI">
+    - Web dashboard for agent management
+    - Real-time execution monitoring
+    - Session visualization
+    - Built-in documentation viewer
+  </Tab>
+  <Tab title="Enterprise">
+    - Comprehensive logging system
+    - Metrics and monitoring
+    - Audit trail
+    - Rate limiting and quotas
+  </Tab>
+</Tabs>
+
+### Phase 3: Ecosystem (2026 Q2+)
+
+- Plugin marketplace
+- Custom provider registration
+- Custom tool development framework
+- Response caching
+- Token optimization
+- Additional LLM providers
+
+## Dependencies
+
+| Tool | Version | Status |
+|------|---------|--------|
+| Python | 3.11+ | Stable |
+| UV | Latest | Stable |
+| Pydantic | 2.0+ | Stable |
+| Anthropic SDK | 0.40+ | Active |
+| OpenAI SDK | 1.50+ | Active |
+| Google GenAI | 0.8+ | Active |
+| Textual | 1.0+ | Stable |
+
+## Success Metrics
+
+### Phase 1A (Achieved)
+- [x] 2 packages created
+- [x] 3 LLM providers integrated
+- [x] 6 core tools implemented
+- [x] 100% MyPy compliance
+
+### Phase 1B (Target)
+- [ ] 80%+ test coverage
+- [ ] All public APIs documented
+- [ ] Security audit completed
+- [ ] 3+ example applications
+
+### MVP Release (Target)
+- [ ] 50+ GitHub stars
+- [ ] Community contributions
+- [ ] Documentation >90% complete

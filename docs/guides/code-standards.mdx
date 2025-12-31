@@ -1,0 +1,274 @@
+---
+title: Code Standards
+description: "Code standards, patterns, and best practices for Miumono development"
+---
+
+# Code Standards
+
+This document defines the code standards enforced through Ruff, MyPy, and Pytest.
+
+## Python Version
+
+- **Minimum:** 3.11
+- **Target:** 3.11, 3.12, 3.13
+- **Package Manager:** UV with workspace configuration
+
+## Code Style
+
+### Ruff Configuration
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+```
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Modules | snake_case | `agent_base.py` |
+| Functions | snake_case | `get_provider()` |
+| Classes | PascalCase | `ReActAgent` |
+| Constants | UPPER_SNAKE_CASE | `DEFAULT_TIMEOUT` |
+| Private | _underscore | `_internal_state` |
+
+### Imports
+
+```python
+# Standard library
+import asyncio
+from typing import Any
+
+# Third-party
+from pydantic import BaseModel
+
+# First-party
+from miu_core.models import Message
+from miu_code.tools import read_file
+```
+
+## Type Safety
+
+### MyPy Configuration
+
+```toml
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+```
+
+### Type Annotations
+
+<Tabs>
+  <Tab title="Functions">
+    ```python
+    # All functions must be typed
+    def get_provider(name: str) -> Provider:
+        """Get provider by name."""
+        pass
+
+    async def execute_tool(
+        tool: Tool,
+        args: dict[str, Any],
+    ) -> ToolResult:
+        """Execute a tool with given arguments."""
+        pass
+    ```
+  </Tab>
+  <Tab title="Complex Types">
+    ```python
+    from typing import Any, Optional, Callable
+
+    results: list[dict[str, Any]] = []
+    callback: Optional[Callable[[Message], None]] = None
+    provider_map: dict[str, type[Provider]] = {}
+    ```
+  </Tab>
+  <Tab title="Generics">
+    ```python
+    from typing import Generic, TypeVar
+
+    T = TypeVar("T")
+    ProviderT = TypeVar("ProviderT", bound=BaseProvider)
+
+    class Registry(Generic[T]):
+        def register(self, name: str, item: T) -> None:
+            pass
+    ```
+  </Tab>
+</Tabs>
+
+## Async Patterns
+
+All I/O operations must be async:
+
+```python
+# Async file operations
+async def read_file(path: str) -> str:
+    async with aiofiles.open(path, "r") as f:
+        return await f.read()
+
+# Async HTTP
+async def fetch_data(url: str) -> dict[str, Any]:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        return response.json()
+
+# Concurrent operations
+async def process_files(paths: list[str]) -> list[str]:
+    tasks = [read_file(path) for path in paths]
+    return await asyncio.gather(*tasks)
+```
+
+## Error Handling
+
+### Exception Hierarchy
+
+```python
+class MiuError(Exception):
+    """Base exception for all miu errors."""
+
+class ProviderError(MiuError):
+    """LLM provider error."""
+
+class ToolError(MiuError):
+    """Tool execution error."""
+
+class AgentError(MiuError):
+    """Agent operation error."""
+```
+
+### Pattern
+
+```python
+async def execute_tool(tool: Tool) -> ToolResult:
+    try:
+        return await tool.execute()
+    except ProviderError as e:
+        logger.error(f"Provider error: {e}")
+        raise AgentError(f"Tool execution failed") from e
+```
+
+## Testing Standards
+
+### Structure
+
+```python
+import pytest
+
+class TestAnthropicProvider:
+    @pytest.fixture
+    def provider(self) -> AnthropicProvider:
+        return AnthropicProvider(api_key="test-key")
+
+    def test_initialization(self, provider: AnthropicProvider) -> None:
+        assert provider is not None
+
+    @pytest.mark.asyncio
+    async def test_execute_async(self, provider: AnthropicProvider) -> None:
+        result = await provider.generate("test")
+        assert result is not None
+```
+
+### Conventions
+
+- **Coverage Target:** ≥80% per package
+- **Async Tests:** Use `@pytest.mark.asyncio`
+- **Naming:** `test_<function_name>` or `test_<scenario>`
+
+## Documentation Standards
+
+```python
+async def execute(
+    self,
+    tool_name: str,
+    arguments: dict[str, Any],
+) -> ToolResult:
+    """Execute a tool by name with given arguments.
+
+    Args:
+        tool_name: Name of the tool to execute.
+        arguments: Arguments to pass to the tool.
+
+    Returns:
+        ToolResult containing output and metadata.
+
+    Raises:
+        ToolError: If tool not found or execution fails.
+    """
+```
+
+## Security
+
+<Warning>
+Never hardcode credentials. Always use environment variables.
+</Warning>
+
+```python
+# Good
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY not set")
+
+# Bad - never do this!
+api_key = "sk-1234567890"
+```
+
+### Path Validation
+
+```python
+def validate_file_path(path: str) -> Path:
+    resolved = Path(path).resolve()
+    base = Path.cwd().resolve()
+
+    if not str(resolved).startswith(str(base)):
+        raise ValueError(f"Path outside allowed directory")
+
+    return resolved
+```
+
+## Conventional Commits
+
+All commits must follow Conventional Commits format:
+
+```bash
+# Feature (minor bump)
+git commit -m "feat(agent): add streaming support"
+
+# Bug fix (patch bump)
+git commit -m "fix(tools): resolve validation issue"
+
+# Breaking change (major bump)
+git commit -m "feat(api): redesign provider interface
+
+BREAKING CHANGE: Provider.execute() renamed to Provider.invoke()"
+```
+
+## Commands Reference
+
+```bash
+# Install
+uv sync
+
+# Lint & Format
+uv run ruff check .
+uv run ruff format .
+
+# Type Check
+uv run mypy packages/
+
+# Test
+uv run pytest --cov
+```

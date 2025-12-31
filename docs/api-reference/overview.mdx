@@ -1,0 +1,206 @@
+---
+title: API Overview
+description: "API reference for Miumono packages"
+---
+
+# API Reference
+
+This section provides API documentation for Miumono packages.
+
+## Core Framework (miu-core)
+
+### Agents
+
+<ParamField path="ReActAgent" type="class">
+  Main agent class implementing the ReAct (Reasoning + Acting) pattern.
+
+  ```python
+  from miu_core.agents import ReActAgent
+  from miu_core.providers import AnthropicProvider
+
+  provider = AnthropicProvider()
+  agent = ReActAgent(provider=provider)
+  response = await agent.run("Explain this code")
+  ```
+</ParamField>
+
+<ParamField path="BaseAgent" type="class">
+  Abstract base class for custom agent implementations.
+
+  ```python
+  from miu_core.agents import BaseAgent
+
+  class CustomAgent(BaseAgent):
+      async def run(self, query: str) -> str:
+          # Custom implementation
+          pass
+  ```
+</ParamField>
+
+### Providers
+
+<ParamField path="AnthropicProvider" type="class">
+  Provider for Anthropic Claude models.
+
+  ```python
+  from miu_core.providers import AnthropicProvider
+
+  provider = AnthropicProvider(
+      api_key="sk-ant-...",  # or use ANTHROPIC_API_KEY env var
+      model="claude-sonnet-4-20250514"
+  )
+  ```
+</ParamField>
+
+<ParamField path="OpenAIProvider" type="class">
+  Provider for OpenAI GPT models.
+
+  ```python
+  from miu_core.providers import OpenAIProvider
+
+  provider = OpenAIProvider(
+      api_key="sk-...",  # or use OPENAI_API_KEY env var
+      model="gpt-4"
+  )
+  ```
+</ParamField>
+
+<ParamField path="GoogleProvider" type="class">
+  Provider for Google Gemini models.
+
+  ```python
+  from miu_core.providers import GoogleProvider
+
+  provider = GoogleProvider(
+      api_key="...",  # or use GOOGLE_API_KEY env var
+      model="gemini-pro"
+  )
+  ```
+</ParamField>
+
+### Tools
+
+<ParamField path="ToolRegistry" type="class">
+  Central registry for tool management.
+
+  ```python
+  from miu_core.tools import ToolRegistry
+
+  registry = ToolRegistry()
+  registry.register(my_tool)
+  result = await registry.execute("tool_name", {"arg": "value"})
+  ```
+</ParamField>
+
+<ParamField path="BaseTool" type="class">
+  Abstract base class for custom tool implementations.
+
+  ```python
+  from miu_core.tools import BaseTool
+
+  class CustomTool(BaseTool):
+      name = "custom"
+      description = "A custom tool"
+
+      async def execute(self, **kwargs) -> ToolResult:
+          # Implementation
+          pass
+  ```
+</ParamField>
+
+### Patterns
+
+<ParamField path="Orchestrator" type="class">
+  Coordinate multiple agents with task dependencies.
+
+  ```python
+  from miu_core.patterns import Orchestrator
+
+  orchestrator = Orchestrator()
+  orchestrator.add_agent("research", research_agent)
+  orchestrator.add_task("task1", "research", "query")
+  results = await orchestrator.run()
+  ```
+</ParamField>
+
+<ParamField path="Pipeline" type="class">
+  Sequential processing chain.
+
+  ```python
+  from miu_core.patterns import Pipeline
+
+  pipeline = Pipeline()
+  pipeline.add_stage("extract", agent1)
+  pipeline.add_stage("transform", agent2)
+  result = await pipeline.run("input")
+  ```
+</ParamField>
+
+<ParamField path="Router" type="class">
+  Route requests to specialist agents.
+
+  ```python
+  from miu_core.patterns import Router
+
+  router = Router()
+  router.add_route("code", code_agent, keywords=["python"])
+  result = await router.route("Help with Python")
+  ```
+</ParamField>
+
+### Usage Tracking
+
+<ParamField path="UsageTracker" type="class">
+  Track token usage across sessions.
+
+  ```python
+  from miu_core import UsageTracker
+
+  tracker = UsageTracker(context_limit=200_000)
+  tracker.add_usage(input_tokens=150, output_tokens=50)
+  print(tracker.total_tokens)
+  ```
+</ParamField>
+
+### Mode Management
+
+<ParamField path="ModeManager" type="class">
+  Manage agent operation modes.
+
+  ```python
+  from miu_core import AgentMode, ModeManager
+
+  manager = ModeManager()
+  manager.on_change(lambda mode: print(f"Mode: {mode}"))
+  manager.cycle()  # NORMAL → PLAN → ASK
+  ```
+</ParamField>
+
+## CLI Agent (miu-code)
+
+### Command Line
+
+```bash
+# One-shot query
+miu -q "explain this codebase"
+
+# Interactive REPL
+miu
+
+# TUI mode
+miu code
+
+# Specify model
+miu --model anthropic:claude-opus-4-20250805 -q "query"
+```
+
+### Built-in Tools
+
+| Tool | Description |
+|------|-------------|
+| `read` | Read file contents |
+| `write` | Create or overwrite files |
+| `edit` | Modify existing files |
+| `bash` | Execute shell commands |
+| `glob` | Find files by pattern |
+| `grep` | Search file contents |

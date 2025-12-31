@@ -970,7 +970,7 @@ wheels = [
 
 [[package]]
 name = "miu-code"
-version = "0.2.0"
+version = "1.0.0"
 source = { editable = "packages/code" }
 dependencies = [
     { name = "asyncclick" },
@@ -991,7 +991,7 @@ requires-dist = [
 
 [[package]]
 name = "miu-core"
-version = "0.2.0"
+version = "1.0.0"
 source = { editable = "packages/core" }
 dependencies = [
     { name = "aiofiles" },
@@ -1047,7 +1047,7 @@ provides-extras = ["anthropic", "openai", "google", "mcp", "tracing", "all"]
 
 [[package]]
 name = "miu-examples"
-version = "0.2.0"
+version = "1.0.0"
 source = { editable = "packages/examples" }
 dependencies = [
     { name = "miu-core", extra = ["all"] },
@@ -1100,7 +1100,7 @@ provides-extras = ["examples", "studio", "all"]
 
 [[package]]
 name = "miu-studio"
-version = "0.2.0"
+version = "1.0.0"
 source = { editable = "packages/studio" }
 dependencies = [
     { name = "aiofiles" },
