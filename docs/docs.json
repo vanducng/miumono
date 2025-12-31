@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Miumono",
+  "name": "MIU",
   "theme": "mint",
   "logo": {
     "light": "/logo/logo-light.svg",
@@ -10,11 +10,7 @@
   "colors": {
     "primary": "#6366F1",
     "light": "#818CF8",
-    "dark": "#4F46E5",
-    "anchors": {
-      "from": "#6366F1",
-      "to": "#8B5CF6"
-    }
+    "dark": "#4F46E5"
   },
   "topbarLinks": [
     {
@@ -48,44 +44,46 @@
       "url": "https://github.com/vanducng/miu-mono"
     }
   ],
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "getting-started/introduction",
-        "getting-started/quickstart",
-        "getting-started/installation"
-      ]
-    },
-    {
-      "group": "Core Concepts",
-      "pages": [
-        "core-concepts/architecture",
-        "core-concepts/packages"
-      ]
-    },
-    {
-      "group": "Guides",
-      "pages": [
-        "guides/deployment",
-        "guides/code-standards",
-        "guides/release-management"
-      ]
-    },
-    {
-      "group": "Contributing",
-      "pages": [
-        "contributing/roadmap",
-        "contributing/codebase-summary"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview"
-      ]
-    }
-  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "getting-started/introduction",
+          "getting-started/quickstart",
+          "getting-started/installation"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "core-concepts/architecture",
+          "core-concepts/packages"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/deployment",
+          "guides/code-standards",
+          "guides/release-management"
+        ]
+      },
+      {
+        "group": "Contributing",
+        "pages": [
+          "contributing/roadmap",
+          "contributing/codebase-summary"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/overview"
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "github": "https://github.com/vanducng/miu-mono"
   },

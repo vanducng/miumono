@@ -4,6 +4,9 @@ import asyncio
 import json
 from typing import Any
 
+# Maximum JSON response size (10MB) to prevent memory exhaustion attacks
+MAX_JSON_SIZE = 10 * 1024 * 1024
+
 
 class StdioTransport:
     """Transport for MCP communication over stdio."""
@@ -56,10 +59,13 @@ class StdioTransport:
         self._process.stdin.write(data.encode())
         await self._process.stdin.drain()
 
-        # Read response
+        # Read response with size limit
         response_line = await self._process.stdout.readline()
         if not response_line:
             raise RuntimeError("No response from MCP server")
+
+        if len(response_line) > MAX_JSON_SIZE:
+            raise ValueError(f"JSON response exceeds {MAX_JSON_SIZE} bytes limit")
 
         return json.loads(response_line.decode())  # type: ignore[no-any-return]
 

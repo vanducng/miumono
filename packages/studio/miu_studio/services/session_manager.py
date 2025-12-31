@@ -32,10 +32,14 @@ class SessionManager:
             return False
 
     def _session_path(self, session_id: str) -> Path:
-        """Get path to session file. Validates session_id first."""
+        """Get path to session file. Validates session_id and prevents path traversal."""
         if not self._validate_session_id(session_id):
             raise ValueError(f"Invalid session ID: {session_id}")
-        return self._session_dir / f"{session_id}.json"
+        session_path = (self._session_dir / f"{session_id}.json").resolve()
+        # Extra check: ensure resolved path is still within session directory
+        if not session_path.is_relative_to(self._session_dir.resolve()):
+            raise ValueError("Invalid session path")
+        return session_path
 
     async def list_sessions(self) -> list[SessionSummary]:
         """List all sessions."""

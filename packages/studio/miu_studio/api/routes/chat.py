@@ -4,9 +4,10 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
+from miu_studio.core.config import limiter
 from miu_studio.models.api import ChatRequest, ChatResponse, StreamChunk
 from miu_studio.services.chat_service import get_chat_service
 
@@ -30,12 +31,15 @@ def _validate_session_id(session_id: str) -> None:
 
 
 @router.post("/invoke", response_model=ChatResponse)
-async def invoke(request: ChatRequest) -> ChatResponse:
+@limiter.limit("10/minute")
+async def invoke(request: Request, chat_request: ChatRequest) -> ChatResponse:
     """Synchronous chat - returns full response."""
-    _validate_session_id(request.session_id)
+    _validate_session_id(chat_request.session_id)
 
     try:
-        response_text, session = await _chat_service.chat(request.session_id, request.message)
+        response_text, session = await _chat_service.chat(
+            chat_request.session_id, chat_request.message
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from None
 
@@ -47,13 +51,16 @@ async def invoke(request: ChatRequest) -> ChatResponse:
 
 
 @router.post("/stream")
-async def stream(request: ChatRequest) -> StreamingResponse:
+@limiter.limit("10/minute")
+async def stream(request: Request, chat_request: ChatRequest) -> StreamingResponse:
     """Server-Sent Events streaming chat."""
-    _validate_session_id(request.session_id)
+    _validate_session_id(chat_request.session_id)
 
     async def generate() -> AsyncGenerator[bytes, None]:
         try:
-            async for chunk in _chat_service.chat_stream(request.session_id, request.message):
+            async for chunk in _chat_service.chat_stream(
+                chat_request.session_id, chat_request.message
+            ):
                 yield f"data: {chunk.model_dump_json()}\n\n".encode()
         except ValueError as e:
             error_chunk = StreamChunk(type="error", content=str(e))

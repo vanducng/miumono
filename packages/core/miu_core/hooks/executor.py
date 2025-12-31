@@ -10,6 +10,15 @@ from miu_core.hooks.events import HookInput, HookResult
 class HookExecutor:
     """Execute hook scripts in various languages."""
 
+    def _validate_script_path(self, script: Path) -> bool:
+        """Validate script is within allowed directories to prevent path traversal."""
+        try:
+            script = script.resolve()
+            allowed_bases = [Path.cwd(), Path.home() / ".miu"]
+            return any(script.is_relative_to(base) for base in allowed_bases)
+        except (ValueError, OSError):
+            return False
+
     async def execute(self, script: Path, input_data: HookInput, timeout: int = 30) -> HookResult:
         """Execute a hook script with input data.
 
@@ -21,6 +30,13 @@ class HookExecutor:
         if not script.exists():
             return HookResult(
                 success=False, output=f"Script not found: {script}", should_block=False
+            )
+
+        if not self._validate_script_path(script):
+            return HookResult(
+                success=False,
+                output=f"Script path not allowed: {script}",
+                should_block=False,
             )
 
         suffix = script.suffix.lower()
