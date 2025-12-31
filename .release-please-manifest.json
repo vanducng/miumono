@@ -3,5 +3,5 @@
   "packages/code": "1.0.0",
   "packages/examples": "1.0.0",
   "packages/studio": "1.0.0",
-  "packages/miu": "1.0.0"
+  "packages/miu": "2.0.0"
 }
