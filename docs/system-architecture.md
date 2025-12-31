@@ -260,24 +260,41 @@ class FileTool(BaseTool):
   - Environment variable loading (`MIU_*` prefix)
   - Type-safe settings access
   - Server, agent, session, and logging configuration
+  - CORS origins configurable via `MIU_CORS_ORIGINS` env var
 
 - **API Routes:** RESTful endpoints
   - Health check endpoints (`/api/v1/health`, `/api/v1/ready`)
-  - Future: Agent operations, session management, streaming
+  - Chat endpoints with rate limiting (10 req/min)
+  - Session management, streaming, WebSocket support
 
 - **Static File Serving:** Web UI assets
   - Mounted at `/static`
   - Serves HTML, JS, CSS for web interface
+  - Content Security Policy (CSP) headers on root endpoint
 
 - **CORS Middleware:** Cross-origin resource sharing
-  - Configurable origins (default: `["*"]`)
+  - Restricted to localhost by default: `["http://localhost:3000", "http://localhost:8000"]`
+  - Configurable via `MIU_CORS_ORIGINS` env var
   - Credentials support for auth
+
+- **Rate Limiting:** Request throttling (Phase 01 Security Hardening)
+  - Uses slowapi library for rate limiter
+  - Chat endpoints limited to 10 requests/minute
+  - Prevents API abuse and DoS attacks
+  - Key function: Remote client IP address
+
+- **Security Headers:** Response protection
+  - Content-Security-Policy on static content
+  - Cache-Control headers on streaming endpoints
+  - Session ID validation (UUID format)
 
 **Application Factory Pattern:**
 ```python
 def create_app() -> FastAPI:
     """Initialize FastAPI app with all components."""
     app = FastAPI(...)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, handler)
     app.add_middleware(CORSMiddleware, ...)
     app.include_router(health.router, prefix="/api/v1")
     # Mount static files if exists
@@ -291,6 +308,12 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
+
+    # CORS - restricted to localhost (env: MIU_CORS_ORIGINS)
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:8000"
+    ]
 
     # Agent defaults
     default_model: str = "claude-sonnet-4-20250514"
@@ -596,32 +619,66 @@ async def execute_tool_safely(tool: Tool) -> ToolResult:
 
 ### Input Validation
 
-- **Path Validation:** Prevent directory traversal attacks
-- **Command Validation:** Escape shell commands properly
-- **API Keys:** Load from environment variables only
-- **Rate Limiting:** Prevent abuse of tool/API usage
+- **Path Validation:** Prevent directory traversal attacks (core tools, session manager, hook executor)
+- **Command Validation:** Escape shell commands properly, validate script paths
+- **API Keys:** Load from environment variables only (no hardcoded secrets)
+- **Session IDs:** UUID format validation across API endpoints
+- **Message Size:** Max 64KB message limit in WebSocket/HTTP to prevent DoS
+- **Script Execution:** Whitelist allowed script directories (CWD, ~/.miu)
+
+### CORS & Rate Limiting (Phase 01)
+
+- **CORS Origins:** Restricted to localhost by default (`http://localhost:3000`, `http://localhost:8000`)
+  - Configurable via `MIU_CORS_ORIGINS` env var for deployment
+  - Never uses `["*"]` in production
+- **Rate Limiting:** slowapi-based throttling
+  - Chat endpoints: 10 requests/minute per IP
+  - Prevents API abuse and brute force attacks
+  - Returns 429 status when exceeded
 
 ### Security Layers
 
 ```
-┌─────────────────────────────────┐
-│    User Input (Query)            │
-├─────────────────────────────────┤
-│    Input Validation              │
-├─────────────────────────────────┤
-│    Tool Execution Layer          │
-│    • Path validation             │
-│    • Command escaping            │
-│    • Result validation           │
-├─────────────────────────────────┤
-│    Provider Layer                │
-│    • API key validation          │
-│    • Request validation          │
-│    • Rate limiting               │
-├─────────────────────────────────┤
-│    External Services (APIs)      │
-└─────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│    User Input (Query/Session/Message)        │
+├─────────────────────────────────────────────┤
+│    Input Validation                          │
+│    • Session ID format (UUID)                │
+│    • Message size limits (64KB max)          │
+│    • Path/script validation                  │
+├─────────────────────────────────────────────┤
+│    Rate Limiting & CORS (Phase 01)           │
+│    • Request throttling (10/min/IP)          │
+│    • Restricted CORS origins                 │
+│    • Security headers (CSP, Cache-Control)   │
+├─────────────────────────────────────────────┤
+│    Tool Execution Layer                      │
+│    • Path traversal prevention               │
+│    • Script directory whitelist              │
+│    • Command escaping                        │
+│    • Result validation                       │
+├─────────────────────────────────────────────┤
+│    Provider Layer                            │
+│    • API key validation                      │
+│    • Request validation                      │
+│    • JSON size limits (10MB for MCP)         │
+├─────────────────────────────────────────────┤
+│    External Services (APIs)                  │
+└─────────────────────────────────────────────┘
 ```
+
+### Security Controls Summary
+
+| Control | Location | Purpose | Phase |
+|---------|----------|---------|-------|
+| CORS Restriction | `config.py` | Limit cross-origin requests | 01 |
+| Rate Limiting | `main.py` + `chat.py` | Prevent API abuse | 01 |
+| Session ID Validation | `chat.py` + `session_manager.py` | Prevent path traversal | 01 |
+| Message Size Limits | `chat.py` | Prevent memory exhaustion DoS | 01 |
+| Script Path Validation | `executor.py` | Prevent script injection | 01 |
+| MCP JSON Size Limits | `stdio.py` | Prevent memory exhaustion | 01 |
+| CSP Headers | `main.py` | Prevent XSS attacks | 01 |
+| Cache-Control Headers | `chat.py` | Control response caching | 01 |
 
 ## Extensibility Points
 

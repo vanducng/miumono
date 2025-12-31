@@ -614,27 +614,151 @@ async def execute(
 - Raises section listing exceptions
 - Example section for non-obvious usage
 
-## Security Considerations
+## Security Considerations (Phase 01 Hardening)
 
-### Input Validation
+### Path Validation
+
+Prevent directory traversal attacks using `Path.is_relative_to()`:
+
 ```python
 from pathlib import Path
 
-def validate_file_path(path: str) -> Path:
+def validate_file_path(path: str, allowed_base: Path) -> Path:
     """Validate and sanitize file path."""
-    # Prevent directory traversal
     resolved = Path(path).resolve()
-    base = Path.cwd().resolve()
+    base = allowed_base.resolve()
 
-    if not str(resolved).startswith(str(base)):
+    if not resolved.is_relative_to(base):
         raise ValueError(f"Path outside allowed directory: {path}")
 
     return resolved
+
+# Example usage
+def validate_session_path(session_id: str, session_dir: Path) -> Path:
+    """Validate session ID is UUID format and path is safe."""
+    # First validate UUID format
+    try:
+        uuid.UUID(session_id)
+    except ValueError:
+        raise ValueError(f"Invalid session ID: {session_id}")
+
+    # Then validate resolved path
+    session_path = (session_dir / f"{session_id}.json").resolve()
+    if not session_path.is_relative_to(session_dir.resolve()):
+        raise ValueError("Invalid session path")
+
+    return session_path
+```
+
+### Script Execution Security
+
+Whitelist allowed script directories to prevent arbitrary script execution:
+
+```python
+from pathlib import Path
+
+def validate_script_path(script: Path) -> bool:
+    """Validate script is within allowed directories."""
+    try:
+        script = script.resolve()
+        allowed_bases = [Path.cwd(), Path.home() / ".miu"]
+        return any(script.is_relative_to(base) for base in allowed_bases)
+    except (ValueError, OSError):
+        return False
+```
+
+### CORS & Rate Limiting (Phase 01)
+
+Restrict CORS origins and implement rate limiting:
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
+# CORS - never use ["*"] in production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,  # Config-driven, defaults to localhost
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Rate limiting endpoints
+@router.post("/invoke")
+@limiter.limit("10/minute")
+async def invoke(request: Request, chat_request: ChatRequest) -> ChatResponse:
+    """Endpoint limited to 10 requests per minute."""
+    pass
+```
+
+### Input Size Validation
+
+Prevent DoS attacks via large messages:
+
+```python
+# Constants
+MAX_MESSAGE_SIZE = 64 * 1024  # 64KB max message
+MAX_JSON_SIZE = 10 * 1024 * 1024  # 10MB max JSON response
+
+# Validation in WebSocket handler
+if len(message) > MAX_MESSAGE_SIZE:
+    raise ValueError("Message too large (max 64KB)")
+```
+
+### UUID Format Validation
+
+Validate session IDs prevent path traversal:
+
+```python
+import uuid
+
+def validate_session_id(session_id: str) -> None:
+    """Validate session ID is a valid UUID."""
+    try:
+        uuid.UUID(session_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid session ID format")
+```
+
+### Security Headers
+
+Add CSP and Cache-Control headers for static content:
+
+```python
+@app.get("/", include_in_schema=False)
+async def root() -> FileResponse:
+    response = FileResponse(static_dir / "index.html")
+    # Prevent XSS, unsafe inline scripts
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "connect-src 'self' ws: wss:; "
+    )
+    return response
 ```
 
 ### Environment Variables
+
+Load all secrets from environment variables with proper defaults:
+
 ```python
 import os
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    """Load from environment with MIU_ prefix."""
+
+    # CORS origins - configurable, defaults to localhost
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000", "http://localhost:8000"],
+        description="Set via MIU_CORS_ORIGINS env var"
+    )
 
 # Good - use environment variables for secrets
 api_key = os.environ.get("ANTHROPIC_API_KEY")

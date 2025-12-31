@@ -96,10 +96,14 @@ Enable developers to build production-grade AI agents that understand code and c
 - **Status:** Architecture supports extensibility
 
 #### NFR-4: Security
-- **File Operations:** Validate paths to prevent directory traversal
-- **Shell Execution:** Use subprocess with proper escaping
-- **Provider Keys:** Use environment variables for credentials
-- **Status:** Initial security patterns in place, needs audit
+- **File Operations:** Validate paths to prevent directory traversal (implemented Phase 01)
+- **Shell Execution:** Use subprocess with proper escaping (implemented Phase 01)
+- **Provider Keys:** Use environment variables for credentials (env: ANTHROPIC_API_KEY, etc)
+- **CORS Restriction:** Hardened to localhost only, configurable via MIU_CORS_ORIGINS (Phase 01)
+- **Rate Limiting:** 10 req/min on API endpoints via slowapi (Phase 01)
+- **Input Validation:** Session IDs (UUID), message sizes (64KB max), script paths (Phase 01)
+- **Security Headers:** CSP, Cache-Control on responses (Phase 01)
+- **Status:** Phase 01 security hardening complete
 
 #### NFR-5: Documentation
 - **API Documentation:** All public APIs must be documented
@@ -199,6 +203,16 @@ Enable developers to build production-grade AI agents that understand code and c
 - [x] Session management (ctrl+n, ctrl+l)
 - [x] MessageStopEvent.usage field
 - [x] Usage propagation in Anthropic provider
+
+### Phase 01 - Security Hardening (COMPLETE)
+- [x] CORS restriction to localhost (env: MIU_CORS_ORIGINS)
+- [x] Rate limiting (10 req/min on chat endpoints via slowapi)
+- [x] Session ID validation (UUID format across API)
+- [x] Message size limits (64KB max to prevent DoS)
+- [x] Script path validation (whitelist allowed dirs in hook executor)
+- [x] MCP JSON size limits (10MB max to prevent memory exhaustion)
+- [x] CSP and security headers (Content-Security-Policy on static content)
+- [x] slowapi dependency added to miu-studio
 
 ### Phase 1C & Beyond - PLANNED
 - [ ] CI/CD pipeline (GitHub Actions) with release automation
