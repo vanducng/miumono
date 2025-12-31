@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/vanducng/miu-mono/compare/miu-studio-v0.2.0...miu-studio-v1.0.0) (2025-12-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* Package folder paths changed, but no API changes.
+
+### Code Refactoring
+
+* simplify package folder names ([08206dc](https://github.com/vanducng/miu-mono/commit/08206dc3d0d90c3a31bf45a4e78561df639c40be))
+
 ## [0.2.0](https://github.com/vanducng/miu-mono/compare/miu-studio-v0.1.0...miu-studio-v0.2.0) (2025-12-29)
 
 
