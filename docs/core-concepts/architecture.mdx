@@ -9,41 +9,53 @@ Miumono follows a layered, modular architecture with clear separation of concern
 
 ## Overview
 
-```
-┌─────────────────────────────┐  ┌─────────────────────────────┐
-│    CLI Layer (miu-code)     │  │   Web Layer (miu-studio)    │
-│  ┌─────────┬────────┐       │  │  ┌──────────┬──────────┐    │
-│  │ Entry   │  REPL  │       │  │  │ Static   │ REST API │    │
-│  │ Point   │  Mode  │       │  │  │ Assets   │ Endpoints│    │
-│  └────┬────┴───┬────┘       │  │  └────┬─────┴────┬─────┘    │
-└───────┼────────┼────────────┘  └───────┼──────────┼──────────┘
-        │        │                       │          │
-┌───────▼────────▼───────────────────────▼──────────▼──────────┐
-│              Agent & Orchestration Layer                      │
-│  ┌────────────────────────────┐  ┌─────────────────────────┐ │
-│  │ Coding Agent (ReAct)       │  │   WebSocket Handler     │ │
-│  │ • Tool Selection/Execution │  │   • Real-time sessions  │ │
-│  │ • Message routing          │  │   • Event broadcasting  │ │
-│  │ • Reasoning Loop           │  │                         │ │
-│  └─────────┬──────────────────┘  └────────────┬────────────┘ │
-└────────────┼──────────────────────────────────┼──────────────┘
-             │                                   │
-┌────────────▼───────────────────────────────────▼──────────────┐
-│                   Framework Layer (miu-core)                   │
-│ ┌──────────┬──────────┬──────────┬─────────────────────────┐  │
-│ │  Agents  │  Tools   │  Models  │  Configuration          │  │
-│ │BaseAgent │ Registry │ Message  │  Environment vars       │  │
-│ │ReActAgent│ Executor │ Tool     │  App settings           │  │
-│ └──────────┴──────────┴──────────┴─────────────────────────┘  │
-│ ┌──────────────────────────────────────────────────────────┐  │
-│ │         Provider Interface (LLM abstraction)             │  │
-│ └──────────────────────────────────────────────────────────┘  │
-└───────┬────────────────┬────────────────────┬─────────────────┘
-        │                │                    │
-┌───────▼──┐     ┌───────▼──┐        ┌────────▼────────┐
-│ Anthropic│     │  OpenAI  │        │  Google Gemini  │
-│  Claude  │     │          │        │                 │
-└──────────┘     └──────────┘        └─────────────────┘
+```mermaid
+flowchart TB
+    subgraph Presentation["Presentation Layer"]
+        direction LR
+        subgraph CLI["miu-code (CLI)"]
+            Entry[Entry Point]
+            REPL[REPL Mode]
+            TUI[TUI Interface]
+        end
+        subgraph Web["miu-studio (Web)"]
+            Static[Static Assets]
+            REST[REST API]
+            WS[WebSocket]
+        end
+    end
+
+    subgraph Agent["Agent & Orchestration Layer"]
+        direction LR
+        Coding[Coding Agent<br/>ReAct Pattern]
+        WSHandler[WebSocket Handler<br/>Real-time Sessions]
+    end
+
+    subgraph Core["Framework Layer (miu-core)"]
+        direction TB
+        subgraph Components["Core Components"]
+            direction LR
+            Agents[Agents<br/>BaseAgent, ReActAgent]
+            Tools[Tools<br/>Registry, Executor]
+            Models[Models<br/>Message, Tool]
+            Config[Configuration<br/>Env vars, Settings]
+        end
+        Provider[Provider Interface<br/>LLM Abstraction]
+    end
+
+    subgraph LLMs["LLM Providers"]
+        direction LR
+        Anthropic[Anthropic<br/>Claude]
+        OpenAI[OpenAI<br/>GPT]
+        Google[Google<br/>Gemini]
+    end
+
+    CLI --> Agent
+    Web --> Agent
+    Agent --> Core
+    Provider --> Anthropic
+    Provider --> OpenAI
+    Provider --> Google
 ```
 
 ## Core Components
@@ -130,28 +142,18 @@ Built with [Textual](https://textual.textualize.io/) framework:
 
 ### Agent Execution Flow
 
-```
-User Query
-    │
-    ▼
-Agent.run(query)
-    │
-    ├─ Create initial message
-    ├─ Add to message history
-    │
-    ├─ Loop:
-    │   ├─ Get provider response
-    │   ├─ Check for tool calls
-    │   │
-    │   ├─ If tool call:
-    │   │   ├─ Validate & execute tool
-    │   │   ├─ Add result to history
-    │   │   └─ Continue loop
-    │   │
-    │   └─ Else: Return final response
-    │
-    ▼
-Agent Response
+```mermaid
+flowchart TD
+    A[User Query] --> B[Agent.run]
+    B --> C[Create initial message]
+    C --> D[Add to message history]
+    D --> E[Get provider response]
+    E --> F{Tool call?}
+    F -->|Yes| G[Validate & execute tool]
+    G --> H[Add result to history]
+    H --> E
+    F -->|No| I[Return final response]
+    I --> J[Agent Response]
 ```
 
 ### Provider Abstraction
