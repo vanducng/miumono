@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.2](https://github.com/vanducng/miu-mono/compare/miu-code-v1.0.1...miu-code-v1.0.2) (2026-01-01)
+
+
+### Bug Fixes
+
+* code quality improvements (Phase 02) ([55eacc8](https://github.com/vanducng/miu-mono/commit/55eacc8909298156a33c82e27e18f0eb627859ef))
+
+
+### Code Refactoring
+
+* **core:** implement DRY patterns for providers and sessions ([ebee863](https://github.com/vanducng/miu-mono/commit/ebee8635d1f679980c8bfa62c60b884790650b01))
+
 ## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-code-v1.0.0...miu-code-v1.0.1) (2025-12-31)
 
 
