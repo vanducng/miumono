@@ -108,14 +108,14 @@ jobs:
 
       - name: Run Bandit security scan
         run: |
-          uv pip install bandit --system
-          bandit -r packages/ -ll -x "*/tests/*" || true
+          uv pip install bandit
+          uv run bandit -r packages/ -ll -x "*/tests/*" || true
 
       - name: Run pip-audit for vulnerabilities
         run: |
-          uv pip install pip-audit --system
+          uv pip install pip-audit
           uv export --no-dev > requirements.txt
-          pip-audit -r requirements.txt || true
+          uv run pip-audit -r requirements.txt || true
 
   ci-success:
     name: CI Success
