@@ -106,16 +106,16 @@ jobs:
       - name: Set up Python
         run: uv python install 3.11
 
+      - name: Install dependencies
+        run: uv sync
+
       - name: Run Bandit security scan
-        run: |
-          uv pip install bandit
-          uv run bandit -r packages/ -ll -x "*/tests/*" || true
+        run: uvx bandit -r packages/ -ll -x "*/tests/*" || true
 
       - name: Run pip-audit for vulnerabilities
         run: |
-          uv pip install pip-audit
           uv export --no-dev > requirements.txt
-          uv run pip-audit -r requirements.txt || true
+          uvx pip-audit -r requirements.txt || true
 
   ci-success:
     name: CI Success
