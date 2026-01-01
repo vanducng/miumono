@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-studio-v1.0.0...miu-studio-v1.0.1) (2026-01-01)
+
+
+### Bug Fixes
+
+* code quality improvements (Phase 02) ([55eacc8](https://github.com/vanducng/miu-mono/commit/55eacc8909298156a33c82e27e18f0eb627859ef))
+* **docs:** update schema format, rename to MIU, increase logo size ([427de92](https://github.com/vanducng/miu-mono/commit/427de92d111cc78e369fd804cd1c09d4cd725bab))
+
 ## [1.0.0](https://github.com/vanducng/miu-mono/compare/miu-studio-v0.2.0...miu-studio-v1.0.0) (2025-12-31)
 
 
