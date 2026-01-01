@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-core-v1.0.0...miu-core-v1.0.1) (2026-01-01)
+
+
+### Bug Fixes
+
+* **core:** use 'is not None' for optional parameter defaults ([342e79c](https://github.com/vanducng/miu-mono/commit/342e79c6487044e49debfa015a9d04183a44f469))
+* **docs:** update schema format, rename to MIU, increase logo size ([427de92](https://github.com/vanducng/miu-mono/commit/427de92d111cc78e369fd804cd1c09d4cd725bab))
+
+
+### Code Refactoring
+
+* **core:** implement DRY patterns for providers and sessions ([ebee863](https://github.com/vanducng/miu-mono/commit/ebee8635d1f679980c8bfa62c60b884790650b01))
+
 ## [1.0.0](https://github.com/vanducng/miu-mono/compare/miu-core-v0.2.0...miu-core-v1.0.0) (2025-12-31)
 
 
