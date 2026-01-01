@@ -8,9 +8,13 @@ from miu_core.models import (
     Response,
     TextContent,
     ToolUseContent,
-    Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
+from miu_core.providers.converters import (
+    build_response,
+    convert_tools_to_openai,
+    map_openai_stop_reason,
+)
 
 try:
     from openai import AsyncOpenAI
@@ -43,7 +47,7 @@ class OpenAIProvider(LLMProvider):
             "max_tokens": max_tokens,
         }
         if tools:
-            kwargs["tools"] = self._convert_tools(tools)
+            kwargs["tools"] = convert_tools_to_openai(tools)
 
         response = await self._client.chat.completions.create(**kwargs)
         return self._convert_response(response)
@@ -96,22 +100,6 @@ class OpenAIProvider(LLMProvider):
 
         return result
 
-    def _convert_tools(
-        self, tools: list[ToolSchema] | list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
-        """Convert tool schemas to OpenAI format."""
-        return [
-            {
-                "type": "function",
-                "function": {
-                    "name": tool["name"],
-                    "description": tool.get("description", ""),
-                    "parameters": tool.get("input_schema", {}),
-                },
-            }
-            for tool in tools
-        ]
-
     def _convert_response(self, response: Any) -> Response:
         """Convert OpenAI response to internal format."""
         choice = response.choices[0]
@@ -138,18 +126,10 @@ class OpenAIProvider(LLMProvider):
                     )
                 )
 
-        stop_reason = "end_turn"
-        if choice.finish_reason == "tool_calls":
-            stop_reason = "tool_use"
-        elif choice.finish_reason == "stop":
-            stop_reason = "end_turn"
-
-        return Response(
-            id=response.id,
+        return build_response(
+            response_id=response.id,
             content=content,
-            stop_reason=stop_reason,
-            usage=Usage(
-                input_tokens=response.usage.prompt_tokens if response.usage else 0,
-                output_tokens=response.usage.completion_tokens if response.usage else 0,
-            ),
+            stop_reason=map_openai_stop_reason(choice.finish_reason),
+            input_tokens=response.usage.prompt_tokens if response.usage else 0,
+            output_tokens=response.usage.completion_tokens if response.usage else 0,
         )

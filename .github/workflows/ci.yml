@@ -92,9 +92,34 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Run Bandit security scan
+        run: |
+          uv pip install bandit --system
+          bandit -r packages/ -ll -x "*/tests/*" || true
+
+      - name: Run pip-audit for vulnerabilities
+        run: |
+          uv pip install pip-audit --system
+          uv export --no-dev > requirements.txt
+          pip-audit -r requirements.txt || true
+
   ci-success:
     name: CI Success
-    needs: [lint, typecheck, test]
+    needs: [lint, typecheck, test, security]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -102,7 +127,8 @@ jobs:
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.typecheck.result }}" != "success" ]] || \
-             [[ "${{ needs.test.result }}" != "success" ]]; then
+             [[ "${{ needs.test.result }}" != "success" ]] || \
+             [[ "${{ needs.security.result }}" != "success" ]]; then
             echo "One or more jobs failed"
             exit 1
           fi

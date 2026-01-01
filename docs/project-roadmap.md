@@ -101,6 +101,38 @@
 
 ---
 
+## Phase 4: Refactoring & DRY
+**Status:** COMPLETE (2026-01-01)
+
+**Scope:**
+- DRY refactoring to eliminate provider duplication
+- Session storage abstraction with pluggable backends
+- Token-aware memory truncation with model-specific ratios
+- CI security scanning integration
+
+**Deliverables:**
+- `miu_core.providers.converters` module (shared utilities for message/response conversion)
+- `miu_core.session` module (abstract base + JSONL implementation)
+- Improved `miu_core.memory.truncation` with model-specific token ratios (claude: 3.5, gpt: 4.0, gemini: 3.8)
+- GitHub Actions security job (Bandit + pip-audit)
+- Code standards documentation updated
+
+**Artifacts:**
+- `/packages/core/miu_core/providers/converters.py` (NEW)
+- `/packages/core/miu_core/session/base.py` (NEW)
+- `/packages/core/miu_core/session/jsonl.py` (NEW)
+- `/packages/core/miu_core/memory/truncation.py` (IMPROVED)
+- `/.github/workflows/ci.yml` (UPDATED - security job added)
+- `/docs/code-standards.md` (UPDATED - Phase 04 patterns)
+
+**Impact:**
+- Reduced 126+ LOC duplication across provider implementations
+- Flexible session storage (can add DB, S3, etc. backends)
+- More accurate token estimation per LLM model
+- Proactive security monitoring in CI/CD
+
+---
+
 ## Phase 5: TUI Vibe Refactor
 **Status:** COMPLETE (2025-12-30)
 
@@ -178,6 +210,10 @@
 | TUI widgets (Phase 3) | 3 | COMPLETE | P0 |
 | TUI integration (Phase 4) | 4 | COMPLETE | P0 |
 | Makefile + Textual 1.0 (Phase 5) | 5 | COMPLETE | P0 |
+| Provider converters & DRY refactor (Phase 4) | 4 | COMPLETE | P0 |
+| Session storage abstraction (Phase 4) | 4 | COMPLETE | P0 |
+| Token-aware memory truncation (Phase 4) | 4 | COMPLETE | P0 |
+| CI security scanning (Phase 4) | 4 | COMPLETE | P0 |
 | Integration tests | 1B | PENDING | P0 |
 | API documentation | 1B | PENDING | P0 |
 | Security audit | 1B | PENDING | P1 |
@@ -268,5 +304,5 @@
 
 **Document Status:** ACTIVE
 **Maintainer:** Development Team
-**Last Review:** 2025-12-30 (Phase 5 Complete)
-**Next Review:** 2026-01-01
+**Last Review:** 2026-01-01 (Phase 4 Complete)
+**Next Review:** 2026-01-08

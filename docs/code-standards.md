@@ -265,7 +265,15 @@ miu_core/
 │   └── messages.py
 ├── providers/            # LLM provider integrations
 │   ├── __init__.py
+│   ├── converters.py     # Shared conversion utilities (Phase 04)
 │   └── anthropic.py
+├── session/              # Session storage abstraction (Phase 04)
+│   ├── __init__.py
+│   ├── base.py           # Abstract base class
+│   └── jsonl.py          # JSONL implementation
+├── memory/               # Memory management
+│   ├── __init__.py
+│   └── truncation.py     # Token-aware truncation (Phase 04)
 ├── tools/                # Tool abstractions
 │   ├── __init__.py
 │   ├── base.py
@@ -314,6 +322,176 @@ class ExampleClass:
     def computed_property(self) -> int:
         """Property for computed attributes."""
         return self.value * 2
+```
+
+## DRY Refactoring & Shared Utilities (Phase 04)
+
+### Provider Converters
+
+The `miu_core.providers.converters` module provides shared conversion utilities to eliminate duplication across provider implementations:
+
+**Key Functions:**
+
+```python
+# Convert content blocks to provider-specific formats
+def convert_content_block_to_anthropic(
+    block: TextContent | ToolUseContent | ToolResultContent
+) -> dict[str, Any]:
+    """Convert content block to Anthropic API format."""
+
+# Convert messages to provider format (filters system messages)
+def convert_message_to_anthropic(msg: Message) -> dict[str, Any] | None:
+    """Returns None for system messages (Anthropic handles separately)."""
+
+def convert_messages_to_anthropic(messages: list[Message]) -> list[dict[str, Any]]:
+    """Batch convert messages to Anthropic format."""
+
+# Build Response objects with usage stats
+def build_response(
+    response_id: str,
+    content: list[TextContent | ToolUseContent],
+    stop_reason: str,
+    input_tokens: int,
+    output_tokens: int,
+) -> Response:
+    """Standard Response construction."""
+
+# Model-specific conversions
+def convert_tools_to_openai(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convert tool schemas to OpenAI function format."""
+
+def map_openai_stop_reason(finish_reason: str | None) -> str:
+    """Map OpenAI finish_reason to internal stop_reason."""
+
+def clean_schema_for_gemini(schema: dict[str, Any]) -> dict[str, Any]:
+    """Remove unsupported schema keys for Gemini compatibility."""
+```
+
+**Benefit:** Reduced 126+ LOC duplication across Anthropic, OpenAI, Gemini providers.
+
+**Usage Pattern:**
+```python
+from miu_core.providers.converters import (
+    convert_messages_to_anthropic,
+    build_response,
+)
+
+# In provider implementation
+anthropic_messages = convert_messages_to_anthropic(messages)
+response = build_response(
+    response_id=response.id,
+    content=response.content,
+    stop_reason="end_turn",
+    input_tokens=usage.input_tokens,
+    output_tokens=usage.output_tokens,
+)
+```
+
+### Session Storage Abstraction
+
+The `miu_core.session` module provides a pluggable session storage interface:
+
+**Base Class:**
+```python
+class SessionStorageBase(ABC):
+    """Abstract interface for session persistence."""
+
+    def __init__(self, session_id: str, base_dir: Path) -> None:
+        """Initialize with session ID and storage directory."""
+
+    @property
+    @abstractmethod
+    def session_file(self) -> Path:
+        """Path to session storage file."""
+
+    @abstractmethod
+    def load(self) -> list[Message]:
+        """Load messages from storage."""
+
+    @abstractmethod
+    def save(self, messages: list[Message]) -> None:
+        """Persist messages to storage."""
+
+    @abstractmethod
+    def clear(self) -> None:
+        """Delete session data."""
+
+    def exists(self) -> bool:
+        """Check if session exists (default implementation)."""
+```
+
+**JSONL Implementation:**
+```python
+class JSONLSessionStorage(SessionStorageBase):
+    """JSONL-based session persistence.
+
+    One message per line as JSON for:
+    - Efficient appending (no re-write of entire file)
+    - Streaming/progressive loading
+    - Human-readable format for debugging
+    """
+
+    def __init__(
+        self,
+        session_id: str | None = None,
+        base_dir: Path | None = None,
+    ) -> None:
+        """Auto-generate session ID if not provided."""
+        sid = session_id or str(uuid.uuid4())[:8]
+        bdir = base_dir or MiuPaths.get().sessions
+        super().__init__(session_id=sid, base_dir=bdir)
+```
+
+**Pattern:** To add new storage backends (DB, S3, etc.), subclass `SessionStorageBase` and implement required methods.
+
+### Token-Aware Memory Truncation
+
+The `miu_core.memory.truncation` module provides model-specific token estimation and intelligent message truncation:
+
+**Model-Specific Token Ratios:**
+```python
+TOKEN_RATIOS: dict[str, float] = {
+    "claude": 3.5,   # Claude: ~3.5 chars per token
+    "gpt": 4.0,      # GPT-4: ~4 chars per token
+    "gemini": 3.8,   # Gemini: ~3.8 chars per token
+    "default": 4.0,  # Conservative default
+}
+
+def get_token_ratio(model: str | None = None) -> float:
+    """Detect model from prefix and return ratio."""
+
+def estimate_tokens(message: Message, model: str | None = None) -> int:
+    """Estimate tokens using model-specific ratio."""
+```
+
+**Truncation Strategies:**
+```python
+class TruncationStrategy(str, Enum):
+    FIFO = "fifo"        # Remove oldest messages
+    SLIDING = "sliding"  # Keep first + last N messages
+    SUMMARIZE = "summarize"  # Future: LLM summarization
+
+def truncate_fifo(
+    messages: list[Message],
+    max_tokens: int,
+) -> tuple[list[Message], int]:
+    """FIFO removal, keeping first message and recent ones."""
+
+def truncate_sliding(
+    messages: list[Message],
+    max_tokens: int,
+    keep_first: int = 1,
+    keep_last: int = 10,
+) -> tuple[list[Message], int]:
+    """Keep first N and last M messages regardless of token count."""
+```
+
+**Usage:**
+```python
+from miu_core.memory.truncation import truncate_fifo
+
+truncated, removed = truncate_fifo(messages, max_tokens=4096)
+print(f"Removed {removed} tokens to fit context window")
 ```
 
 ## Async/Await Patterns
@@ -932,6 +1110,91 @@ if not api_key:
 api_key = "sk-1234567890"  # Don't do this!
 ```
 
+## CI/CD Security Scanning (Phase 04)
+
+Automated security scanning is integrated into the CI pipeline via GitHub Actions:
+
+### Bandit - Static Security Analysis
+
+**Purpose:** Detects common security issues in Python code
+- Hardcoded credentials
+- Insecure shell operations
+- SQL injection vulnerabilities
+- Insecure deserialization
+
+**Configuration:**
+```yaml
+# .github/workflows/ci.yml - security job
+- name: Run Bandit security scan
+  run: |
+    bandit -r packages/ -ll -x "*/tests/*" || true
+```
+
+**Flags:**
+- `-r packages/` - Recursive scan of packages
+- `-ll` - Report only medium/high severity (filter low-confidence issues)
+- `-x "*/tests/*"` - Exclude test files from scanning
+
+**Output:** Non-blocking (|| true), issues reported but don't fail CI.
+
+### pip-audit - Dependency Vulnerability Scanning
+
+**Purpose:** Detects known security vulnerabilities in dependencies
+- CVE database matching
+- Version conflict detection
+- Transitive dependency scanning
+
+**Configuration:**
+```yaml
+- name: Run pip-audit for vulnerabilities
+  run: |
+    uv export --no-dev > requirements.txt
+    pip-audit -r requirements.txt || true
+```
+
+**Process:**
+1. Export production dependencies (no dev/test packages)
+2. Scan against known vulnerability database
+3. Report but don't fail CI
+
+**Output:** Non-blocking, informational alerts for review.
+
+### Security Job Dependencies
+
+The security scan is gated by test and type-check jobs:
+```yaml
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    # Runs independently but must pass for ci-success
+    steps: [bandit, pip-audit]
+
+  ci-success:
+    needs: [lint, typecheck, test, security]
+    # Enforces all four checks must pass
+```
+
+### Integration with Development
+
+**Local Security Checks (Optional):**
+```bash
+# Install security tools
+pip install bandit pip-audit
+
+# Run Bandit locally
+bandit -r packages/
+
+# Run pip-audit
+pip-audit -r <(uv export --no-dev)
+```
+
+**Workflow:**
+1. Developers push code to PR branch
+2. CI automatically runs security scans
+3. Developers review security reports in workflow
+4. Address issues before merging to main
+
 ## Performance Guidelines
 
 ### Async Best Practices
@@ -1048,6 +1311,10 @@ uv run pytest --cov
 **Enforced By:** CI/CD Pipeline
 **Last Review:** 2026-01-01
 **Latest Additions:**
+- Phase 04: DRY Refactoring - Provider Converters (126 LOC dedup)
+- Phase 04: Session Storage Abstraction (pluggable persistence)
+- Phase 04: Token-Aware Memory Truncation (model-specific ratios)
+- Phase 04: CI Security Scanning (Bandit + pip-audit)
 - Phase 03: Test Infrastructure (fixtures, conftest, integration tests)
 - Phase 03: py.typed markers for type-checking exports
 - Phase 03: 15 ReAct agent tests and cross-package integration tests

@@ -13,18 +13,55 @@ class TruncationStrategy(str, Enum):
     SUMMARIZE = "summarize"  # Placeholder for future summarization
 
 
-def estimate_tokens(message: Message) -> int:
+# Model-specific token ratios (chars per token)
+# These are empirically derived from tokenizer analysis
+TOKEN_RATIOS: dict[str, float] = {
+    "claude": 3.5,  # Claude uses ~3.5 chars per token
+    "gpt": 4.0,  # GPT-4 uses ~4 chars per token
+    "gemini": 3.8,  # Gemini uses ~3.8 chars per token
+    "default": 4.0,  # Conservative default
+}
+
+
+def get_token_ratio(model: str | None = None) -> float:
+    """Get chars-per-token ratio for a model.
+
+    Args:
+        model: Model name or provider prefix (e.g., "claude-3", "gpt-4", "gemini-2.0-flash")
+
+    Returns:
+        Chars per token ratio for estimation.
+    """
+    if model is None:
+        return TOKEN_RATIOS["default"]
+
+    model_lower = model.lower()
+    for prefix, ratio in TOKEN_RATIOS.items():
+        if prefix != "default" and prefix in model_lower:
+            return ratio
+    return TOKEN_RATIOS["default"]
+
+
+def estimate_tokens(message: Message, model: str | None = None) -> int:
     """Estimate token count for a message.
 
-    Uses ~4 chars per token as rough estimate.
+    Uses model-specific ratios for improved accuracy.
+
+    Args:
+        message: Message to estimate tokens for.
+        model: Optional model name for provider-specific ratio.
+
+    Returns:
+        Estimated token count.
     """
     content = message.content
     if isinstance(content, str):
         text = content
     else:
         text = " ".join(block.text if hasattr(block, "text") else str(block) for block in content)
-    # Rough estimate: ~4 chars per token
-    return len(text) // 4 + 1
+
+    ratio = get_token_ratio(model)
+    return int(len(text) / ratio) + 1
 
 
 def truncate_fifo(messages: list[Message], max_tokens: int) -> tuple[list[Message], int]:

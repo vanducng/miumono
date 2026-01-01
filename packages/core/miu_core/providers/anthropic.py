@@ -12,9 +12,9 @@ from miu_core.models import (
     TextDeltaEvent,
     ToolUseContent,
     ToolUseStartEvent,
-    Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
+from miu_core.providers.converters import build_response, convert_messages_to_anthropic
 from miu_core.tracing import Tracer, get_tracer
 from miu_core.tracing.types import SpanAttributes
 
@@ -46,7 +46,7 @@ class AnthropicProvider(LLMProvider):
             span.set_attribute(SpanAttributes.PROVIDER_NAME, self.name)
             span.set_attribute(SpanAttributes.PROVIDER_MODEL, self.model)
 
-            api_messages = self._convert_messages(messages)
+            api_messages = convert_messages_to_anthropic(messages)
 
             kwargs: dict[str, Any] = {
                 "model": self.model,
@@ -71,42 +71,6 @@ class AnthropicProvider(LLMProvider):
 
             return result
 
-    def _convert_messages(self, messages: list[Message]) -> list[dict[str, Any]]:
-        """Convert internal messages to Anthropic format."""
-        result: list[dict[str, Any]] = []
-        for msg in messages:
-            if msg.role == "system":
-                continue  # System handled separately
-
-            if isinstance(msg.content, str):
-                result.append({"role": msg.role, "content": msg.content})
-            else:
-                content_blocks: list[dict[str, Any]] = []
-                for block in msg.content:
-                    if isinstance(block, TextContent):
-                        content_blocks.append({"type": "text", "text": block.text})
-                    elif isinstance(block, ToolUseContent):
-                        content_blocks.append(
-                            {
-                                "type": "tool_use",
-                                "id": block.id,
-                                "name": block.name,
-                                "input": block.input,
-                            }
-                        )
-                    else:
-                        content_blocks.append(
-                            {
-                                "type": "tool_result",
-                                "tool_use_id": block.tool_use_id,
-                                "content": block.content,
-                                "is_error": block.is_error,
-                            }
-                        )
-                result.append({"role": msg.role, "content": content_blocks})
-
-        return result
-
     def _convert_response(self, response: Any) -> Response:
         """Convert Anthropic response to internal format."""
         content: list[TextContent | ToolUseContent] = []
@@ -123,14 +87,12 @@ class AnthropicProvider(LLMProvider):
                     )
                 )
 
-        return Response(
-            id=response.id,
+        return build_response(
+            response_id=response.id,
             content=content,
             stop_reason=response.stop_reason or "end_turn",
-            usage=Usage(
-                input_tokens=response.usage.input_tokens,
-                output_tokens=response.usage.output_tokens,
-            ),
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
         )
 
     async def stream(
@@ -141,7 +103,7 @@ class AnthropicProvider(LLMProvider):
         max_tokens: int = 4096,
     ) -> AsyncIterator[StreamEvent]:
         """Stream messages from Claude."""
-        api_messages = self._convert_messages(messages)
+        api_messages = convert_messages_to_anthropic(messages)
 
         kwargs: dict[str, Any] = {
             "model": self.model,

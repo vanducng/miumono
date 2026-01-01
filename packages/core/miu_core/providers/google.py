@@ -11,6 +11,7 @@ from miu_core.models import (
     Usage,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
+from miu_core.providers.converters import clean_schema_for_gemini
 
 try:
     from google import genai
@@ -99,24 +100,14 @@ class GoogleProvider(LLMProvider):
         declarations = []
         for tool in tools:
             schema = tool.get("input_schema", {})
-            # Clean schema for Gemini
-            clean_schema = self._clean_schema(schema)
             declarations.append(
                 types.FunctionDeclaration(
                     name=tool["name"],
                     description=tool.get("description", ""),
-                    parameters=clean_schema,
+                    parameters=clean_schema_for_gemini(schema),
                 )
             )
         return [types.Tool(function_declarations=declarations)]
-
-    def _clean_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
-        """Clean JSON schema for Gemini compatibility."""
-        # Remove unsupported keys
-        clean = {k: v for k, v in schema.items() if k not in ("title", "$defs", "definitions")}
-        if "properties" in clean:
-            clean["properties"] = {k: self._clean_schema(v) for k, v in clean["properties"].items()}
-        return clean
 
     def _convert_response(self, response: Any) -> Response:
         """Convert Gemini response to internal format."""
