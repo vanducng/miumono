@@ -1,12 +1,11 @@
 # Combined Release Please + PyPI Publish workflow
-# Creates release PRs, GitHub releases, and publishes to PyPI in one workflow
+# Creates release PRs, GitHub releases, and publishes to PyPI
 
 name: Release Please
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
     inputs:
       manual_publish:
@@ -16,13 +15,7 @@ on:
       package:
         description: 'Package to publish (if manual)'
         type: choice
-        options:
-          - core
-          - code
-          - examples
-          - studio
-          - miu
-          - all
+        options: [core, code, examples, studio, miu, all]
       test_pypi:
         description: 'Publish to Test PyPI'
         type: boolean
@@ -33,25 +26,22 @@ permissions:
   pull-requests: write
   id-token: write
 
+env:
+  ALL_PACKAGES: '["core","code","examples","studio","miu"]'
+
 jobs:
+  # === Automatic Release Flow ===
   release-please:
     name: Release Please
     if: ${{ !inputs.manual_publish }}
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
-      # Per-package outputs
-      core_released: ${{ steps.release.outputs['packages/core--release_created'] }}
-      core_tag: ${{ steps.release.outputs['packages/core--tag_name'] }}
-      code_released: ${{ steps.release.outputs['packages/code--release_created'] }}
-      code_tag: ${{ steps.release.outputs['packages/code--tag_name'] }}
-      examples_released: ${{ steps.release.outputs['packages/examples--release_created'] }}
-      examples_tag: ${{ steps.release.outputs['packages/examples--tag_name'] }}
-      studio_released: ${{ steps.release.outputs['packages/studio--release_created'] }}
-      studio_tag: ${{ steps.release.outputs['packages/studio--tag_name'] }}
-      miu_released: ${{ steps.release.outputs['packages/miu--release_created'] }}
-      miu_tag: ${{ steps.release.outputs['packages/miu--tag_name'] }}
+      core: ${{ steps.release.outputs['packages/core--release_created'] }}
+      code: ${{ steps.release.outputs['packages/code--release_created'] }}
+      examples: ${{ steps.release.outputs['packages/examples--release_created'] }}
+      studio: ${{ steps.release.outputs['packages/studio--release_created'] }}
+      miu: ${{ steps.release.outputs['packages/miu--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -60,163 +50,71 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      - name: Log release outputs
-        if: ${{ steps.release.outputs.releases_created == 'true' }}
-        run: |
-          echo "Releases created: ${{ steps.release.outputs.releases_created }}"
-          echo "Paths released: ${{ steps.release.outputs.paths_released }}"
-
-  # Build packages that were released
-  build:
-    name: Build ${{ matrix.package }}
+  build-and-publish:
+    name: ${{ matrix.package }}
     needs: release-please
     if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package: core
-            released: ${{ needs.release-please.outputs.core_released }}
-          - package: code
-            released: ${{ needs.release-please.outputs.code_released }}
-          - package: examples
-            released: ${{ needs.release-please.outputs.examples_released }}
-          - package: studio
-            released: ${{ needs.release-please.outputs.studio_released }}
-          - package: miu
-            released: ${{ needs.release-please.outputs.miu_released }}
-    steps:
-      - name: Skip if not released
-        if: ${{ matrix.released != 'true' }}
-        run: echo "Package ${{ matrix.package }} not released, skipping"
-
-      - uses: actions/checkout@v4
-        if: ${{ matrix.released == 'true' }}
-
-      - name: Install uv
-        if: ${{ matrix.released == 'true' }}
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Build package
-        if: ${{ matrix.released == 'true' }}
-        run: uv build packages/${{ matrix.package }} --out-dir dist/
-
-      - name: Upload artifacts
-        if: ${{ matrix.released == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.package }}
-          path: dist/
-
-  # Publish to PyPI
-  publish:
-    name: Publish ${{ matrix.package }}
-    needs: [release-please, build]
-    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
-    runs-on: ubuntu-latest
     environment: pypi
     strategy:
       fail-fast: false
       matrix:
         include:
           - package: core
-            released: ${{ needs.release-please.outputs.core_released }}
+            released: ${{ needs.release-please.outputs.core }}
           - package: code
-            released: ${{ needs.release-please.outputs.code_released }}
+            released: ${{ needs.release-please.outputs.code }}
           - package: examples
-            released: ${{ needs.release-please.outputs.examples_released }}
+            released: ${{ needs.release-please.outputs.examples }}
           - package: studio
-            released: ${{ needs.release-please.outputs.studio_released }}
+            released: ${{ needs.release-please.outputs.studio }}
           - package: miu
-            released: ${{ needs.release-please.outputs.miu_released }}
+            released: ${{ needs.release-please.outputs.miu }}
     steps:
       - name: Skip if not released
-        if: ${{ matrix.released != 'true' }}
-        run: echo "Package ${{ matrix.package }} not released, skipping"
+        if: matrix.released != 'true'
+        run: echo "Skipping ${{ matrix.package }}"
 
-      - name: Download artifacts
-        if: ${{ matrix.released == 'true' }}
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+        if: matrix.released == 'true'
+
+      - uses: astral-sh/setup-uv@v4
+        if: matrix.released == 'true'
         with:
-          name: dist-${{ matrix.package }}
-          path: dist/
+          version: "latest"
+
+      - name: Build
+        if: matrix.released == 'true'
+        run: uv build packages/${{ matrix.package }} --out-dir dist/
 
       - name: Publish to PyPI
-        if: ${{ matrix.released == 'true' }}
+        if: matrix.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
 
-  # Manual publish workflow
-  manual-build:
-    name: Manual Build ${{ matrix.package }}
+  # === Manual Publish Flow ===
+  manual-publish:
+    name: Manual ${{ matrix.package }}
     if: ${{ inputs.manual_publish }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.test_pypi && 'testpypi' || 'pypi' }}
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ inputs.package == 'all' && fromJson('["core","code","examples","studio","miu"]') || fromJson(format('["{0}"]', inputs.package)) }}
+        package: ${{ fromJson(inputs.package == 'all' && '["core","code","examples","studio","miu"]' || format('["{0}"]', inputs.package)) }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
 
-      - name: Build package
+      - name: Build
         run: uv build packages/${{ matrix.package }} --out-dir dist/
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.package }}
-          path: dist/
-
-  manual-publish-testpypi:
-    name: Manual Publish to TestPyPI
-    needs: manual-build
-    if: ${{ inputs.manual_publish && inputs.test_pypi }}
-    runs-on: ubuntu-latest
-    environment: testpypi
-    strategy:
-      fail-fast: false
-      matrix:
-        package: ${{ inputs.package == 'all' && fromJson('["core","code","examples","studio","miu"]') || fromJson(format('["{0}"]', inputs.package)) }}
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-${{ matrix.package }}
-          path: dist/
-
-      - name: Publish to Test PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          packages-dir: dist/
-
-  manual-publish-pypi:
-    name: Manual Publish to PyPI
-    needs: manual-build
-    if: ${{ inputs.manual_publish && !inputs.test_pypi }}
-    runs-on: ubuntu-latest
-    environment: pypi
-    strategy:
-      fail-fast: false
-      matrix:
-        package: ${{ inputs.package == 'all' && fromJson('["core","code","examples","studio","miu"]') || fromJson(format('["{0}"]', inputs.package)) }}
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-${{ matrix.package }}
-          path: dist/
-
-      - name: Publish to PyPI
+      - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          repository-url: ${{ inputs.test_pypi && 'https://test.pypi.org/legacy/' || '' }}

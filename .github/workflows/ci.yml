@@ -103,19 +103,13 @@ jobs:
         with:
           version: "latest"
 
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install dependencies
-        run: uv sync
-
       - name: Run Bandit security scan
         run: uvx bandit -r packages/ -ll -x "*/tests/*" || true
 
       - name: Run pip-audit for vulnerabilities
         run: |
-          uv export --no-dev > requirements.txt
-          uvx pip-audit -r requirements.txt || true
+          uv export --no-dev > /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt || true
 
   ci-success:
     name: CI Success
