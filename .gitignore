@@ -75,5 +75,5 @@ ck.md
 .gemini/settings.json
 .claude/settings.bak.json
 .claude
-.miu/sessions
+**/.miu/sessions/
 .coverage
