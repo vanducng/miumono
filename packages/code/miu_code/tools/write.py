@@ -23,14 +23,22 @@ class WriteTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return WriteInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        file_path: str,
-        content: str,
         **kwargs: object,
     ) -> ToolResult:
         """Write content to file."""
+        # Extract and validate required arguments
+        file_path = str(kwargs.get("file_path", ""))
+        if not file_path:
+            return ToolResult(
+                output="Missing required argument: 'file_path'",
+                success=False,
+                error="file_path is required",
+            )
+        content = str(kwargs.get("content", ""))
+
         try:
             path = validate_path(file_path, ctx.working_dir)
         except PathTraversalError as e:

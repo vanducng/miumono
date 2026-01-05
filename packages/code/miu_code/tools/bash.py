@@ -34,14 +34,23 @@ class BashTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return BashInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        command: str,
-        timeout: int = 60,
         **kwargs: object,
     ) -> ToolResult:
         """Execute shell command."""
+        # Extract and validate required arguments
+        command = str(kwargs.get("command", ""))
+        if not command:
+            return ToolResult(
+                output="Missing required argument: 'command'",
+                success=False,
+                error="command is required",
+            )
+        timeout_val = kwargs.get("timeout", 60)
+        timeout = int(str(timeout_val))
+
         working_dir = Path(ctx.working_dir)
         if not working_dir.exists():
             working_dir = Path.cwd()

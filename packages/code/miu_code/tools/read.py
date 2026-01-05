@@ -24,15 +24,25 @@ class ReadTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return ReadInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        file_path: str,
-        offset: int | None = None,
-        limit: int | None = None,
         **kwargs: object,
     ) -> ToolResult:
         """Read file and return numbered lines."""
+        # Extract and validate required arguments
+        file_path = str(kwargs.get("file_path", ""))
+        if not file_path:
+            return ToolResult(
+                output="Missing required argument: 'file_path'",
+                success=False,
+                error="file_path is required",
+            )
+        offset_val = kwargs.get("offset")
+        offset = int(str(offset_val)) if offset_val is not None else None
+        limit_val = kwargs.get("limit")
+        limit = int(str(limit_val)) if limit_val is not None else None
+
         try:
             path = validate_path(file_path, ctx.working_dir)
         except PathTraversalError as e:

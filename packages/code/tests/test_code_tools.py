@@ -194,3 +194,58 @@ class TestBashTool:
 
         assert not result.success
         assert "exit code" in result.output.lower()
+
+
+class TestMissingArguments:
+    """Test that tools handle missing required arguments gracefully."""
+
+    @pytest.mark.asyncio
+    async def test_read_missing_file_path(self, ctx: ToolContext) -> None:
+        tool = ReadTool()
+        result = await tool.execute(ctx)  # No arguments
+        assert not result.success
+        assert "file_path" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_write_missing_file_path(self, ctx: ToolContext) -> None:
+        tool = WriteTool()
+        result = await tool.execute(ctx)
+        assert not result.success
+        assert "file_path" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_edit_missing_file_path(self, ctx: ToolContext) -> None:
+        tool = EditTool()
+        result = await tool.execute(ctx)
+        assert not result.success
+        assert "file_path" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_edit_missing_old_string(self, temp_dir: Path, ctx: ToolContext) -> None:
+        test_file = temp_dir / "test.txt"
+        test_file.write_text("hello")
+        tool = EditTool()
+        result = await tool.execute(ctx, file_path=str(test_file))
+        assert not result.success
+        assert "old_string" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_glob_missing_pattern(self, ctx: ToolContext) -> None:
+        tool = GlobTool()
+        result = await tool.execute(ctx)
+        assert not result.success
+        assert "pattern" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_grep_missing_pattern(self, ctx: ToolContext) -> None:
+        tool = GrepTool()
+        result = await tool.execute(ctx)
+        assert not result.success
+        assert "pattern" in result.output.lower()
+
+    @pytest.mark.asyncio
+    async def test_bash_missing_command(self, ctx: ToolContext) -> None:
+        tool = BashTool()
+        result = await tool.execute(ctx)
+        assert not result.success
+        assert "command" in result.output.lower()

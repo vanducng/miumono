@@ -26,15 +26,25 @@ class GrepTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return GrepInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        pattern: str,
-        path: str | None = None,
-        glob: str | None = None,
         **kwargs: object,
     ) -> ToolResult:
         """Search for pattern in files."""
+        # Extract and validate required arguments
+        pattern = str(kwargs.get("pattern", ""))
+        if not pattern:
+            return ToolResult(
+                output="Missing required argument: 'pattern'",
+                success=False,
+                error="pattern is required",
+            )
+        path_arg = kwargs.get("path")
+        path = str(path_arg) if path_arg else None
+        glob_arg = kwargs.get("glob")
+        glob = str(glob_arg) if glob_arg else None
+
         try:
             base = validate_path(path or ".", ctx.working_dir)
         except PathTraversalError as e:

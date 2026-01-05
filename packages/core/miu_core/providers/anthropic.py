@@ -11,6 +11,7 @@ from miu_core.models import (
     TextContent,
     TextDeltaEvent,
     ToolUseContent,
+    ToolUseInputEvent,
     ToolUseStartEvent,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
@@ -115,16 +116,27 @@ class AnthropicProvider(LLMProvider):
         if tools:
             kwargs["tools"] = tools
 
+        # Track tool IDs by their content block index
+        tool_ids_by_index: dict[int, str] = {}
+
         async with self._client.messages.stream(**kwargs) as stream:
             async for event in stream:
                 if event.type == "content_block_start":
                     block = event.content_block
                     if block.type == "tool_use":
+                        tool_ids_by_index[event.index] = block.id
                         yield ToolUseStartEvent(id=block.id, name=block.name)
                 elif event.type == "content_block_delta":
                     delta = event.delta
                     if delta.type == "text_delta":
                         yield TextDeltaEvent(text=delta.text)
+                    elif delta.type == "input_json_delta":
+                        # Use the tracked tool id for this index
+                        tool_id = tool_ids_by_index.get(event.index, str(event.index))
+                        yield ToolUseInputEvent(
+                            id=tool_id,
+                            input_delta=delta.partial_json,
+                        )
                 elif event.type == "message_stop":
                     # Get final message for stop reason and usage
                     final = await stream.get_final_message()

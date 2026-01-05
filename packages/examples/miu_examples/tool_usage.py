@@ -1,10 +1,14 @@
-"""Custom tool example demonstrating tool creation.
+"""Custom tool example demonstrating both class-based and decorator-based patterns.
 
 Run with:
     python -m miu_examples.tool_usage
 
 Requires:
     ANTHROPIC_API_KEY environment variable
+
+This example shows two approaches to creating tools:
+1. Class-based approach (WeatherTool) - full control, explicit schema
+2. Decorator-based approach (@tool) - concise, schema auto-generated
 """
 
 import ast
@@ -16,7 +20,53 @@ from pydantic import BaseModel, Field
 
 from miu_core.agents import AgentConfig, ReActAgent
 from miu_core.providers import create_provider
-from miu_core.tools import Tool, ToolContext, ToolRegistry, ToolResult
+from miu_core.tools import Tool, ToolContext, ToolRegistry, ToolResult, tool
+
+# =============================================================================
+# APPROACH 1: Decorator-based tools (Recommended for most use cases)
+# =============================================================================
+
+
+@tool(description="Get current weather for a city. Returns temperature and conditions.")
+async def get_weather(city: str) -> str:
+    """Get weather for a city.
+
+    Args:
+        city: City name to get weather for
+    """
+    # Mock weather data
+    weather_data = {
+        "tokyo": ("22°C", "Sunny"),
+        "london": ("15°C", "Cloudy"),
+        "new york": ("18°C", "Partly cloudy"),
+        "paris": ("20°C", "Clear"),
+    }
+
+    city_lower = city.lower()
+    if city_lower in weather_data:
+        temp, conditions = weather_data[city_lower]
+        return f"Weather in {city}: {temp}, {conditions}"
+
+    return f"Weather in {city}: 20°C, Clear (default)"
+
+
+@tool(description="Get the current time in a specified timezone.")
+async def get_time(timezone: str = "UTC") -> str:
+    """Get current time in a timezone.
+
+    Args:
+        timezone: Timezone name (default: UTC)
+    """
+    from datetime import UTC, datetime
+
+    # Mock implementation - just returns UTC time
+    now = datetime.now(UTC)
+    return f"Current time in {timezone}: {now.strftime('%H:%M:%S')}"
+
+
+# =============================================================================
+# APPROACH 2: Class-based tools (For complex tools needing more control)
+# =============================================================================
 
 
 # Define input schema for the weather tool
@@ -28,10 +78,10 @@ class WeatherInput(BaseModel):
 
 # Define the custom tool
 class WeatherTool(Tool):
-    """Mock weather tool for demonstration."""
+    """Mock weather tool for demonstration (class-based approach)."""
 
-    name = "get_weather"
-    description = "Get current weather for a city. Returns temperature and conditions."
+    name = "get_weather_class"
+    description = "Get current weather for a city (class-based). Returns temperature."
 
     def get_input_schema(self) -> type[BaseModel]:
         """Return input schema."""
@@ -139,8 +189,14 @@ async def main() -> None:
     provider = create_provider("anthropic:claude-sonnet-4-20250514")
 
     # Create tool registry and register tools
+    # Both decorator-based and class-based tools work the same way!
     registry = ToolRegistry()
-    registry.register(WeatherTool())
+
+    # Register decorator-based tools (recommended for simple tools)
+    registry.register(get_weather)  # @tool decorated function
+    registry.register(get_time)  # @tool decorated function
+
+    # Register class-based tools (for complex tools needing more control)
     registry.register(CalculatorTool())
 
     # Create agent with tools
@@ -153,12 +209,17 @@ async def main() -> None:
         ),
     )
 
-    # Test weather tool
+    # Test decorator-based weather tool
     print("Query: What's the weather in Tokyo?")
     response = await agent.run("What's the weather in Tokyo?")
     print(f"Response: {response.get_text()}\n")
 
-    # Test calculator tool
+    # Test decorator-based time tool
+    print("Query: What time is it?")
+    response = await agent.run("What time is it?")
+    print(f"Response: {response.get_text()}\n")
+
+    # Test class-based calculator tool
     print("Query: What is 25 * 4 + 100?")
     response = await agent.run("What is 25 * 4 + 100?")
     print(f"Response: {response.get_text()}")

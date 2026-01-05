@@ -1,5 +1,6 @@
 """ReAct (Reasoning + Acting) agent implementation."""
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -16,6 +17,7 @@ from miu_core.models import (
     ToolResultContent,
     ToolResultEvent,
     ToolUseContent,
+    ToolUseInputEvent,
     ToolUseStartEvent,
 )
 from miu_core.providers.base import LLMProvider
@@ -111,6 +113,7 @@ class ReActAgent(Agent):
             collected_text = ""
             tool_uses: list[dict[str, Any]] = []
             current_tool: dict[str, Any] | None = None
+            tool_input_buffers: dict[str, str] = {}  # tool_id -> accumulated JSON string
             stop_reason = "end_turn"
 
             async for event in self.provider.stream(
@@ -122,11 +125,34 @@ class ReActAgent(Agent):
                     collected_text += event.text
                     yield event
                 elif isinstance(event, ToolUseStartEvent):
+                    # Finalize previous tool if exists
+                    if current_tool:
+                        input_json = tool_input_buffers.get(current_tool["id"], "")
+                        if input_json:
+                            try:
+                                current_tool["input"] = json.loads(input_json)
+                            except json.JSONDecodeError:
+                                current_tool["input"] = {}
+                        tool_uses.append(current_tool)
+                    # Start new tool
                     current_tool = {"id": event.id, "name": event.name, "input": {}}
+                    tool_input_buffers[event.id] = ""
                     yield event
+                elif isinstance(event, ToolUseInputEvent):
+                    # Accumulate input JSON deltas
+                    tool_input_buffers[event.id] = (
+                        tool_input_buffers.get(event.id, "") + event.input_delta
+                    )
                 elif isinstance(event, MessageStopEvent):
                     stop_reason = event.stop_reason
                     if current_tool:
+                        # Parse accumulated JSON input
+                        input_json = tool_input_buffers.get(current_tool["id"], "")
+                        if input_json:
+                            try:
+                                current_tool["input"] = json.loads(input_json)
+                            except json.JSONDecodeError:
+                                current_tool["input"] = {}
                         tool_uses.append(current_tool)
 
             # Build response content for memory

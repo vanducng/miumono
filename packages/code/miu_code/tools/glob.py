@@ -23,14 +23,23 @@ class GlobTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return GlobInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        pattern: str,
-        path: str | None = None,
         **kwargs: object,
     ) -> ToolResult:
         """Find files matching pattern."""
+        # Extract and validate required arguments
+        pattern = str(kwargs.get("pattern", ""))
+        if not pattern:
+            return ToolResult(
+                output="Missing required argument: 'pattern'",
+                success=False,
+                error="pattern is required",
+            )
+        path_arg = kwargs.get("path")
+        path = str(path_arg) if path_arg else None
+
         try:
             base = validate_path(path or ".", ctx.working_dir)
         except PathTraversalError as e:

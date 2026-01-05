@@ -25,16 +25,30 @@ class EditTool(Tool):
     def get_input_schema(self) -> type[BaseModel]:
         return EditInput
 
-    async def execute(  # type: ignore[override]
+    async def execute(
         self,
         ctx: ToolContext,
-        file_path: str,
-        old_string: str,
-        new_string: str,
-        replace_all: bool = False,
         **kwargs: object,
     ) -> ToolResult:
         """Replace string in file."""
+        # Extract and validate required arguments
+        file_path = str(kwargs.get("file_path", ""))
+        if not file_path:
+            return ToolResult(
+                output="Missing required argument: 'file_path'",
+                success=False,
+                error="file_path is required",
+            )
+        old_string = str(kwargs.get("old_string", ""))
+        if not old_string:
+            return ToolResult(
+                output="Missing required argument: 'old_string'",
+                success=False,
+                error="old_string is required",
+            )
+        new_string = str(kwargs.get("new_string", ""))
+        replace_all = bool(kwargs.get("replace_all", False))
+
         try:
             path = validate_path(file_path, ctx.working_dir)
         except PathTraversalError as e:
