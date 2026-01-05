@@ -21,6 +21,8 @@ from miu_core.models import (
     TextContent,
     TextDeltaEvent,
     ToolUseContent,
+    ToolUseInputEvent,
+    ToolUseStartEvent,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
 from miu_core.providers.converters import (
@@ -182,17 +184,50 @@ class ZaiProvider(LLMProvider):
             try:
                 stream_response = self._client.chat.completions.create(**kwargs)
                 finish_reason = None
+                # Track tool calls being streamed (by index)
+                tool_calls_seen: dict[int, bool] = {}
+
                 for chunk in stream_response:
                     if not chunk.choices:
                         continue
                     delta = chunk.choices[0].delta
+
+                    # Handle text content
                     if hasattr(delta, "content") and delta.content:
                         asyncio.run_coroutine_threadsafe(
                             queue.put(TextDeltaEvent(text=delta.content)),
                             loop,
                         )
+
+                    # Handle tool calls
+                    if hasattr(delta, "tool_calls") and delta.tool_calls:
+                        for tc in delta.tool_calls:
+                            idx = tc.index if hasattr(tc, "index") else 0
+                            # First chunk for this tool call - emit start event
+                            if idx not in tool_calls_seen:
+                                tool_calls_seen[idx] = True
+                                tool_id = tc.id or f"tool_{idx}"
+                                tool_name = tc.function.name if tc.function else ""
+                                if tool_name:
+                                    asyncio.run_coroutine_threadsafe(
+                                        queue.put(ToolUseStartEvent(id=tool_id, name=tool_name)),
+                                        loop,
+                                    )
+                            # Emit input delta if present
+                            if tc.function and tc.function.arguments:
+                                tool_id = tc.id or f"tool_{idx}"
+                                asyncio.run_coroutine_threadsafe(
+                                    queue.put(
+                                        ToolUseInputEvent(
+                                            id=tool_id, input_delta=tc.function.arguments
+                                        )
+                                    ),
+                                    loop,
+                                )
+
                     if chunk.choices[0].finish_reason:
                         finish_reason = chunk.choices[0].finish_reason
+
                 # Signal completion
                 asyncio.run_coroutine_threadsafe(
                     queue.put(MessageStopEvent(stop_reason=map_openai_stop_reason(finish_reason))),
