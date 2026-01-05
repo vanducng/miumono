@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0](https://github.com/vanducng/miu-mono/compare/miu-code-v1.0.2...miu-code-v1.1.0) (2026-01-05)
+
+
+### Features
+
+* **commands:** implement built-in commands and /help command ([11fab05](https://github.com/vanducng/miu-mono/commit/11fab05ac347e0d77d0d1a5c28d47dc00ab2b45d))
+* **tui:** add configurable status bar with model name display ([81113c6](https://github.com/vanducng/miu-mono/commit/81113c6891b663beb8159d71879782c1366aed95))
+
+
+### Bug Fixes
+
+* **tools:** handle missing args gracefully and fix streaming input ([4cefb2a](https://github.com/vanducng/miu-mono/commit/4cefb2a65d50aba7600f0d7ddd012db7274302be))
+* **tui:** render initial content in AssistantMessage ([803415f](https://github.com/vanducng/miu-mono/commit/803415f67c26a762f19fb887a032bbd3d9e2ec51))
+
 ## [1.0.2](https://github.com/vanducng/miu-mono/compare/miu-code-v1.0.1...miu-code-v1.0.2) (2026-01-01)
 
 
