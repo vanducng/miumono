@@ -9,14 +9,18 @@ from textual.widget import Widget
 
 from miu_code.tui.theme import MIU_COLORS, VIBE_COLORS
 
-# ASCII art logo for miu - compact version
+# ASCII art logo for miu - compact square with dot + chevron down
 MIU_LOGO_COMPACT = [
-    " ███╗   ███╗██╗██╗   ██╗",
-    " ████╗ ████║██║██║   ██║",
-    " ██╔████╔██║██║██║   ██║",
-    " ██║╚██╔╝██║██║██║   ██║",
-    " ██║ ╚═╝ ██║██║╚██████╔╝",
-    " ╚═╝     ╚═╝╚═╝ ╚═════╝ ",
+    " ▄██████████████▄ ",
+    " ██████████████████ ",
+    " ███████    ███████ ",
+    " ███  ████████  ███ ",
+    " ████  ██████  ████ ",
+    " █████  ████  █████ ",
+    " ██████  ██  ██████ ",
+    " ███████    ███████ ",
+    " ██████████████████ ",
+    " ▀██████████████▀ ",
 ]
 
 
@@ -25,7 +29,7 @@ class WelcomeBanner(Widget):
 
     DEFAULT_CSS = """
     WelcomeBanner {
-        height: 10;
+        height: 14;
         width: 100%;
         padding: 0 1;
         margin-bottom: 1;

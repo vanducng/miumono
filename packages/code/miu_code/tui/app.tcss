@@ -1,9 +1,9 @@
 /* Miu Code TUI Styles - Vibe Inspired Layout */
 
-/* Miu brand color variables - violet theme */
-$miu-primary: #8B5CF6;
-$miu-light: #A78BFA;
-$miu-secondary: #7C3AED;
+/* Miu brand color variables - muted forest green (dark mode friendly) */
+$miu-primary: #1B7B42;
+$miu-light: #1E8449;
+$miu-secondary: #166534;
 
 Screen {
     background: $surface;

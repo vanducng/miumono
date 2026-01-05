@@ -1,40 +1,40 @@
 """Miu brand theme colors and utilities."""
 
-# Miu brand palette (teal -> cyan gradient)
+# Miu brand palette (muted forest green - dark mode friendly)
 MIU_COLORS = {
-    "primary": "#1ABC9C",  # teal
-    "primary_light": "#48C9B0",  # light teal
-    "secondary": "#16A085",  # dark teal
-    "accent": "#0E6655",  # deep teal
-    "highlight": "#76D7C4",  # bright cyan
+    "primary": "#1B7B42",  # muted forest green (main brand color)
+    "primary_light": "#1E8449",  # soft green
+    "secondary": "#166534",  # dark forest green
+    "accent": "#14532D",  # deep forest
+    "highlight": "#22A055",  # subtle highlight (not too bright)
 }
 
 # Gradient sequence for animations
 GRADIENT_SEQUENCE = [
-    "#76D7C4",  # bright cyan
-    "#48C9B0",  # light teal
-    "#1ABC9C",  # teal
-    "#16A085",  # dark teal
-    "#0E6655",  # deep teal
+    "#22A055",  # subtle highlight
+    "#1E8449",  # soft green
+    "#1B7B42",  # muted forest green
+    "#166534",  # dark forest green
+    "#14532D",  # deep forest
 ]
 
 # Semantic colors
 SEMANTIC_COLORS = {
     "user": "#3498DB",  # blue for user
-    "assistant": "#1ABC9C",  # teal for agent
+    "assistant": "#1B7B42",  # muted green for agent
     "system": "#7F8C8D",  # gray for system
     "error": "#E74C3C",  # red for errors
-    "accent": "#1ABC9C",  # teal accent
-    "thinking": "#48C9B0",  # light teal for thinking
+    "accent": "#1B7B42",  # muted green accent
+    "thinking": "#1E8449",  # soft green for thinking
 }
 
 # Alias for backward compatibility
 VIBE_COLORS = {
-    "gold": "#76D7C4",  # remapped to bright cyan
-    "orange_gold": "#48C9B0",  # light teal
-    "orange": "#1ABC9C",  # teal
-    "orange_red": "#16A085",  # dark teal
-    "red": "#0E6655",  # deep teal
+    "gold": "#22A055",  # subtle highlight
+    "orange_gold": "#1E8449",  # soft green
+    "orange": "#1B7B42",  # muted forest green
+    "orange_red": "#166534",  # dark forest green
+    "red": "#14532D",  # deep forest
 }
 
 
