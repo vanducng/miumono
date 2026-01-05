@@ -10,12 +10,16 @@ Set ZAI_BASE_URL env var to switch endpoints.
 import asyncio
 import json
 import os
+from collections.abc import AsyncIterator
 from typing import Any
 
 from miu_core.models import (
     Message,
+    MessageStopEvent,
     Response,
+    StreamEvent,
     TextContent,
+    TextDeltaEvent,
     ToolUseContent,
 )
 from miu_core.providers.base import LLMProvider, ToolSchema
@@ -149,3 +153,60 @@ class ZaiProvider(LLMProvider):
             input_tokens=response.usage.prompt_tokens if response.usage else 0,
             output_tokens=response.usage.completion_tokens if response.usage else 0,
         )
+
+    async def stream(
+        self,
+        messages: list[Message],
+        tools: list[ToolSchema] | list[dict[str, Any]] | None = None,
+        system: str | None = None,
+        max_tokens: int = 4096,
+    ) -> AsyncIterator[StreamEvent]:
+        """Stream messages from Z.AI."""
+        api_messages = self._convert_messages(messages, system)
+
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": api_messages,
+            "max_tokens": max_tokens,
+            "stream": True,
+        }
+        if tools:
+            kwargs["tools"] = convert_tools_to_openai(tools)
+
+        # Use queue to pass chunks from sync thread to async context
+        queue: asyncio.Queue[StreamEvent | None] = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+
+        def process_stream() -> None:
+            """Process stream in thread and put events on queue."""
+            try:
+                stream_response = self._client.chat.completions.create(**kwargs)
+                finish_reason = None
+                for chunk in stream_response:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
+                    if hasattr(delta, "content") and delta.content:
+                        asyncio.run_coroutine_threadsafe(
+                            queue.put(TextDeltaEvent(text=delta.content)),
+                            loop,
+                        )
+                    if chunk.choices[0].finish_reason:
+                        finish_reason = chunk.choices[0].finish_reason
+                # Signal completion
+                asyncio.run_coroutine_threadsafe(
+                    queue.put(MessageStopEvent(stop_reason=map_openai_stop_reason(finish_reason))),
+                    loop,
+                )
+            finally:
+                asyncio.run_coroutine_threadsafe(queue.put(None), loop)
+
+        # Start streaming in background thread
+        loop.run_in_executor(None, process_stream)
+
+        # Yield events from queue
+        while True:
+            event = await queue.get()
+            if event is None:
+                break
+            yield event
