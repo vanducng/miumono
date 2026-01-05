@@ -3,6 +3,7 @@
 from miu_code.tui.widgets.approval import ApprovalApp
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
+from miu_code.tui.widgets.help_modal import HelpModal, generate_help_markdown
 from miu_code.tui.widgets.input import MessageInput
 from miu_code.tui.widgets.loading import LoadingSpinner
 from miu_code.tui.widgets.messages import (
@@ -26,6 +27,7 @@ __all__ = [
     "ChatLog",
     "ErrorMessage",
     "ExpandingBorder",
+    "HelpModal",
     "LoadingSpinner",
     "MessageInput",
     "NonSelectableStatic",
@@ -39,4 +41,5 @@ __all__ = [
     "ToolResultMessage",
     "UserMessage",
     "WelcomeBanner",
+    "generate_help_markdown",
 ]

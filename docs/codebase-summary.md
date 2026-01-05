@@ -2,8 +2,8 @@
 
 **Project:** AI Agent Framework Monorepo
 **Version:** 0.2.0 (miu-code), 0.1.0 (others)
-**Status:** Phase 6 - Critical Bug Fixes (Complete)
-**Updated:** 2025-12-30
+**Status:** Phase 2 - Help Command Implementation (Complete)
+**Updated:** 2026-01-06
 **PyPI Status:** All 5 packages published (miu-code v0.2.0)
 
 ## Overview
@@ -193,17 +193,18 @@ miu code --model "anthropic:claude-opus-4-20250805"
 - Token usage tracking (accumulated across session)
 - Session persistence (can create multiple sessions)
 
-**TUI Widgets (Phase 3 - NEW):**
+**TUI Widgets (Phase 2-3):**
 
 Location: `miu_code/tui/widgets/`
 
-| Widget | Purpose |
-|--------|---------|
-| `StatusBar` | Footer status bar showing mode, path, token usage |
-| `WelcomeBanner` | Animated welcome banner with metadata (version, model, MCP) |
-| `ChatLog` | Chat message display with scrolling |
-| `MessageInput` | Text input field for user queries |
-| `LoadingSpinner` | Animated loading spinner |
+| Widget | Purpose | Phase |
+|--------|---------|-------|
+| `HelpModal` | Scrollable modal overlay with commands, shortcuts, modes | 2 |
+| `StatusBar` | Footer status bar showing mode, path, token usage | 3 |
+| `WelcomeBanner` | Animated welcome banner with metadata (version, model, MCP) | 3 |
+| `ChatLog` | Chat message display with scrolling | 3 |
+| `MessageInput` | Text input field for user queries | 3 |
+| `LoadingSpinner` | Animated loading spinner | 3 |
 
 StatusBar features:
 ```python
@@ -787,6 +788,8 @@ pip install miu-core miu-code miu-studio
 
 ## TUI Implementation (Phase 3-6)
 
+**Phase 2 Help Command Status:** Complete - /help modal implementation with CLI and TUI support
+
 **Phase 3 Status:** Complete - StatusBar and WelcomeBanner widgets implemented and tested
 
 **Phase 4 TUI Integration Status:** Complete - Full TUI app integrated with agents, modes, and usage tracking
@@ -794,6 +797,14 @@ pip install miu-core miu-code miu-studio
 **Phase 5 TUI Vibe Refactor Status:** Complete - Makefile added, Textual upgraded to v1.0.0+
 
 **Phase 6 Critical Bug Fixes Status:** Complete - Auto-scroll, scroll helpers, key bindings, bottom-app-container, chat scroll callback
+
+**Phase 2 Components:**
+- HelpModal widget for displaying commands and keyboard shortcuts
+- generate_help_markdown() function for both CLI and TUI help text generation
+- Integration with CommandRegistry for dynamic command listing
+- /help command handling in CLI and TUI
+- clear_history method in CodingAgent for chat clearing
+- 16 comprehensive unit tests for help modal
 
 **Phase 3 Components:**
 - StatusBar widget with mode/path/usage display
@@ -841,6 +852,60 @@ pip install miu-core miu-code miu-studio
 - `packages/miu_core/miu_core/models/messages.py` - MessageStopEvent.usage field added
 - `packages/miu_core/miu_core/providers/anthropic.py` - Usage propagation in streaming
 
+**Phase 2 Help Modal Widget:**
+
+Location: `miu_code/tui/widgets/help_modal.py`
+
+Key Features:
+- `HelpModal` - Scrollable modal overlay with keyboard navigation
+- `generate_help_markdown()` - Generates help text with different content for CLI/TUI
+- Dynamic command registry integration showing all available slash commands
+- Keyboard shortcuts section: Ctrl+C, Ctrl+N, Ctrl+L, Escape, Shift+Tab
+- Agent modes documentation (Normal, Ask, Plan)
+- Tips and usage examples
+
+API:
+```python
+from miu_code.tui.widgets.help_modal import HelpModal, generate_help_markdown
+from miu_core.commands import CommandRegistry
+
+# Generate CLI help text
+cli_help = generate_help_markdown()
+
+# Generate TUI help with registry
+registry = CommandRegistry()
+tui_help = generate_help_markdown(registry, is_tui=True)
+
+# Create modal with command registry
+modal = HelpModal(registry=registry)
+
+# Modal has bindings: escape/q to close, up/down to scroll
+# Emits HelpModal.Closed message when closed
+```
+
+Integration in TUI app (`packages/miu_code/miu_code/tui/app.py`):
+- `/help` command shows modal via `_show_help()` method
+- `_switch_to_help_modal()` mounts HelpModal in bottom container
+- `on_help_modal_closed()` handles modal close events and resets input focus
+- Tracks current bottom app state: "input", "approval", or "help"
+
+Integration in CLI (`packages/miu_code/miu_code/cli/entry.py`):
+- `/help` command displays markdown help text in console
+- Uses `generate_help_markdown()` without registry for simplified output
+
+Agent Enhancement:
+- `CodingAgent.clear_history()` method (miu_core.agent.coding) - clears conversation history
+- Called by `/clear` command for fresh session state
+
+Test Coverage (16 tests in `tests/unit/test_help_modal.py`):
+- Help markdown generation (with/without registry)
+- Keyboard shortcut inclusion (CLI vs TUI)
+- CLI usage section
+- TUI modes and extended shortcuts
+- Modal creation and configuration
+- Command alias display
+- Registry integration
+
 **Phase 3 Files:**
 - `packages/miu_code/miu_code/tui/widgets/status.py`
 - `packages/miu_code/miu_code/tui/widgets/banner.py`
@@ -874,8 +939,9 @@ def _notify_scroll(self) -> None:
 
 ---
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-06
 **Maintained By:** Development Team
-**Current Status:** Phase 6 Complete - Critical Bug Fixes (Auto-scroll, Scroll Helpers, Key Bindings, Input Layout)
+**Current Status:** Phase 2 Help Command Implementation (Complete)
+**Phase Coverage:** Phase 2 (/help modal), Phase 3 (StatusBar/Banner), Phase 4 (TUI integration), Phase 5 (Makefile), Phase 6 (Auto-scroll fixes)
 **PyPI Status:** miu-code v0.2.0 published; miu-core/examples/studio/mono at v0.1.0
 **Repository:** https://github.com/vanducng/miu-mono

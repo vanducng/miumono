@@ -1,6 +1,30 @@
 """Command executor for parsing and expanding slash commands."""
 
+from dataclasses import dataclass
+from enum import Enum, auto
+
+from miu_core.commands.builtins import BuiltinCommand
 from miu_core.commands.registry import CommandRegistry
+from miu_core.commands.schema import Command
+
+
+class CommandType(Enum):
+    """Type of command being executed."""
+
+    TEMPLATE = auto()  # Expands to prompt for LLM
+    BUILTIN = auto()  # Executes handler directly
+
+
+@dataclass
+class CommandResult:
+    """Result of command parsing/execution."""
+
+    command_type: CommandType
+    command_name: str
+    args: str
+    expanded: str | None = None  # For template commands
+    handler: str | None = None  # For built-in commands
+    exits: bool = False  # For built-in commands that exit app
 
 
 class CommandExecutor:
@@ -47,21 +71,23 @@ class CommandExecutor:
             Expanded command content
 
         Raises:
-            ValueError: If command not found
+            ValueError: If command not found or is a built-in
         """
-        command = self.registry.get(command_name)
+        command = self.registry.get_template(command_name)
         if not command:
-            raise ValueError(f"Unknown command: /{command_name}")
+            raise ValueError(f"Unknown template command: /{command_name}")
         return command.expand(args)
 
     def execute(self, input_str: str) -> str | None:
-        """Parse and expand a command string.
+        """Parse and expand a template command string.
+
+        For backwards compatibility. Use resolve() for full command info.
 
         Args:
             input_str: Input string that may be a command
 
         Returns:
-            Expanded command content or None if not a command
+            Expanded command content or None if not a command/is builtin
 
         Raises:
             ValueError: If command not found
@@ -71,7 +97,52 @@ class CommandExecutor:
             return None
 
         command_name, args = parsed
+
+        # Skip built-ins (they don't expand)
+        if self.registry.is_builtin(command_name):
+            return None
+
         return self.expand(command_name, args)
+
+    def resolve(self, input_str: str) -> CommandResult | None:
+        """Resolve a command to its full details.
+
+        Args:
+            input_str: Input string that may be a command
+
+        Returns:
+            CommandResult with type and details, or None if not a command
+
+        Raises:
+            ValueError: If command not found
+        """
+        parsed = self.parse(input_str)
+        if not parsed:
+            return None
+
+        command_name, args = parsed
+        command = self.registry.get(command_name)
+
+        if not command:
+            raise ValueError(f"Unknown command: /{command_name}")
+
+        if isinstance(command, BuiltinCommand):
+            return CommandResult(
+                command_type=CommandType.BUILTIN,
+                command_name=command.name,
+                args=args,
+                handler=command.handler,
+                exits=command.exits,
+            )
+        elif isinstance(command, Command):
+            return CommandResult(
+                command_type=CommandType.TEMPLATE,
+                command_name=command.name,
+                args=args,
+                expanded=command.expand(args),
+            )
+
+        return None
 
     def is_command(self, input_str: str) -> bool:
         """Check if input is a slash command.
@@ -83,3 +154,17 @@ class CommandExecutor:
             True if input starts with /
         """
         return input_str.strip().startswith("/")
+
+    def is_builtin(self, input_str: str) -> bool:
+        """Check if input is a built-in command.
+
+        Args:
+            input_str: Input to check
+
+        Returns:
+            True if input is a built-in command
+        """
+        parsed = self.parse(input_str)
+        if not parsed:
+            return False
+        return self.registry.is_builtin(parsed[0])

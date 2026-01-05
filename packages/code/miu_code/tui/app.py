@@ -11,12 +11,15 @@ from textual.containers import Horizontal, VerticalScroll
 from textual.widgets import Static
 
 from miu_code.agent.coding import CodingAgent
+from miu_code.commands import get_default_commands
 from miu_code.tui.widgets.approval import ApprovalApp
 from miu_code.tui.widgets.banner import WelcomeBanner
 from miu_code.tui.widgets.chat import ChatLog
 from miu_code.tui.widgets.chat_input import ChatInputContainer
+from miu_code.tui.widgets.help_modal import HelpModal
 from miu_code.tui.widgets.loading import LoadingSpinner
 from miu_code.tui.widgets.messages import BashOutputMessage
+from miu_core.commands import CommandExecutor, CommandType
 from miu_core.config import MiuConfig
 from miu_core.models import (
     MessageStopEvent,
@@ -75,8 +78,12 @@ class MiuCodeApp(App[None]):
 
         # Approval state
         self._pending_approval: asyncio.Future[tuple[bool, str | None]] | None = None
-        self._current_bottom_app: str = "input"  # "input" or "approval"
+        self._current_bottom_app: str = "input"  # "input", "approval", or "help"
         self._tools_always_approved: set[str] = set()
+
+        # Command system
+        self._command_registry = get_default_commands()
+        self._command_executor = CommandExecutor(self._command_registry)
 
     def _format_path(self, path: str) -> str:
         """Format path for display (shorten home dir)."""
@@ -414,7 +421,63 @@ class MiuCodeApp(App[None]):
     async def _handle_command(self, command: str) -> None:
         """Handle slash commands."""
         chat = self.query_one("#messages", ChatLog)
-        chat.add_system_message(f"Command not implemented: {command}")
+
+        try:
+            result = self._command_executor.resolve(command)
+            if not result:
+                chat.add_system_message(f"Invalid command: {command}")
+                return
+
+            if result.command_type == CommandType.BUILTIN:
+                # Handle built-in commands
+                if result.handler == "_show_help":
+                    await self._show_help()
+                elif result.handler == "_show_model_selector":
+                    chat.add_system_message("/model command - coming soon")
+                elif result.handler == "_clear_history":
+                    self._clear_history()
+                elif result.handler == "_exit_app":
+                    self.exit()
+                else:
+                    chat.add_system_message(f"Unknown handler: {result.handler}")
+            elif result.command_type == CommandType.TEMPLATE:
+                # Template commands expand to prompts for LLM
+                if result.expanded:
+                    self.run_worker(self._handle_user_message(result.expanded), exclusive=False)
+
+        except ValueError as e:
+            chat.add_error(str(e))
+
+    async def _show_help(self) -> None:
+        """Show help modal overlay."""
+        await self._switch_to_help_modal()
+
+    def _clear_history(self) -> None:
+        """Clear conversation history."""
+        chat = self.query_one("#messages", ChatLog)
+        chat.clear()
+        if self._agent:
+            self._agent.clear_history()
+        chat.add_system_message("Conversation cleared")
+
+    async def _switch_to_help_modal(self) -> None:
+        """Switch bottom area to help modal."""
+        bottom_container = self.query_one("#bottom-app-container", Static)
+
+        # Remove existing widgets
+        for child in list(bottom_container.children):
+            await child.remove()
+
+        # Mount help modal
+        help_modal = HelpModal(registry=self._command_registry)
+        await bottom_container.mount(help_modal)
+        self._current_bottom_app = "help"
+        self.call_after_refresh(help_modal.focus)
+        self._scroll_to_bottom()
+
+    async def on_help_modal_closed(self, event: HelpModal.Closed) -> None:
+        """Handle help modal close."""
+        await self._switch_to_input_app()
 
     async def _handle_user_message(self, query: str) -> None:
         """Handle regular user message with streaming."""

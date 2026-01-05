@@ -9,7 +9,8 @@ from rich.markdown import Markdown
 
 from miu_code.agent.coding import CodingAgent
 from miu_code.commands import get_default_commands
-from miu_core.commands import CommandExecutor
+from miu_code.tui.widgets.help_modal import generate_help_markdown
+from miu_core.commands import CommandExecutor, CommandType
 
 console = Console()
 
@@ -74,24 +75,42 @@ async def cli(
             console.print(Markdown(text))
     else:
         console.print("[bold blue]miu[/] - AI coding agent")
-        console.print("Commands: /cook, /commit, /plan, /exit, /quit\n")
+        console.print("Commands: /help, /cook, /commit, /plan, /exit\n")
 
         while True:
             try:
                 user_input = await click.prompt("miu", prompt_suffix="> ")
                 stripped = user_input.strip()
 
-                if stripped in ("/exit", "/quit"):
-                    break
                 if not stripped:
                     continue
 
                 # Handle slash commands
                 if stripped.startswith("/"):
                     try:
-                        expanded = executor.execute(stripped)
-                        if expanded:
-                            user_input = expanded
+                        result = executor.resolve(stripped)
+                        if not result:
+                            console.print(f"[red]Invalid command: {stripped}[/]")
+                            continue
+
+                        if result.command_type == CommandType.BUILTIN:
+                            # Handle built-in commands
+                            if result.handler == "_show_help":
+                                help_text = generate_help_markdown(registry)
+                                console.print(Markdown(help_text))
+                            elif result.handler == "_show_model_selector":
+                                console.print("[yellow]/model command - coming soon[/]")
+                            elif result.handler == "_clear_history":
+                                agent.clear_history()
+                                console.print("[dim]Conversation cleared[/]")
+                            elif result.handler == "_exit_app":
+                                break
+                            continue
+                        elif result.command_type == CommandType.TEMPLATE:
+                            # Template commands expand to prompts
+                            if result.expanded:
+                                user_input = result.expanded
+
                     except ValueError as e:
                         console.print(f"[red]{e}[/]")
                         continue

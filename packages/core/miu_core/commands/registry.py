@@ -3,25 +3,84 @@
 from collections.abc import Iterator
 from pathlib import Path
 
+from miu_core.commands.builtins import BuiltinCommand, get_default_builtins
 from miu_core.commands.schema import Command, parse_command_file
 
 
 class CommandRegistry:
-    """Registry for managing slash commands."""
+    """Registry for managing slash commands.
 
-    def __init__(self) -> None:
+    Supports two types of commands:
+    - Template commands: Expand to prompts sent to LLM
+    - Built-in commands: Execute handlers directly
+    """
+
+    def __init__(self, load_builtins: bool = True) -> None:
         self._commands: dict[str, Command] = {}
+        self._builtins: dict[str, BuiltinCommand] = {}
+        self._alias_map: dict[str, str] = {}  # Maps alias -> command name
+
+        if load_builtins:
+            for builtin in get_default_builtins():
+                self.register_builtin(builtin)
 
     def register(self, command: Command) -> None:
-        """Register a command.
+        """Register a template command.
 
         Args:
             command: Command to register
         """
         self._commands[command.name] = command
 
-    def get(self, name: str) -> Command | None:
-        """Get a command by name.
+    def register_builtin(self, command: BuiltinCommand) -> None:
+        """Register a built-in command.
+
+        Args:
+            command: BuiltinCommand to register
+        """
+        self._builtins[command.name] = command
+        # Map all aliases to this command
+        for alias in command.aliases:
+            # Strip leading / if present
+            clean_alias = alias.lstrip("/")
+            self._alias_map[clean_alias] = command.name
+
+    def get(self, name: str) -> Command | BuiltinCommand | None:
+        """Get a command by name (template or built-in).
+
+        Args:
+            name: Command name (without leading /)
+
+        Returns:
+            Command or BuiltinCommand if found, None otherwise
+        """
+        # Check alias map first for built-ins
+        if name in self._alias_map:
+            builtin_name = self._alias_map[name]
+            return self._builtins.get(builtin_name)
+
+        # Check built-ins by name
+        if name in self._builtins:
+            return self._builtins[name]
+
+        # Fall back to template commands
+        return self._commands.get(name)
+
+    def get_builtin(self, name: str) -> BuiltinCommand | None:
+        """Get a built-in command by name or alias.
+
+        Args:
+            name: Command name or alias (without leading /)
+
+        Returns:
+            BuiltinCommand if found, None otherwise
+        """
+        if name in self._alias_map:
+            return self._builtins.get(self._alias_map[name])
+        return self._builtins.get(name)
+
+    def get_template(self, name: str) -> Command | None:
+        """Get a template command by name.
 
         Args:
             name: Command name (without leading /)
@@ -30,6 +89,17 @@ class CommandRegistry:
             Command if found, None otherwise
         """
         return self._commands.get(name)
+
+    def is_builtin(self, name: str) -> bool:
+        """Check if command is a built-in.
+
+        Args:
+            name: Command name (without leading /)
+
+        Returns:
+            True if built-in command
+        """
+        return name in self._builtins or name in self._alias_map
 
     def load_from_file(self, path: Path) -> Command | None:
         """Load a command from a markdown file.
@@ -75,18 +145,35 @@ class CommandRegistry:
         return count
 
     def list_commands(self) -> list[Command]:
-        """Get all registered commands.
+        """Get all registered template commands.
 
         Returns:
-            List of all commands
+            List of all template commands
         """
         return list(self._commands.values())
 
-    def __len__(self) -> int:
-        return len(self._commands)
+    def list_builtins(self) -> list[BuiltinCommand]:
+        """Get all registered built-in commands.
 
-    def __iter__(self) -> Iterator[Command]:
-        return iter(self._commands.values())
+        Returns:
+            List of all built-in commands
+        """
+        return list(self._builtins.values())
+
+    def list_all(self) -> list[Command | BuiltinCommand]:
+        """Get all registered commands (both types).
+
+        Returns:
+            List of all commands (built-ins first, then templates)
+        """
+        return list(self._builtins.values()) + list(self._commands.values())
+
+    def __len__(self) -> int:
+        return len(self._commands) + len(self._builtins)
+
+    def __iter__(self) -> Iterator[Command | BuiltinCommand]:
+        yield from self._builtins.values()
+        yield from self._commands.values()
 
     def __contains__(self, name: str) -> bool:
-        return name in self._commands
+        return name in self._commands or name in self._builtins or name in self._alias_map

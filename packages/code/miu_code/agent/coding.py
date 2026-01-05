@@ -80,3 +80,8 @@ class CodingAgent:
             List of registered tools
         """
         return list(self.tools)
+
+    def clear_history(self) -> None:
+        """Clear conversation history and session."""
+        self._agent.memory.clear()
+        self.session.clear()
