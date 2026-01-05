@@ -74,6 +74,7 @@ miu --model anthropic:claude-opus-4-20250805 -q "summarize README.md"
 pip install "miu-core[anthropic]"
 pip install "miu-core[google]"
 pip install "miu-core[openai]"
+pip install "miu-core[zai]"
 
 # All providers
 pip install "miu-core[all]"
@@ -84,7 +85,7 @@ pip install "miu-mono[all]"
 
 ## Features
 
-- **Multi-Provider Support:** Anthropic Claude, Google Gemini, OpenAI GPT
+- **Multi-Provider Support:** Anthropic Claude, Google Gemini, OpenAI GPT, Z.AI
 - **ReAct Agent:** Reasoning and acting loop with tool execution
 - **Rich Tool System:** File operations, code execution, web search
 - **Multiple Interfaces:** CLI, TUI (Textual), Web UI (FastAPI)
@@ -105,6 +106,9 @@ export GOOGLE_API_KEY="..."
 
 # OpenAI
 export OPENAI_API_KEY="sk-..."
+
+# Z.AI
+export ZAI_API_KEY="..."
 ```
 
 ## Development

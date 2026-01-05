@@ -266,7 +266,10 @@ miu_core/
 ├── providers/            # LLM provider integrations
 │   ├── __init__.py
 │   ├── converters.py     # Shared conversion utilities (Phase 04)
-│   └── anthropic.py
+│   ├── anthropic.py
+│   ├── google.py
+│   ├── openai.py
+│   └── zai.py
 ├── session/              # Session storage abstraction (Phase 04)
 │   ├── __init__.py
 │   ├── base.py           # Abstract base class

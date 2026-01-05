@@ -996,7 +996,7 @@ wheels = [
 
 [[package]]
 name = "miu-code"
-version = "1.0.1"
+version = "1.0.2"
 source = { editable = "packages/code" }
 dependencies = [
     { name = "asyncclick" },
@@ -1017,7 +1017,7 @@ requires-dist = [
 
 [[package]]
 name = "miu-core"
-version = "1.0.0"
+version = "1.0.1"
 source = { editable = "packages/core" }
 dependencies = [
     { name = "aiofiles" },
@@ -1035,6 +1035,7 @@ all = [
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "opentelemetry-sdk" },
+    { name = "zai-sdk" },
 ]
 anthropic = [
     { name = "anthropic" },
@@ -1053,6 +1054,9 @@ tracing = [
     { name = "opentelemetry-exporter-otlp" },
     { name = "opentelemetry-sdk" },
 ]
+zai = [
+    { name = "zai-sdk" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -1061,15 +1065,16 @@ requires-dist = [
     { name = "google-genai", marker = "extra == 'google'", specifier = ">=0.8" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
-    { name = "miu-core", extras = ["anthropic", "openai", "google", "mcp", "tracing"], marker = "extra == 'all'", editable = "packages/core" },
+    { name = "miu-core", extras = ["anthropic", "openai", "google", "zai", "mcp", "tracing"], marker = "extra == 'all'", editable = "packages/core" },
     { name = "openai", marker = "extra == 'openai'", specifier = ">=1.50" },
     { name = "opentelemetry-api", marker = "extra == 'tracing'", specifier = ">=1.28" },
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'tracing'", specifier = ">=1.28" },
     { name = "opentelemetry-sdk", marker = "extra == 'tracing'", specifier = ">=1.28" },
     { name = "packaging", specifier = ">=24.0" },
     { name = "pydantic", specifier = ">=2.0" },
+    { name = "zai-sdk", marker = "extra == 'zai'", specifier = ">=0.1" },
 ]
-provides-extras = ["anthropic", "openai", "google", "mcp", "tracing", "all"]
+provides-extras = ["anthropic", "openai", "google", "zai", "mcp", "tracing", "all"]
 
 [[package]]
 name = "miu-examples"
@@ -1126,7 +1131,7 @@ provides-extras = ["examples", "studio", "all"]
 
 [[package]]
 name = "miu-studio"
-version = "1.0.0"
+version = "1.0.1"
 source = { editable = "packages/studio" }
 dependencies = [
     { name = "aiofiles" },
@@ -2499,6 +2504,22 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/01/3a/07cd60a9d26fe73efead61c7830af975dfdba8537632d410462672e4432b/wrapt-2.0.1-cp314-cp314t-win_amd64.whl", hash = "sha256:61c4956171c7434634401db448371277d07032a81cc21c599c22953374781395", size = 64038, upload-time = "2025-11-07T00:45:00.948Z" },
     { url = "https://files.pythonhosted.org/packages/41/99/8a06b8e17dddbf321325ae4eb12465804120f699cd1b8a355718300c62da/wrapt-2.0.1-cp314-cp314t-win_arm64.whl", hash = "sha256:35cdbd478607036fee40273be8ed54a451f5f23121bd9d4be515158f9498f7ad", size = 60634, upload-time = "2025-11-07T00:45:02.087Z" },
     { url = "https://files.pythonhosted.org/packages/15/d1/b51471c11592ff9c012bd3e2f7334a6ff2f42a7aed2caffcf0bdddc9cb89/wrapt-2.0.1-py3-none-any.whl", hash = "sha256:4d2ce1bf1a48c5277d7969259232b57645aae5686dba1eaeade39442277afbca", size = 44046, upload-time = "2025-11-07T00:45:32.116Z" },
+]
+
+[[package]]
+name = "zai-sdk"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "pyjwt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1c/7a/14ad9c91f644f2dc7435c4d6c1b6ef2c5a56c62bbaec453cf319bfd82370/zai_sdk-0.2.0.tar.gz", hash = "sha256:a7a4dbf387cd8facf158d775429ff00738f08ba9ea91b4ae5f7553c4c099d74d", size = 74403, upload-time = "2025-12-22T14:08:03.987Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/cd/f102f02b36fd6e7f5abbdda47e215b182b11e48c365440c3af0b957401fd/zai_sdk-0.2.0-py3-none-any.whl", hash = "sha256:808e31f184f1ab2f58dae5cb3f45f3bad95960ac44f21963c648bac8fa11d4fd", size = 122214, upload-time = "2025-12-22T14:08:02.934Z" },
 ]
 
 [[package]]

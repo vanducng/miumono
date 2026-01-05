@@ -12,6 +12,7 @@ def create_provider(spec: str) -> LLMProvider:
         - anthropic:claude-sonnet-4-20250514
         - openai:gpt-4o
         - google:gemini-2.0-flash
+        - zai:glm-4.7
 
     If no model specified, uses provider default.
     """
@@ -33,6 +34,10 @@ def create_provider(spec: str) -> LLMProvider:
         from miu_core.providers.google import GoogleProvider
 
         return GoogleProvider(model=model) if model else GoogleProvider()
+    elif provider_name == "zai":
+        from miu_core.providers.zai import ZaiProvider
+
+        return ZaiProvider(model=model) if model else ZaiProvider()
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
 
@@ -51,4 +56,8 @@ def __getattr__(name: str) -> type:
         from miu_core.providers.google import GoogleProvider
 
         return GoogleProvider
+    if name == "ZaiProvider":
+        from miu_core.providers.zai import ZaiProvider
+
+        return ZaiProvider
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

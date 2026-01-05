@@ -138,6 +138,7 @@ class ToolRegistry:
 - **AnthropicProvider:** Anthropic Claude implementation
 - **OpenAIProvider:** OpenAI GPT implementation
 - **GoogleProvider:** Google Gemini implementation
+- **ZaiProvider:** Z.AI implementation
 
 **Provider Interface:**
 ```python

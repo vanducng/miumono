@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-Miumono is a Python-based AI agent framework designed to simplify building AI-powered coding assistants. It provides a modular, extensible architecture for integrating multiple LLM providers (Anthropic Claude, OpenAI, Google Gemini) with code manipulation tools, enabling developers to create intelligent agents that can read, modify, and execute code.
+Miumono is a Python-based AI agent framework designed to simplify building AI-powered coding assistants. It provides a modular, extensible architecture for integrating multiple LLM providers (Anthropic Claude, OpenAI, Google Gemini, Z.AI) with code manipulation tools, enabling developers to create intelligent agents that can read, modify, and execute code.
 
 ## Vision & Goals
 
@@ -26,12 +26,12 @@ Enable developers to build production-grade AI agents that understand code and c
 ### Functional Requirements
 
 #### FR-1: Multi-Provider LLM Support
-- **Requirement:** Framework must support Anthropic Claude, OpenAI, and Google Gemini
+- **Requirement:** Framework must support Anthropic Claude, OpenAI, Google Gemini, and Z.AI
 - **Acceptance Criteria:**
-  - All three providers have working implementations
+  - All four providers have working implementations
   - Unified interface abstracts provider differences
   - Easy provider switching via configuration
-- **Status:** Core implemented, CLI integration in progress
+- **Status:** All providers implemented, testing verified
 
 #### FR-2: Core Tool Ecosystem
 - **Requirement:** Provide foundational tools for agent operations

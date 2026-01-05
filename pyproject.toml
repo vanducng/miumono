@@ -64,7 +64,7 @@ mypy_path = "packages/core:packages/code:packages/studio:packages/miu"
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]
-module = ["anthropic.*", "openai.*", "google.*", "textual.*", "mcp.*", "asyncclick.*", "rich.*", "uvicorn.*", "pydantic_settings.*", "fastapi.*", "websockets.*", "opentelemetry.*"]
+module = ["anthropic.*", "openai.*", "google.*", "zai.*", "textual.*", "mcp.*", "asyncclick.*", "rich.*", "uvicorn.*", "pydantic_settings.*", "fastapi.*", "websockets.*", "opentelemetry.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
