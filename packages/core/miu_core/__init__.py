@@ -7,6 +7,7 @@ __version__ = get_version()
 # Lazy imports to avoid circular dependencies
 __all__ = [
     "AgentMode",
+    "MiuConfig",
     "MiuPaths",
     "ModeConfig",
     "ModeManager",
@@ -17,6 +18,7 @@ __all__ = [
     "PipelineConfig",
     "Router",
     "RouterConfig",
+    "StatusBarConfig",
     "UsageStats",
     "UsageTracker",
     "__version__",
@@ -52,5 +54,10 @@ def __getattr__(name: str) -> object:
         from miu_core.paths import MiuPaths
 
         return MiuPaths
+
+    if name in ("MiuConfig", "StatusBarConfig"):
+        from miu_core import config
+
+        return getattr(config, name)
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

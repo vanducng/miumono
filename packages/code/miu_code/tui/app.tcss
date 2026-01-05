@@ -1,9 +1,9 @@
 /* Miu Code TUI Styles - Vibe Inspired Layout */
 
-/* Miu brand color variables */
-$miu-primary: #1ABC9C;
-$miu-light: #48C9B0;
-$miu-secondary: #16A085;
+/* Miu brand color variables - violet theme */
+$miu-primary: #8B5CF6;
+$miu-light: #A78BFA;
+$miu-secondary: #7C3AED;
 
 Screen {
     background: $surface;
@@ -128,7 +128,7 @@ Footer {
     layout: horizontal;
 }
 
-/* Path display - left side */
+/* Status bar element displays */
 #path-display {
     width: auto;
     height: auto;
@@ -136,18 +136,32 @@ Footer {
     padding: 0;
 }
 
-/* Spacer - fills middle */
-#spacer {
-    width: 1fr;
+#model-display {
+    width: auto;
     height: auto;
+    color: $miu-light;
+    padding: 0;
 }
 
-/* Token display - far right */
-#token-display {
+#tokens-display {
     width: auto;
     height: auto;
     color: $miu-primary;
     padding: 0;
+}
+
+/* Status bar separator */
+.status-separator {
+    width: auto;
+    height: auto;
+    color: $text-muted;
+    padding: 0;
+}
+
+/* Spacer - fills remaining space (push elements to edges) */
+.spacer {
+    width: 1fr;
+    height: auto;
 }
 
 /* Message styling classes */

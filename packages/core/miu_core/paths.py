@@ -116,3 +116,8 @@ class MiuPaths:
     def history(self) -> Path:
         """Command history file path."""
         return self.code / "history"
+
+    @property
+    def config(self) -> Path:
+        """Main configuration file path (~/.miu/config.toml)."""
+        return self._base_dir / "config.toml"

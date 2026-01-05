@@ -17,6 +17,7 @@ from miu_code.tui.widgets.chat import ChatLog
 from miu_code.tui.widgets.chat_input import ChatInputContainer
 from miu_code.tui.widgets.loading import LoadingSpinner
 from miu_code.tui.widgets.messages import BashOutputMessage
+from miu_core.config import MiuConfig
 from miu_core.models import (
     MessageStopEvent,
     TextDeltaEvent,
@@ -61,6 +62,9 @@ class MiuCodeApp(App[None]):
         self._interrupt_requested = False
         self._agent_task: asyncio.Task[None] | None = None
 
+        # Load configuration
+        self._config = MiuConfig.load()
+
         # State managers
         self._mode_manager = ModeManager()
         self._usage_tracker = UsageTracker()
@@ -80,6 +84,32 @@ class MiuCodeApp(App[None]):
         if path.startswith(home):
             return "~" + path[len(home) :]
         return path
+
+    def _format_model(self) -> str:
+        """Format model name based on config."""
+        if self._config.statusbar.model_format == "full":
+            return self.model
+        # Short format: extract model name after provider prefix
+        return self.model.split(":")[-1] if ":" in self.model else self.model
+
+    def _build_status_bar_content(self) -> list[tuple[str, str]]:
+        """Build status bar content based on config.
+
+        Returns:
+            List of (element_id, content) tuples in display order.
+        """
+        sb = self._config.statusbar
+        elements: list[tuple[str, str]] = []
+
+        for elem in sb.elements:
+            if elem == "path" and sb.show_path:
+                elements.append(("path", self._format_path(self._working_dir)))
+            elif elem == "model" and sb.show_model:
+                elements.append(("model", self._format_model()))
+            elif elem == "tokens" and sb.show_tokens:
+                elements.append(("tokens", self._usage_tracker.format_usage()))
+
+        return elements
 
     def _is_scrolled_to_bottom(self, scroll_view: VerticalScroll) -> bool:
         """Check if scroll view is at bottom (with threshold)."""
@@ -163,11 +193,16 @@ class MiuCodeApp(App[None]):
                 id="input-container",
             )
 
-        # Bottom bar: path left, spacer, tokens right
+        # Bottom bar: configurable elements with separator
         with Horizontal(id="bottom-bar"):
-            yield Static(self._format_path(self._working_dir), id="path-display")
-            yield Static("", id="spacer")
-            yield Static(self._usage_tracker.format_usage(), id="token-display")
+            elements = self._build_status_bar_content()
+            sep = self._config.statusbar.separator
+
+            for i, (elem_id, content) in enumerate(elements):
+                # Add separator between elements (not before first)
+                if i > 0:
+                    yield Static(sep, classes="status-separator")
+                yield Static(content, id=f"{elem_id}-display")
 
     def on_mount(self) -> None:
         """Initialize agent on mount."""
@@ -193,8 +228,11 @@ class MiuCodeApp(App[None]):
 
     def _update_status_usage(self) -> None:
         """Update token display in bottom bar."""
-        token_display = self.query_one("#token-display", Static)
-        token_display.update(self._usage_tracker.format_usage())
+        try:
+            token_display = self.query_one("#tokens-display", Static)
+            token_display.update(self._usage_tracker.format_usage())
+        except Exception:
+            pass  # Element might not exist if hidden in config
 
     def _update_mode_indicator(self) -> None:
         """Update mode indicator and input border in bottom bar."""
