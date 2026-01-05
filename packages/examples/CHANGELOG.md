@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-examples-v1.0.0...miu-examples-v1.0.1) (2026-01-05)
+
+
+### Bug Fixes
+
+* **tools:** handle missing args gracefully and fix streaming input ([4cefb2a](https://github.com/vanducng/miu-mono/commit/4cefb2a65d50aba7600f0d7ddd012db7274302be))
+
 ## [1.0.0](https://github.com/vanducng/miu-mono/compare/miu-examples-v0.2.0...miu-examples-v1.0.0) (2025-12-31)
 
 
