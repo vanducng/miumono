@@ -19,7 +19,7 @@ console = Console()
 @click.option(
     "--model",
     "-m",
-    default="anthropic:claude-sonnet-4-20250514",
+    default="zai:glm-4.7",
     help="Model to use (provider:model, e.g. openai:gpt-4o, google:gemini-2.0-flash)",
 )
 @click.option("--session", "-s", default=None, help="Session ID for persistence")
@@ -113,7 +113,7 @@ async def code(ctx: click.Context) -> None:
     """Launch interactive TUI mode."""
     from miu_code.tui.app import MiuCodeApp
 
-    model = ctx.obj.get("model", "anthropic:claude-sonnet-4-20250514")
+    model = ctx.obj.get("model", "zai:glm-4.7")
     session = ctx.obj.get("session")
 
     app = MiuCodeApp(model=model, session_id=session)

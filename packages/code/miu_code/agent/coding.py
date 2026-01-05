@@ -26,7 +26,7 @@ class CodingAgent:
 
     def __init__(
         self,
-        model: str = "anthropic:claude-sonnet-4-20250514",
+        model: str = "zai:glm-4.7",
         working_dir: str = ".",
         session_id: str | None = None,
     ) -> None:

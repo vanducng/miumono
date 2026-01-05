@@ -15,7 +15,7 @@ class ACPServer:
     with the miu agent over stdio using JSON-RPC style messages.
     """
 
-    def __init__(self, model: str = "anthropic:claude-sonnet-4-20250514") -> None:
+    def __init__(self, model: str = "zai:glm-4.7") -> None:
         """Initialize ACP server.
 
         Args:
@@ -134,7 +134,7 @@ class ACPServer:
         print(json.dumps(response), flush=True)
 
 
-async def run_acp_server(model: str = "anthropic:claude-sonnet-4-20250514") -> None:
+async def run_acp_server(model: str = "zai:glm-4.7") -> None:
     """Run the ACP server.
 
     Args:

@@ -51,7 +51,7 @@ class MiuCodeApp(App[None]):
 
     def __init__(
         self,
-        model: str = "anthropic:claude-sonnet-4-20250514",
+        model: str = "zai:glm-4.7",
         session_id: str | None = None,
     ) -> None:
         super().__init__()
@@ -547,7 +547,7 @@ class MiuCodeApp(App[None]):
         chat.clear()
 
 
-def run(model: str = "anthropic:claude-sonnet-4-20250514") -> None:
+def run(model: str = "zai:glm-4.7") -> None:
     """Run the TUI application."""
     app = MiuCodeApp(model=model)
     app.run()
