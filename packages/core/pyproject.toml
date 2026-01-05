@@ -1,6 +1,6 @@
 [project]
 name = "miu-core"
-version = "1.0.1"
+version = "1.1.0"
 description = "Core framework library for miu AI agent"
 readme = "README.md"
 requires-python = ">=3.11"

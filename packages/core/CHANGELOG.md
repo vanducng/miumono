@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/vanducng/miu-mono/compare/miu-core-v1.0.1...miu-core-v1.1.0) (2026-01-05)
+
+
+### Features
+
+* **commands:** implement built-in commands and /help command ([11fab05](https://github.com/vanducng/miu-mono/commit/11fab05ac347e0d77d0d1a5c28d47dc00ab2b45d))
+* **core:** add Z.AI provider support with zai-sdk ([fecb628](https://github.com/vanducng/miu-mono/commit/fecb628dcdb657dfcb2f5fcf57014c036d44c354))
+* **tui:** add configurable status bar with model name display ([81113c6](https://github.com/vanducng/miu-mono/commit/81113c6891b663beb8159d71879782c1366aed95))
+* **zai:** add native streaming support ([fbf3fa5](https://github.com/vanducng/miu-mono/commit/fbf3fa5b6c857e4fd9ac7ad13b78f87e3237d226))
+
+
+### Bug Fixes
+
+* **core:** use ZhipuAI coding endpoint for zai provider ([a1ede74](https://github.com/vanducng/miu-mono/commit/a1ede74da5be070d2fde959bb671eccab9c2e50b))
+* **tools:** handle missing args gracefully and fix streaming input ([4cefb2a](https://github.com/vanducng/miu-mono/commit/4cefb2a65d50aba7600f0d7ddd012db7274302be))
+* **zai:** add tool call support to streaming ([a41881e](https://github.com/vanducng/miu-mono/commit/a41881e687bae0cb4d7857e15fc8db43c21f15ba))
+
 ## [1.0.1](https://github.com/vanducng/miu-mono/compare/miu-core-v1.0.0...miu-core-v1.0.1) (2026-01-01)
 
 
