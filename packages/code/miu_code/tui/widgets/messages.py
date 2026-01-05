@@ -123,7 +123,8 @@ class AssistantMessage(Static):
         with Horizontal(classes="assistant-message-container"):
             yield NonSelectableStatic("● ", classes="assistant-message-dot")
             with Vertical(classes="assistant-message-content"):
-                self._markdown = Markdown("")
+                # Initialize with any content passed to constructor
+                self._markdown = Markdown(self._content)
                 yield self._markdown
 
     def on_resize(self) -> None:
