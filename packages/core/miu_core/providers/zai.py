@@ -1,7 +1,15 @@
-"""Z.AI provider using zai-sdk."""
+"""ZhipuAI (智谱AI) provider using zai-sdk.
+
+Supports two API endpoints:
+- Coding Plan: https://open.bigmodel.cn/api/coding/paas/v4 (default)
+- Standard API: https://open.bigmodel.cn/api/paas/v4
+
+Set ZAI_BASE_URL env var to switch endpoints.
+"""
 
 import asyncio
 import json
+import os
 from typing import Any
 
 from miu_core.models import (
@@ -18,19 +26,28 @@ from miu_core.providers.converters import (
 )
 
 try:
-    from zai import ZaiClient
+    from zai import ZhipuAiClient
 except ImportError as e:
     raise ImportError("zai-sdk package required. Install with: uv add miu-core[zai]") from e
 
+# API endpoints
+ZAI_CODING_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
+ZAI_STANDARD_URL = "https://open.bigmodel.cn/api/paas/v4"
+
 
 class ZaiProvider(LLMProvider):
-    """Z.AI LLM provider using zai-sdk."""
+    """ZhipuAI (智谱AI) LLM provider using zai-sdk.
+
+    Uses ZAI_BASE_URL env var if set, otherwise defaults to coding plan endpoint.
+    """
 
     name = "zai"
 
     def __init__(self, model: str = "glm-4.7") -> None:
         self.model = model
-        self._client = ZaiClient()  # Uses ZAI_API_KEY env var
+        # Use ZAI_BASE_URL if set, otherwise default to coding plan
+        base_url = os.environ.get("ZAI_BASE_URL", ZAI_CODING_URL)
+        self._client = ZhipuAiClient(base_url=base_url)
 
     async def complete(
         self,

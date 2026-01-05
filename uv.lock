@@ -1171,6 +1171,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "types-aiofiles" },
+    { name = "zai-sdk" },
 ]
 
 [package.metadata]
@@ -1187,6 +1188,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=5.0" },
     { name = "ruff", specifier = ">=0.8" },
     { name = "types-aiofiles", specifier = ">=25.1.0.20251011" },
+    { name = "zai-sdk", specifier = ">=0.2.0" },
 ]
 
 [[package]]

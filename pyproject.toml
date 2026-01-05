@@ -29,6 +29,7 @@ dev = [
     "miu-core[anthropic]",
     "miu-code",
     "miu-studio",
+    "zai-sdk>=0.2.0",
 ]
 
 # ========================================
