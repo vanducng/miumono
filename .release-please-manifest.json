@@ -1,7 +1,7 @@
 {
   "packages/core": "1.0.1",
   "packages/code": "1.0.2",
-  "packages/examples": "1.0.0",
+  "packages/examples": "1.0.1",
   "packages/studio": "1.0.1",
   "packages/miu": "2.0.0"
 }
